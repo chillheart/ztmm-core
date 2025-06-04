@@ -30,37 +30,6 @@ A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built wi
 - **Database**: SQLite with better-sqlite3
 - **Styling**: SCSS with responsive design
 
-## 📦 Installation
-
-### Prerequisites
-- Node.js (v18 or higher)
-- npm (v9 or higher)
-
-### Setup
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd ztmm-assessment
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Rebuild native dependencies for Electron:
-   ```bash
-   npm run electron:rebuild
-   ```
-
-## 🚀 Running the Application
-
-### Electron Desktop App
-Build and run as a desktop application:
-```bash
-npm run electron
-```
-
 ## 📖 Usage Guide
 
 ### 1. Configuration Setup
@@ -83,6 +52,47 @@ Access the Results section to:
 - View completed assessments
 - Analyze maturity scores
 - Export assessment data
+
+## 🔧 Development
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+
+### Setup
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd ztmm-assessment
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Rebuild native dependencies for Electron:
+   ```bash
+   npm run electron:rebuild
+   ```
+
+### Code Scaffolding
+Generate new components:
+```bash
+ng generate component component-name
+```
+## 🚀 Running the Application
+
+### Development Mode with Hot Reload
+For active development with automatic rebuilding and reloading:
+```bash
+npm run electron:dev
+```
+This command will:
+- Start the Angular development server with hot reload
+- Launch Electron app that loads from the dev server
+- Automatically reload when you make changes to Angular code
+- Open DevTools for debugging
 
 ## 🏗️ Project Structure
 
@@ -113,14 +123,6 @@ The application uses SQLite with the following tables:
 - `maturity_stages` - Maturity level definitions
 - `technologies_processes` - Technologies and processes
 - `assessment_responses` - Assessment results
-
-## 🔧 Development
-
-### Code Scaffolding
-Generate new components:
-```bash
-ng generate component component-name
-```
 
 ### Building for Production
 

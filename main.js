@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const Database = require('better-sqlite3');
+const isDev = require('electron-is-dev');
 
 let mainWindow;
 const db = new Database('ztmm.db');
@@ -64,7 +65,14 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadURL(`file://${__dirname}/dist/browser/index.html`); // Adjust this for build output
+  // Load from development server if in dev mode, otherwise load built files
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:4200');
+    // Open DevTools in development
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadURL(`file://${__dirname}/dist/browser/index.html`);
+  }
 }
 
 app.whenReady().then(() => {
