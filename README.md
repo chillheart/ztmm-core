@@ -8,7 +8,7 @@ A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built wi
 - **📊 Assessment Management**: Conduct maturity assessments against the Zero Trust framework
 - **🏗️ Configuration Management**: Define and manage Zero Trust pillars, functions/capabilities, and technologies/processes
 - **📈 Progress Tracking**: Visual progress indicators and completion tracking
-- **📋 Results Dashboard**: View and analyze assessment results with detailed reporting
+- **📋 Results Dashboard (WIP)** : View and analyze assessment results with detailed reporting
 
 ### User Interface
 - **🎨 Modern Bootstrap UI**: Clean, responsive design with Bootstrap 5
@@ -54,13 +54,6 @@ A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built wi
    ```
 
 ## 🚀 Running the Application
-
-### Development Mode
-Start the Angular development server:
-```bash
-npm start
-```
-The application will be available at `http://localhost:4200/`
 
 ### Electron Desktop App
 Build and run as a desktop application:
@@ -121,13 +114,6 @@ The application uses SQLite with the following tables:
 - `technologies_processes` - Technologies and processes
 - `assessment_responses` - Assessment results
 
-## 🧪 Testing
-
-Run unit tests:
-```bash
-npm test
-```
-
 ## 🔧 Development
 
 ### Code Scaffolding
@@ -137,15 +123,9 @@ ng generate component component-name
 ```
 
 ### Building for Production
-Build the Angular application:
-```bash
-ng build
-```
 
-Build Electron distributables:
-```bash
-npm run electron:postinstall
-```
+TODO: Create Production deployment process
+
 
 ## 📝 Contributing
 
@@ -165,7 +145,6 @@ For questions, issues, or feature requests, please create an issue in the reposi
 
 ## 🔄 Version History
 
-- **v1.0.0**: Initial release with core ZTMM assessment functionality
+- **v0.0.1**: Initial commit with core ZTMM assessment functionality
 - Configuration management with drag-and-drop reordering
 - Pillar-based assessment workflow with progress tracking
-- Modern Bootstrap UI with responsive design
