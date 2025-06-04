@@ -65,8 +65,14 @@ export class ResultsComponent {
     }
     this.technologiesProcesses = allTP;
 
-    // For demo: simulate fetching assessment responses (should be replaced with real fetch if available)
-    this.assessmentResponses = [];
+    // Load assessment responses
+    try {
+      this.assessmentResponses = await this.data.getAssessmentResponses();
+    } catch (error) {
+      console.error('Error loading assessment responses:', error);
+      this.assessmentResponses = [];
+    }
+
     this.results = this.buildResults();
   }
 
@@ -101,21 +107,167 @@ export class ResultsComponent {
     });
   }
 
+  getMaturityStageStatusClass(status: string): string {
+    switch (status) {
+      case 'green': return 'bg-success';
+      case 'yellow': return 'bg-warning';
+      case 'red': return 'bg-danger';
+      case 'not-assessed': return 'bg-secondary';
+      default: return 'bg-light';
+    }
+  }
+
+  getMaturityStageStatusText(status: string): string {
+    switch (status) {
+      case 'green': return 'Fully Implemented';
+      case 'yellow': return 'Partially Implemented';
+      case 'red': return 'Not Implemented';
+      case 'not-assessed': return 'Not Assessed';
+      default: return 'Unknown';
+    }
+  }
+
+  getMaturityStageStatusIcon(status: string): string {
+    switch (status) {
+      case 'green': return 'bi-check-circle-fill';
+      case 'yellow': return 'bi-exclamation-triangle-fill';
+      case 'red': return 'bi-x-circle-fill';
+      case 'not-assessed': return 'bi-question-circle-fill';
+      default: return 'bi-circle';
+    }
+  }
+
+  calculateFunctionMaturityStages(items: any[]) {
+    const stageResults: any[] = [];
+
+    // Group items by maturity stage for this function
+    for (const stage of this.maturityStages) {
+      const stageItems = items.filter(item => item.maturityStageName === stage.name);
+
+      if (stageItems.length === 0) {
+        continue; // Skip stages with no items for this function
+      }
+
+      // Calculate status based on assessment results for this stage within this function
+      const fullyImplementedCount = stageItems.filter(item => item.status === 'Fully Implemented').length;
+      const partiallyImplementedCount = stageItems.filter(item => item.status === 'Partially Implemented').length;
+      const notImplementedCount = stageItems.filter(item => item.status === 'Not Implemented').length;
+      const assessedCount = fullyImplementedCount + partiallyImplementedCount + notImplementedCount;
+
+      let status: 'green' | 'yellow' | 'red' | 'not-assessed';
+
+      if (assessedCount === 0) {
+        status = 'not-assessed';
+      } else if (fullyImplementedCount === stageItems.length) {
+        // All items in this stage are fully implemented - GREEN
+        status = 'green';
+      } else if (assessedCount === stageItems.length && notImplementedCount === stageItems.length) {
+        // All items are assessed but none implemented - RED
+        status = 'red';
+      } else {
+        // Some implementation (mix of partial, full, or not implemented) - YELLOW
+        status = 'yellow';
+      }
+
+      stageResults.push({
+        stage,
+        status,
+        assessedCount,
+        totalCount: stageItems.length,
+        completionPercentage: stageItems.length > 0 ? Math.round((assessedCount / stageItems.length) * 100) : 0
+      });
+    }
+
+    // Sort by maturity stage order
+    const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+    stageResults.sort((a, b) => stageOrder.indexOf(a.stage.name) - stageOrder.indexOf(b.stage.name));
+
+    return stageResults;
+  }
+
   get groupedResults() {
     const grouped: { [key: string]: any } = {};
 
     for (const result of this.results) {
-      const key = `${result.functionCapabilityName}-${result.pillarName}`;
-      if (!grouped[key]) {
-        grouped[key] = {
-          functionCapabilityName: result.functionCapabilityName,
+      const pillarKey = result.pillarName;
+      const functionKey = result.functionCapabilityName;
+
+      // Initialize pillar group if it doesn't exist
+      if (!grouped[pillarKey]) {
+        grouped[pillarKey] = {
           pillarName: result.pillarName,
+          functions: {},
+          totalItems: 0,
+          assessedItems: 0
+        };
+      }
+
+      // Initialize function group within pillar if it doesn't exist
+      if (!grouped[pillarKey].functions[functionKey]) {
+        grouped[pillarKey].functions[functionKey] = {
+          functionCapabilityName: result.functionCapabilityName,
+          functionCapabilityType: result.functionCapabilityType,
           items: []
         };
       }
-      grouped[key].items.push(result);
+
+      // Add the item to the function group
+      grouped[pillarKey].functions[functionKey].items.push(result);
+      grouped[pillarKey].totalItems++;
+      if (result.status !== 'Not Assessed') {
+        grouped[pillarKey].assessedItems++;
+      }
     }
 
-    return Object.values(grouped);
+    // Convert to array format and sort
+    const pillarArray = Object.keys(grouped).map(pillarName => {
+      const pillar = grouped[pillarName];
+
+      // Convert functions object to array and sort
+      const functionsArray = Object.keys(pillar.functions).map(functionName => {
+        const func = pillar.functions[functionName];
+
+        // Calculate maturity stage status for this function
+        const maturityStageStatus = this.calculateFunctionMaturityStages(func.items);
+
+        // Calculate assessment counts for this function
+        const assessedCount = func.items.filter((item: any) => item.status !== 'Not Assessed').length;
+        const totalItems = func.items.length;
+
+        // Sort items within each function by maturity stage and description
+        func.items.sort((a: any, b: any) => {
+          const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+          const stageComparison = stageOrder.indexOf(a.maturityStageName) - stageOrder.indexOf(b.maturityStageName);
+          if (stageComparison !== 0) {
+            return stageComparison;
+          }
+          return a.description.localeCompare(b.description);
+        });
+
+        return {
+          ...func,
+          maturityStageStatus,
+          assessedCount,
+          totalItems,
+          assessmentPercentage: totalItems > 0 ? Math.round((assessedCount / totalItems) * 100) : 0
+        };
+      });
+
+      // Sort functions alphabetically
+      functionsArray.sort((a: any, b: any) => a.functionCapabilityName.localeCompare(b.functionCapabilityName));
+
+      return {
+        pillarName: pillar.pillarName,
+        functions: functionsArray,
+        totalItems: pillar.totalItems,
+        assessedItems: pillar.assessedItems,
+        assessmentPercentage: pillar.totalItems > 0 ? Math.round((pillar.assessedItems / pillar.totalItems) * 100) : 0
+      };
+    });
+
+    // Sort pillars alphabetically
+    pillarArray.sort((a: any, b: any) => a.pillarName.localeCompare(b.pillarName));
+
+    return pillarArray;
   }
 }
