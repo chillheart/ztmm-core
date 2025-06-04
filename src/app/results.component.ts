@@ -26,16 +26,45 @@ export class ResultsComponent {
   }
 
   async loadAll() {
-    this.pillars = await this.data.getPillars();
-    this.functionCapabilities = await this.data.getFunctionCapabilities();
-    this.maturityStages = await this.data.getMaturityStages();
+    try {
+      this.pillars = await this.data.getPillars();
+    } catch (error) {
+      console.error('Error loading pillars:', error);
+      this.pillars = [];
+    }
+
+    try {
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+    } catch (error) {
+      console.error('Error loading function capabilities:', error);
+      this.functionCapabilities = [];
+    }
+
+    try {
+      this.maturityStages = await this.data.getMaturityStages();
+    } catch (error) {
+      console.error('Error loading maturity stages:', error);
+      this.maturityStages = [];
+    }
+
     // Gather all technologies/processes for all functionCapabilities
     let allTP: TechnologyProcess[] = [];
-    for (const fc of this.functionCapabilities) {
-      const tps = await this.data.getTechnologiesProcesses(fc.id);
-      allTP = allTP.concat(tps);
+    try {
+      if (Array.isArray(this.functionCapabilities)) {
+        for (const fc of this.functionCapabilities) {
+          try {
+            const tps = await this.data.getTechnologiesProcesses(fc.id);
+            allTP = allTP.concat(tps);
+          } catch (error) {
+            console.error(`Error loading technologies/processes for function capability ${fc.id}:`, error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading technologies/processes:', error);
     }
     this.technologiesProcesses = allTP;
+
     // For demo: simulate fetching assessment responses (should be replaced with real fetch if available)
     this.assessmentResponses = [];
     this.results = this.buildResults();

@@ -32,10 +32,34 @@ export class AssessmentComponent {
   }
 
   async loadAll() {
-    this.pillars = await this.data.getPillars();
-    this.functionCapabilities = await this.data.getFunctionCapabilities();
-    this.maturityStages = await this.data.getMaturityStages();
-    this.assessmentResponses = await this.data.getAssessmentResponses();
+    try {
+      this.pillars = await this.data.getPillars();
+    } catch (error) {
+      console.error('Error loading pillars:', error);
+      this.pillars = [];
+    }
+
+    try {
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+    } catch (error) {
+      console.error('Error loading function capabilities:', error);
+      this.functionCapabilities = [];
+    }
+
+    try {
+      this.maturityStages = await this.data.getMaturityStages();
+    } catch (error) {
+      console.error('Error loading maturity stages:', error);
+      this.maturityStages = [];
+    }
+
+    try {
+      this.assessmentResponses = await this.data.getAssessmentResponses();
+    } catch (error) {
+      console.error('Error loading assessment responses:', error);
+      this.assessmentResponses = [];
+    }
+
     this.technologiesProcesses = [];
     this.assessmentStatuses = [];
     this.assessmentNotes = [];
@@ -80,11 +104,11 @@ export class AssessmentComponent {
   }
 
   getMaturityStageName(id: number) {
-    return this.maturityStages.find(ms => ms.id === id)?.name || '';
+    return this.maturityStages.find(ms => ms.id === id)?.name || 'Unknown';
   }
 
   getFunctionCapabilityName(id: number) {
-    return this.functionCapabilities.find(fc => fc.id === id)?.name || '';
+    return this.functionCapabilities.find(fc => fc.id === id)?.name || 'Unknown';
   }
 
   getSelectedFunctionCapabilityName() {
@@ -143,17 +167,22 @@ export class AssessmentComponent {
   }
 
   async submitAssessment() {
-    for (let i = 0; i < this.technologiesProcesses.length; i++) {
-      if (this.assessmentStatuses[i]) {
-        await this.data.saveAssessment(
-          this.technologiesProcesses[i].id,
-          this.assessmentStatuses[i]!,
-          this.assessmentNotes[i]
-        );
+    try {
+      for (let i = 0; i < this.technologiesProcesses.length; i++) {
+        if (this.assessmentStatuses[i]) {
+          await this.data.saveAssessment(
+            this.technologiesProcesses[i].id,
+            this.assessmentStatuses[i]!,
+            this.assessmentNotes[i]
+          );
+        }
       }
+      this.showSuccess = true;
+      setTimeout(() => (this.showSuccess = false), 2000);
+    } catch (error) {
+      console.error('Error saving assessment:', error);
+      this.showSuccess = false;
     }
-    this.showSuccess = true;
-    setTimeout(() => (this.showSuccess = false), 2000);
   }
 
   async saveAll() {

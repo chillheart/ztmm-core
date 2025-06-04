@@ -44,23 +44,52 @@ export class AdminComponent {
   }
 
   async loadAll() {
-    this.maturityStages = await this.data.getMaturityStages();
-    this.pillars = await this.data.getPillars();
-    this.functionCapabilities = await this.data.getFunctionCapabilities();
-    this.loadTechnologiesProcesses();
+    try {
+      this.maturityStages = await this.data.getMaturityStages();
+    } catch (error) {
+      console.error('Error loading maturity stages:', error);
+      this.maturityStages = [];
+    }
+
+    try {
+      this.pillars = await this.data.getPillars();
+    } catch (error) {
+      console.error('Error loading pillars:', error);
+      this.pillars = [];
+    }
+
+    try {
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+    } catch (error) {
+      console.error('Error loading function capabilities:', error);
+      this.functionCapabilities = [];
+    }
+
+    await this.loadTechnologiesProcesses();
   }
 
   async loadTechnologiesProcesses() {
-    if (this.selectedFunctionCapabilityId) {
-      this.technologiesProcesses = await this.data.getTechnologiesProcesses(this.selectedFunctionCapabilityId);
-    } else {
-      // Show all for admin view
-      let all: TechnologyProcess[] = [];
-      for (const fc of this.functionCapabilities) {
-        const tps = await this.data.getTechnologiesProcesses(fc.id);
-        all = all.concat(tps);
+    try {
+      if (this.selectedFunctionCapabilityId) {
+        this.technologiesProcesses = await this.data.getTechnologiesProcesses(this.selectedFunctionCapabilityId);
+      } else {
+        // Show all for admin view
+        let all: TechnologyProcess[] = [];
+        if (Array.isArray(this.functionCapabilities)) {
+          for (const fc of this.functionCapabilities) {
+            try {
+              const tps = await this.data.getTechnologiesProcesses(fc.id);
+              all = all.concat(tps);
+            } catch (error) {
+              console.error(`Error loading technologies/processes for function capability ${fc.id}:`, error);
+            }
+          }
+        }
+        this.technologiesProcesses = all;
       }
-      this.technologiesProcesses = all;
+    } catch (error) {
+      console.error('Error loading technologies/processes:', error);
+      this.technologiesProcesses = [];
     }
   }
 
@@ -68,13 +97,18 @@ export class AdminComponent {
     this.pillarFormSubmitted = true;
     if (pillarForm && pillarForm.invalid) return;
     if (!this.newPillar.trim()) return;
-    await this.data.addPillar(this.newPillar.trim());
-    this.newPillar = '';
-    this.pillars = await this.data.getPillars();
-    this.pillarFormSubmitted = false;
-    // Do not reset the form, just clear validation styling
-    if (pillarForm) {
-      setTimeout(() => pillarForm.form.markAsPristine());
+
+    try {
+      await this.data.addPillar(this.newPillar.trim());
+      this.newPillar = '';
+      this.pillars = await this.data.getPillars();
+      this.pillarFormSubmitted = false;
+      // Do not reset the form, just clear validation styling
+      if (pillarForm) {
+        setTimeout(() => pillarForm.form.markAsPristine());
+      }
+    } catch (error) {
+      console.error('Error adding pillar:', error);
     }
   }
 
@@ -114,31 +148,55 @@ export class AdminComponent {
   }
 
   async removePillar(id: number) {
-    await this.data.removePillar(id);
-    this.pillars = await this.data.getPillars();
-    this.functionCapabilities = await this.data.getFunctionCapabilities();
-    this.loadTechnologiesProcesses();
+    if (!confirm('Are you sure you want to delete this pillar? This will also delete all associated function/capabilities and technologies/processes.')) {
+      return;
+    }
+
+    try {
+      await this.data.removePillar(id);
+      this.pillars = await this.data.getPillars();
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+      this.loadTechnologiesProcesses();
+    } catch (error) {
+      console.error('Error removing pillar:', error);
+    }
   }
 
   async removeFunctionCapability(id: number) {
-    await this.data.removeFunctionCapability(id);
-    this.functionCapabilities = await this.data.getFunctionCapabilities();
-    this.loadTechnologiesProcesses();
+    if (!confirm('Are you sure you want to delete this function/capability? This will also delete all associated technologies/processes.')) {
+      return;
+    }
+
+    try {
+      await this.data.removeFunctionCapability(id);
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+      this.loadTechnologiesProcesses();
+    } catch (error) {
+      console.error('Error removing function capability:', error);
+    }
   }
 
   async removeTechnologyProcess(id: number) {
-    await this.data.removeTechnologyProcess(id);
-    this.loadTechnologiesProcesses();
+    if (!confirm('Are you sure you want to delete this technology/process?')) {
+      return;
+    }
+
+    try {
+      await this.data.removeTechnologyProcess(id);
+      this.loadTechnologiesProcesses();
+    } catch (error) {
+      console.error('Error removing technology process:', error);
+    }
   }
 
   getPillarName(id: number) {
-    return this.pillars.find(p => p.id === id)?.name || '';
+    return this.pillars.find(p => p.id === id)?.name || 'Unknown';
   }
   getFunctionCapabilityName(id: number) {
-    return this.functionCapabilities.find(fc => fc.id === id)?.name || '';
+    return this.functionCapabilities.find(fc => fc.id === id)?.name || 'Unknown';
   }
   getMaturityStageName(id: number) {
-    return this.maturityStages.find(ms => ms.id === id)?.name || '';
+    return this.maturityStages.find(ms => ms.id === id)?.name || 'Unknown';
   }
 
   // For drag-and-drop
@@ -258,14 +316,17 @@ export class AdminComponent {
 
   selectedTechPillarId: number | null = null;
   get filteredFunctionCapabilities() {
-    if (!this.selectedTechPillarId) return [];
+    if (!this.selectedTechPillarId) return this.functionCapabilities;
     return this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedTechPillarId);
   }
   onTechPillarChange() {
     // Reset function capability selection if it doesn't match the filter
-    if (this.selectedFunctionCapabilityId) {
+    if (this.selectedFunctionCapabilityId && this.selectedTechPillarId) {
       const match = this.functionCapabilities.find(fc => fc.id === this.selectedFunctionCapabilityId && fc.pillar_id === this.selectedTechPillarId);
-      if (!match) this.selectedFunctionCapabilityId = null;
+      if (!match) {
+        this.selectedFunctionCapabilityId = null;
+        this.loadTechnologiesProcesses();
+      }
     }
   }
 }

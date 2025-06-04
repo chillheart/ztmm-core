@@ -3,8 +3,13 @@ import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, Assessmen
 
 @Injectable({ providedIn: 'root' })
 export class ZtmmDataService {
-  // @ts-ignore
-  private api = window.api;
+  private get api() {
+    const windowApi = (window as any).api;
+    if (!windowApi) {
+      throw new Error('Electron API not available. Make sure the application is running in Electron environment.');
+    }
+    return windowApi;
+  }
 
   async getPillars(): Promise<Pillar[]> {
     return await this.api.getPillars();
