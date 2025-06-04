@@ -1,0 +1,177 @@
+
+// Enhanced navigation styling
+.admin-nav {
+  margin-bottom: 2rem;
+
+  .nav-pills .nav-link {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: rgba(0, 123, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: normal;
+    }
+  }
+}
+
+// Enhanced content styling
+.admin-content {
+  .card {
+    border: none;
+    border-radius: 0.75rem;
+
+    .card-header {
+      border-radius: 0.75rem 0.75rem 0 0 !important;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+      h4 {
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+
+      small {
+        opacity: 0.8;
+        font-size: 0.875rem;
+      }
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+  }
+}
+
+// Enhanced form styling
+.form-label.small {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.input-group-text {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-color: #007bff;
+  color: #007bff;
+}
+
+// Enhanced list styling
+.pillar-list, .functions-list, .tech-list {
+  .list-group-item {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    cursor: grab;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+// Technology/Process card enhancements
+.tech-list {
+  .card {
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &.border-primary {
+      border-left-color: #007bff !important;
+    }
+
+    &.border-success {
+      border-left-color: #28a745 !important;
+    }
+  }
+}
+
+// Button group enhancements
+.btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Empty state styling
+.display-1 {
+  font-size: 3rem;
+  opacity: 0.3;
+}
+
+// Badge enhancements
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.25px;
+}
+
+// Form validation enhancements
+.invalid-feedback {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .admin-nav .nav-pills .nav-link {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+
+    .badge {
+      display: none;
+    }
+  }
+
+  .card-header {
+    padding: 1rem !important;
+
+    h4 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .card-body {
+    padding: 1rem !important;
+  }
+
+  .tech-list .col-12 {
+    margin-bottom: 1rem;
+  }
+}
+
+// Animation for drag and drop
+[draggable="true"] {
+  &:hover {
+    cursor: grab;
+  }
+
+  &:active {
+    cursor: grabbing;
+    opacity: 0.8;
+  }
+}

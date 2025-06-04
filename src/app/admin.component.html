@@ -1,0 +1,460 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+          <i class="bi bi-gear-fill text-primary me-2"></i>
+          Configuration
+        </h2>
+        <div class="text-muted">
+          <small>Manage your ZTMM framework components</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-nav">
+    <ul class="nav nav-pills nav-fill mb-4" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center justify-content-center"
+                [class.active]="activeTab === 'pillars'"
+                (click)="activeTab = 'pillars'"
+                type="button">
+          <i class="bi bi-building me-2"></i>
+          <span>Pillars</span>
+          <span class="badge bg-light text-dark ms-2">{{ pillars.length }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center justify-content-center"
+                [class.active]="activeTab === 'functions'"
+                (click)="activeTab = 'functions'"
+                type="button">
+          <i class="bi bi-layers me-2"></i>
+          <span>Functions/Capabilities</span>
+          <span class="badge bg-light text-dark ms-2">{{ functionCapabilities.length }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center justify-content-center"
+                [class.active]="activeTab === 'tech'"
+                (click)="activeTab = 'tech'"
+                type="button">
+          <i class="bi bi-tools me-2"></i>
+          <span>Technologies/Processes</span>
+          <span class="badge bg-light text-dark ms-2">{{ technologiesProcesses.length }}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+<div [ngSwitch]="activeTab" class="admin-content">
+  <!-- PILLARS TAB -->
+  <div *ngSwitchCase="'pillars'" class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-building me-2"></i>
+            Zero Trust Pillars
+          </h4>
+          <small>Define the core pillars of your Zero Trust architecture</small>
+        </div>
+        <div class="card-body">
+          <form class="mb-4" #pillarForm="ngForm" (ngSubmit)="addPillar(pillarForm)">
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-plus-circle"></i>
+              </span>
+              <input [(ngModel)]="newPillar"
+                     name="pillar"
+                     class="form-control"
+                     placeholder="Enter pillar name (e.g., Identity, Device, Network)"
+                     required
+                     [ngClass]="{'is-invalid': isInvalid(pillarForm, 'pillar', pillarFormSubmitted)}" />
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-plus me-1"></i>Add Pillar
+              </button>
+            </div>
+            <div *ngIf="isInvalid(pillarForm, 'pillar', pillarFormSubmitted)" class="invalid-feedback d-block mt-2">
+              <i class="bi bi-exclamation-triangle me-1"></i>Pillar name is required.
+            </div>
+          </form>
+
+          <!-- Empty State -->
+          <div *ngIf="pillars.length === 0" class="text-center py-5">
+            <i class="bi bi-building display-1 text-muted mb-3"></i>
+            <h5 class="text-muted">No pillars defined yet</h5>
+            <p class="text-muted">Start by adding your first Zero Trust pillar above.</p>
+          </div>
+
+          <!-- Pillars List -->
+          <div *ngIf="pillars.length > 0" class="pillar-list">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-muted mb-0">Your Pillars ({{ pillars.length }})</h6>
+              <small class="text-muted"><i class="bi bi-arrows-move me-1"></i>Drag to reorder</small>
+            </div>
+            <div class="list-group">
+              <div *ngFor="let pillar of pillars; let i = index"
+                   class="list-group-item list-group-item-action"
+                   draggable="true"
+                   (dragstart)="onPillarDragStart(i)"
+                   (dragover)="$event.preventDefault()"
+                   (drop)="onPillarDrop(i)"
+                   (dragend)="onPillarDragEnd()">
+                <div class="d-flex justify-content-between align-items-center">
+                  <ng-container *ngIf="editingPillarId === pillar.id; else pillarView">
+                    <div class="d-flex align-items-center flex-grow-1">
+                      <i class="bi bi-building text-primary me-2"></i>
+                      <input [(ngModel)]="editingPillarName"
+                             class="form-control me-2"
+                             style="max-width: 300px;" />
+                      <button class="btn btn-sm btn-success me-1" (click)="saveEditPillar()">
+                        <i class="bi bi-check"></i>
+                      </button>
+                      <button class="btn btn-sm btn-secondary" (click)="cancelEditPillar()">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                  </ng-container>
+                  <ng-template #pillarView>
+                    <div class="d-flex align-items-center flex-grow-1">
+                      <i class="bi bi-building text-primary me-3"></i>
+                      <span class="fw-medium">{{ pillar.name }}</span>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-primary" (click)="startEditPillar(pillar)" title="Edit pillar">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" (click)="removePillar(pillar.id)" title="Delete pillar">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- FUNCTIONS/CAPABILITIES TAB -->
+  <div *ngSwitchCase="'functions'" class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">
+            <i class="bi bi-layers me-2"></i>
+            Functions & Capabilities
+          </h4>
+          <small>Define the functions and capabilities within each pillar</small>
+        </div>
+        <div class="card-body">
+          <form class="mb-4" #functionForm="ngForm" (ngSubmit)="addFunctionCapability(functionForm)">
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label small text-muted">Pillar</label>
+                <select [(ngModel)]="selectedPillarId"
+                        name="pillarSelect"
+                        class="form-select"
+                        required
+                        [ngClass]="{'is-invalid': isInvalid(functionForm, 'pillarSelect', functionFormSubmitted)}">
+                  <option [ngValue]="null">Choose pillar...</option>
+                  <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+                </select>
+                <div *ngIf="isInvalid(functionForm, 'pillarSelect', functionFormSubmitted)" class="invalid-feedback">
+                  Pillar is required.
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small text-muted">Type</label>
+                <select [(ngModel)]="newFunctionCapabilityType"
+                        name="functionCapabilityType"
+                        class="form-select"
+                        required>
+                  <option value="Function">Function</option>
+                  <option value="Capability">Capability</option>
+                </select>
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-12">
+                <label class="form-label small text-muted">Function/Capability Name</label>
+                <div class="input-group">
+                  <input [(ngModel)]="newFunctionCapability"
+                         name="functionCapability"
+                         class="form-control"
+                         placeholder="Enter function or capability name..."
+                         required
+                         [ngClass]="{'is-invalid': isInvalid(functionForm, 'functionCapability', functionFormSubmitted)}" />
+                  <button class="btn btn-info" type="submit">
+                    <i class="bi bi-plus me-1"></i>Add
+                  </button>
+                </div>
+                <div *ngIf="isInvalid(functionForm, 'functionCapability', functionFormSubmitted)" class="invalid-feedback">
+                  Function/Capability name is required.
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <!-- Empty State -->
+          <div *ngIf="functionCapabilities.length === 0" class="text-center py-5">
+            <i class="bi bi-layers display-1 text-muted mb-3"></i>
+            <h5 class="text-muted">No functions or capabilities defined yet</h5>
+            <p class="text-muted">Start by adding your first function or capability above.</p>
+          </div>
+
+          <!-- Functions List -->
+          <div *ngIf="functionCapabilities.length > 0" class="functions-list">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-muted mb-0">Your Functions & Capabilities ({{ functionCapabilities.length }})</h6>
+              <small class="text-muted"><i class="bi bi-arrows-move me-1"></i>Drag to reorder</small>
+            </div>
+            <div class="list-group">
+              <div *ngFor="let fc of functionCapabilities; let i = index"
+                   class="list-group-item list-group-item-action"
+                   draggable="true"
+                   (dragstart)="onFunctionDragStart(i)"
+                   (dragover)="$event.preventDefault()"
+                   (drop)="onFunctionDrop(i)"
+                   (dragend)="onFunctionDragEnd()">
+                <div class="d-flex justify-content-between align-items-center">
+                  <ng-container *ngIf="editingFunctionId === fc.id; else functionView">
+                    <div class="d-flex align-items-center flex-grow-1 gap-2">
+                      <i class="bi bi-layers text-info"></i>
+                      <input [(ngModel)]="editingFunction.name" class="form-control" style="max-width: 200px;" />
+                      <select [(ngModel)]="editingFunction.type" class="form-select" style="max-width: 120px;">
+                        <option value="Function">Function</option>
+                        <option value="Capability">Capability</option>
+                      </select>
+                      <select [(ngModel)]="editingFunction.pillar_id" class="form-select" style="max-width: 150px;">
+                        <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+                      </select>
+                      <button class="btn btn-sm btn-success" (click)="saveEditFunction()">
+                        <i class="bi bi-check"></i>
+                      </button>
+                      <button class="btn btn-sm btn-secondary" (click)="cancelEditFunction()">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    </div>
+                  </ng-container>
+                  <ng-template #functionView>
+                    <div class="d-flex align-items-center flex-grow-1">
+                      <i class="bi bi-layers text-info me-3"></i>
+                      <div>
+                        <div class="fw-medium">{{ fc.name }}</div>
+                        <div class="small text-muted">
+                          <span class="badge bg-secondary me-1">{{ fc.type }}</span>
+                          <span class="badge bg-primary">{{ getPillarName(fc.pillar_id) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-primary" (click)="startEditFunction(fc)" title="Edit function/capability">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" (click)="removeFunctionCapability(fc.id)" title="Delete function/capability">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- TECHNOLOGIES/PROCESSES TAB -->
+  <div *ngSwitchCase="'tech'" class="row justify-content-center">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h4 class="mb-0">
+            <i class="bi bi-tools me-2"></i>
+            Technologies & Processes
+          </h4>
+          <small>Define specific technologies and processes for each function/capability</small>
+        </div>
+        <div class="card-body">
+          <form class="mb-4" #techForm="ngForm" (ngSubmit)="addTechnologyProcess(techForm)">
+            <div class="row g-2 mb-3">
+              <div class="col-md-3">
+                <label class="form-label small text-muted">Filter by Pillar</label>
+                <select [(ngModel)]="selectedTechPillarId"
+                        name="techPillarSelect"
+                        class="form-select"
+                        (change)="onTechPillarChange()">
+                  <option [ngValue]="null">All Pillars</option>
+                  <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small text-muted">Function/Capability</label>
+                <select [(ngModel)]="selectedFunctionCapabilityId"
+                        name="fcSelect"
+                        class="form-select"
+                        required
+                        [ngClass]="{'is-invalid': isInvalid(techForm, 'fcSelect', techFormSubmitted)}">
+                  <option [ngValue]="null">Choose function...</option>
+                  <option *ngFor="let fc of filteredFunctionCapabilities" [ngValue]="fc.id">
+                    {{ fc.name }} ({{ fc.type }})
+                  </option>
+                </select>
+                <div *ngIf="isInvalid(techForm, 'fcSelect', techFormSubmitted)" class="invalid-feedback">
+                  Function/Capability is required.
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label small text-muted">Maturity Stage</label>
+                <select [(ngModel)]="selectedMaturityStageId"
+                        name="maturityStageSelect"
+                        class="form-select"
+                        required
+                        [ngClass]="{'is-invalid': isInvalid(techForm, 'maturityStageSelect', techFormSubmitted)}">
+                  <option [ngValue]="null">Choose stage...</option>
+                  <option *ngFor="let ms of maturityStages" [ngValue]="ms.id">{{ ms.name }}</option>
+                </select>
+                <div *ngIf="isInvalid(techForm, 'maturityStageSelect', techFormSubmitted)" class="invalid-feedback">
+                  Maturity stage is required.
+                </div>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label small text-muted">Type</label>
+                <select [(ngModel)]="newTechnologyProcessType"
+                        name="technologyProcessType"
+                        class="form-select"
+                        required>
+                  <option value="Technology">Technology</option>
+                  <option value="Process">Process</option>
+                </select>
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-12">
+                <label class="form-label small text-muted">Technology/Process Description</label>
+                <div class="input-group">
+                  <input [(ngModel)]="newTechnologyProcess"
+                         name="technologyProcess"
+                         class="form-control"
+                         placeholder="Enter detailed description of the technology or process..."
+                         required
+                         [ngClass]="{'is-invalid': isInvalid(techForm, 'technologyProcess', techFormSubmitted)}" />
+                  <button class="btn btn-warning" type="submit">
+                    <i class="bi bi-plus me-1"></i>Add
+                  </button>
+                </div>
+                <div *ngIf="isInvalid(techForm, 'technologyProcess', techFormSubmitted)" class="invalid-feedback">
+                  Technology/Process description is required.
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <!-- Empty State -->
+          <div *ngIf="technologiesProcesses.length === 0" class="text-center py-5">
+            <i class="bi bi-tools display-1 text-muted mb-3"></i>
+            <h5 class="text-muted">No technologies or processes defined yet</h5>
+            <p class="text-muted">Start by adding your first technology or process above.</p>
+            <div class="alert alert-info mt-3">
+              <i class="bi bi-lightbulb me-2"></i>
+              <strong>Tip:</strong> Use the pillar filter to focus on specific areas when adding items.
+            </div>
+          </div>
+
+          <!-- Technologies/Processes List -->
+          <div *ngIf="technologiesProcesses.length > 0" class="tech-list">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-muted mb-0">Your Technologies & Processes ({{ technologiesProcesses.length }})</h6>
+              <div class="d-flex align-items-center gap-3">
+                <small class="text-muted">
+                  <i class="bi bi-filter me-1"></i>
+                  {{ selectedTechPillarId ? 'Filtered by: ' + getPillarName(selectedTechPillarId) : 'Showing all' }}
+                </small>
+              </div>
+            </div>
+            <div class="row">
+              <div *ngFor="let tp of technologiesProcesses" class="col-12 mb-3">
+                <div class="card h-100 border-start border-4"
+                     [ngClass]="tp.type === 'Technology' ? 'border-primary' : 'border-success'">
+                  <div class="card-body">
+                    <ng-container *ngIf="editingTechProcessId === tp.id; else techView">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                          <label class="form-label small text-muted">Description</label>
+                          <input [(ngModel)]="editingTechProcess.description" class="form-control" />
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small text-muted">Type</label>
+                          <select [(ngModel)]="editingTechProcess.type" class="form-select">
+                            <option value="Technology">Technology</option>
+                            <option value="Process">Process</option>
+                          </select>
+                        </div>
+                        <div class="col-md-3">
+                          <label class="form-label small text-muted">Function/Capability</label>
+                          <select [(ngModel)]="editingTechProcess.function_capability_id" class="form-select">
+                            <option *ngFor="let fc of functionCapabilities" [ngValue]="fc.id">{{ fc.name }}</option>
+                          </select>
+                        </div>
+                        <div class="col-md-2">
+                          <label class="form-label small text-muted">Maturity Stage</label>
+                          <select [(ngModel)]="editingTechProcess.maturity_stage_id" class="form-select">
+                            <option *ngFor="let ms of maturityStages" [ngValue]="ms.id">{{ ms.name }}</option>
+                          </select>
+                        </div>
+                        <div class="col-md-1">
+                          <label class="form-label small text-muted">&nbsp;</label>
+                          <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-success" (click)="saveEditTechProcess()" title="Save changes">
+                              <i class="bi bi-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-secondary" (click)="cancelEditTechProcess()" title="Cancel">
+                              <i class="bi bi-x"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                    <ng-template #techView>
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                          <div class="d-flex align-items-center mb-2">
+                            <i class="bi"
+                               [ngClass]="tp.type === 'Technology' ? 'bi-cpu text-primary' : 'bi-gear text-success'"
+                               style="font-size: 1.2rem;"></i>
+                            <span class="badge ms-2"
+                                  [ngClass]="tp.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+                              {{ tp.type }}
+                            </span>
+                          </div>
+                          <h6 class="mb-2">{{ tp.description }}</h6>
+                          <div class="small text-muted">
+                            <div class="d-flex flex-wrap gap-2">
+                              <span class="badge bg-info">{{ getFunctionCapabilityName(tp.function_capability_id) }}</span>
+                              <span class="badge bg-warning text-dark">{{ getMaturityStageName(tp.maturity_stage_id) }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="btn-group btn-group-sm ms-3">
+                          <button class="btn btn-outline-primary" (click)="startEditTechProcess(tp)" title="Edit technology/process">
+                            <i class="bi bi-pencil"></i>
+                          </button>
+                          <button class="btn btn-outline-danger" (click)="removeTechnologyProcess(tp.id)" title="Delete technology/process">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

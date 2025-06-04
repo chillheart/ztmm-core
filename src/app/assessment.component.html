@@ -1,0 +1,119 @@
+<div class="container">
+  <h2 class="mb-4">Assessment</h2>
+  <p class="mb-3">Assess the implementation status of each technology or process for your organization.</p>
+
+  <!-- Pillar Selection -->
+  <div class="mb-4">
+    <label for="pillarSelect" class="form-label">Select a Pillar to assess:</label>
+    <select id="pillarSelect" class="form-select w-auto d-inline-block" [(ngModel)]="selectedPillarId" (change)="onPillarChange()" name="pillarSelect">
+      <option [ngValue]="null">Choose a pillar...</option>
+      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+    </select>
+  </div>
+
+  <!-- Pillar Summary (only show when pillar is selected) -->
+  <div *ngIf="selectedPillarId && pillarSummary.length > 0" class="mb-4 assessment-summary">
+    <h4 class="mb-3">Assessment Progress Summary</h4>
+    <div class="row">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Function/Capability</th>
+                <th>Type</th>
+                <th class="text-center">Technologies/Processes</th>
+                <th class="text-center">Completed</th>
+                <th>Progress</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let summary of pillarSummary"
+                  [class.table-active]="selectedFunctionCapabilityId === summary.functionCapability.id"
+                  [class.selected-function]="selectedFunctionCapabilityId === summary.functionCapability.id">
+                <td><strong>{{ summary.functionCapability.name }}</strong></td>
+                <td><span class="badge bg-primary">{{ summary.functionCapability.type }}</span></td>
+                <td class="text-center">{{ summary.totalCount }}</td>
+                <td class="text-center">{{ summary.completedCount }}</td>
+                <td>
+                  <div class="progress" style="height: 20px;">
+                    <div class="progress-bar"
+                         [style.width.%]="summary.completionPercentage"
+                         [class]="summary.completionPercentage === 100 ? 'bg-success' : summary.completionPercentage >= 50 ? 'bg-warning' : 'bg-danger'"
+                         role="progressbar">
+                      {{ summary.completionPercentage }}%
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <button [class]="getButtonClass(summary)"
+                          [disabled]="summary.totalCount === 0"
+                          (click)="onAssessButtonClick(summary)"
+                          [title]="summary.totalCount === 0 ? 'No technologies or processes defined for this function/capability' : ''">
+                    {{ getButtonText(summary) }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message when pillar is selected but no function capabilities exist -->
+  <div *ngIf="selectedPillarId && pillarSummary.length === 0" class="alert alert-info">
+    <i class="bi bi-info-circle"></i> No function capabilities have been defined for this pillar yet. Please add them in the Configuration section first.
+  </div>
+
+  <!-- Assessment Form (only show when both pillar and function/capability are selected) -->
+  <div *ngIf="selectedPillarId && selectedFunctionCapabilityId && technologiesProcesses.length > 0">
+    <!-- Currently Assessing Header -->
+    <div class="alert alert-primary d-flex align-items-center mb-4 current-assessment-header">
+      <i class="bi bi-clipboard-check-fill me-3 fs-4"></i>
+      <div>
+        <h5 class="mb-1">Currently Assessing:</h5>
+        <strong>{{ getSelectedFunctionCapabilityName() }}</strong>
+        <span class="badge bg-white text-primary ms-2">{{ getSelectedFunctionCapabilityType() }}</span>
+      </div>
+    </div>
+
+    <form (ngSubmit)="saveAll()">
+      <div *ngFor="let tp of technologiesProcesses; let i = index" class="card mb-3 assessment-card">
+        <div class="card-body">
+          <h5 class="card-title mb-2">
+            <span class="badge bg-secondary me-2">{{ tp.type }}</span>
+            {{ tp.description }}
+          </h5>
+          <div class="mb-2">
+            <span class="badge bg-info">{{ getFunctionCapabilityName(tp.function_capability_id) }}</span>
+            <span class="badge bg-warning text-dark">{{ getMaturityStageName(tp.maturity_stage_id) }}</span>
+          </div>
+          <div class="row align-items-center mb-2">
+            <div class="col-md-4">
+              <select class="form-select" [(ngModel)]="assessmentStatuses[i]" [name]="'status_' + tp.id">
+                <option [ngValue]="null">Select Status</option>
+                <option *ngFor="let status of statusOptions" [ngValue]="status">{{ status }}</option>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <input class="form-control" [(ngModel)]="assessmentNotes[i]" [name]="'notes_' + tp.id" placeholder="Notes (optional)" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-success" type="submit">Save All Assessments</button>
+    </form>
+  </div>
+
+  <!-- Message when function/capability is selected but no technologies/processes exist -->
+  <div *ngIf="selectedPillarId && selectedFunctionCapabilityId && technologiesProcesses.length === 0" class="alert alert-info">
+    <i class="bi bi-info-circle"></i> No technologies or processes have been defined for this function/capability yet. Please add them in the Configuration section first.
+  </div>
+
+  <!-- Success message -->
+  <div *ngIf="showSuccess" class="alert alert-success mt-3">
+    <i class="bi bi-check-circle"></i> Assessments saved successfully!
+  </div>
+</div>

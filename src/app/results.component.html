@@ -1,0 +1,31 @@
+<div class="container">
+  <h2 class="mb-4">Assessment Results</h2>
+  <div class="mb-3">
+    <label for="pillarFilter" class="form-label">Filter by Pillar:</label>
+    <select id="pillarFilter" class="form-select w-auto d-inline-block" [(ngModel)]="selectedPillarId" (change)="onPillarChange()">
+      <option [ngValue]="null">All Pillars</option>
+      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+    </select>
+  </div>
+  <div *ngFor="let group of groupedResults">
+    <h4 class="mt-4">{{ group.functionCapabilityName }} <span class="badge bg-info">{{ group.pillarName }}</span></h4>
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Technology/Process</th>
+          <th>Maturity Stage</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of group.items">
+          <td><span class="badge bg-secondary me-2">{{ item.type }}</span>{{ item.description }}</td>
+          <td><span class="badge bg-warning text-dark">{{ item.maturityStageName }}</span></td>
+          <td>{{ item.status }}</td>
+          <td>{{ item.notes }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

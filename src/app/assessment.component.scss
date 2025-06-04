@@ -1,0 +1,90 @@
+.container {
+  max-width: 900px;
+}
+.card {
+  border-radius: 0.5rem;
+}
+.card-title {
+  font-size: 1.15rem;
+}
+
+.assessment-summary {
+  .table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .table td {
+    vertical-align: middle;
+  }
+
+  .progress {
+    border-radius: 0.5rem;
+    background-color: #e9ecef;
+  }
+
+  .progress-bar {
+    border-radius: 0.5rem;
+    transition: width 0.3s ease;
+  }
+}
+
+.function-capability-select {
+  max-width: 400px;
+}
+
+.assessment-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+}
+
+// Selected function/capability row styling
+.selected-function {
+  background-color: #e3f2fd !important;
+  border-left: 4px solid #2196f3;
+
+  td {
+    font-weight: 500;
+  }
+}
+
+// Current assessment header styling
+.current-assessment-header {
+  border-left: 4px solid #0d6efd;
+  background-color: #e7f1ff;
+  border-color: #b6d7ff;
+
+  h5 {
+    color: #084298;
+    margin-bottom: 0.25rem;
+  }
+
+  strong {
+    color: #052c65;
+    font-size: 1.1rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+  }
+}
+
+// Disabled button styling
+.btn-outline-secondary:disabled {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
