@@ -1,59 +1,171 @@
-# ZtmmAssessment
+# ZTMM Assessment Tool
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.14.
+A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular and Electron. This desktop application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies.
 
-## Development server
+## 🚀 Features
 
-To start a local development server, run:
+### Core Functionality
+- **📊 Assessment Management**: Conduct maturity assessments against the Zero Trust framework
+- **🏗️ Configuration Management**: Define and manage Zero Trust pillars, functions/capabilities, and technologies/processes
+- **📈 Progress Tracking**: Visual progress indicators and completion tracking
+- **📋 Results Dashboard**: View and analyze assessment results with detailed reporting
 
+### User Interface
+- **🎨 Modern Bootstrap UI**: Clean, responsive design with Bootstrap 5
+- **🔧 Configuration Section**: Intuitive admin interface with tabbed navigation
+- **📱 Responsive Design**: Works seamlessly across different screen sizes
+- **🖱️ Interactive Features**: Drag-and-drop reordering, inline editing, and form validation
+
+### Technical Features
+- **💾 SQLite Database**: Local data persistence with relational data structure
+- **🔄 Real-time Updates**: Live data synchronization between UI and database
+- **✅ Data Validation**: Comprehensive form validation and error handling
+- **🗑️ Cascading Deletes**: Safe data management with relationship integrity
+
+## 🛠️ Technology Stack
+
+- **Frontend**: Angular 19.2 with TypeScript
+- **Desktop Framework**: Electron 36.3
+- **UI Framework**: Bootstrap 5.3 with Bootstrap Icons
+- **Database**: SQLite with better-sqlite3
+- **Styling**: SCSS with responsive design
+
+## 📦 Installation
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+
+### Setup
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd ztmm-assessment
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Rebuild native dependencies for Electron:
+   ```bash
+   npm run electron:rebuild
+   ```
+
+## 🚀 Running the Application
+
+### Development Mode
+Start the Angular development server:
 ```bash
-ng serve
+npm start
+```
+The application will be available at `http://localhost:4200/`
+
+### Electron Desktop App
+Build and run as a desktop application:
+```bash
+npm run electron
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 📖 Usage Guide
 
-## Code scaffolding
+### 1. Configuration Setup
+Navigate to the Configuration section (gear icon) to set up your ZTMM framework:
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- **Pillars**: Define Zero Trust pillars (e.g., Identity, Device, Network)
+- **Functions/Capabilities**: Add functions and capabilities for each pillar
+- **Technologies/Processes**: Define specific technologies and processes for assessment
 
+### 2. Conducting Assessments
+1. Go to the Assessment section
+2. Select a pillar to assess
+3. Review the progress summary table
+4. Click "Assess" for each function/capability
+5. Rate each technology/process implementation status
+6. Add optional notes for context
+
+### 3. Viewing Results
+Access the Results section to:
+- View completed assessments
+- Analyze maturity scores
+- Export assessment data
+
+## 🏗️ Project Structure
+
+```
+src/
+├── app/
+│   ├── components/          # Angular components
+│   │   ├── admin.component.*        # Configuration management
+│   │   ├── assessment.component.*   # Assessment interface
+│   │   ├── results.component.*      # Results dashboard
+│   │   ├── navbar.component.*       # Navigation
+│   │   └── home.component.*         # Landing page
+│   ├── models/              # TypeScript interfaces
+│   │   └── ztmm.models.ts          # Data models
+│   ├── services/            # Angular services
+│   │   └── ztmm-data.service.ts    # Data access layer
+│   └── styles.scss          # Global styles
+├── main.js                  # Electron main process
+├── preload.js              # Electron preload script
+└── ztmm.db                 # SQLite database
+```
+
+## 🗄️ Database Schema
+
+The application uses SQLite with the following tables:
+- `pillars` - Zero Trust pillars
+- `function_capabilities` - Functions and capabilities
+- `maturity_stages` - Maturity level definitions
+- `technologies_processes` - Technologies and processes
+- `assessment_responses` - Assessment results
+
+## 🧪 Testing
+
+Run unit tests:
+```bash
+npm test
+```
+
+## 🔧 Development
+
+### Code Scaffolding
+Generate new components:
 ```bash
 ng generate component component-name
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
+### Building for Production
+Build the Angular application:
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
+Build Electron distributables:
 ```bash
-ng test
+npm run electron:postinstall
 ```
 
-## Running end-to-end tests
+## 📝 Contributing
 
-For end-to-end (e2e) testing, run:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and ensure code quality
+5. Submit a pull request
 
-```bash
-ng e2e
-```
+## 📄 License
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Additional Resources
+## 🤝 Support
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+For questions, issues, or feature requests, please create an issue in the repository.
+
+## 🔄 Version History
+
+- **v1.0.0**: Initial release with core ZTMM assessment functionality
+- Configuration management with drag-and-drop reordering
+- Pillar-based assessment workflow with progress tracking
+- Modern Bootstrap UI with responsive design
