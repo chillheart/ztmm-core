@@ -150,34 +150,6 @@ Configure these secrets in your GitHub repository settings:
 - **Release Assets**: Permanent GitHub releases
 - **Checksums**: SHA256 hashes for verification
 
-## 🛠️ Local Development
-
-### Security Testing
-```bash
-# Run security tests locally
-node security-test.js
-node integration-test.js
-
-# Run npm audit
-npm audit --audit-level=moderate
-
-# Install and run retire.js
-npm install -g retire
-retire --path .
-```
-
-### Build Testing
-```bash
-# Build for development
-npm run electron:dev
-
-# Build for production (macOS)
-npm run electron:build:mac
-
-# Build for production (Windows)
-npm run electron:build:win
-```
-
 ## 🔄 Pipeline Triggers
 
 ### Automatic Triggers
