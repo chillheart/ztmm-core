@@ -1,10 +1,31 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const Database = require('better-sqlite3');
-const isDev = require('electron-is-dev');
+const fs = require('fs');
+
+// Simple development mode detection to replace electron-is-dev
+const isDev = process.env.NODE_ENV === 'development' || process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath);
 
 let mainWindow;
-const db = new Database('ztmm.db');
+
+// Get the appropriate user data directory and create ZTMMAssessment subdirectory
+const userDataPath = app.getPath('userData');
+const appDataPath = path.join(userDataPath, 'ZTMMAssessment');
+let dbPath;
+
+if (isDev) {
+  dbPath = path.join(__dirname, 'ztmm.db'); // Use a local database for development
+  console.log('Database path:', dbPath);
+} else {
+  // In production, use the app's executable directory for the database
+  dbPath = path.join(appDataPath, 'ztmm.db');
+  // Ensure the ZTMMAssessment directory exists
+  if (!fs.existsSync(appDataPath)) {
+    fs.mkdirSync(appDataPath, { recursive: true });
+  }
+}
+
+const db = new Database(dbPath);
 
 // Initialize DB schema
 const schema = `
@@ -61,7 +82,9 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false
     }
   });
 
@@ -71,7 +94,36 @@ function createWindow() {
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadURL(`file://${__dirname}/dist/browser/index.html`);
+    const indexPath = path.join(__dirname, 'dist', 'index.html');
+    console.log('Loading index.html from:', indexPath);
+
+    // Check if file exists
+    const fs = require('fs');
+    if (!fs.existsSync(indexPath)) {
+      console.error('Index.html not found at:', indexPath);
+      return;
+    }
+
+    // Use loadFile which properly sets up the origin for ES modules
+    mainWindow.loadFile(indexPath).then(() => {
+      console.log('Successfully loaded index.html');
+    }).catch(error => {
+      console.error('Failed to load index.html with loadFile:', error);
+    });
+
+    // Add error handling for renderer process
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error('Page failed to load:', {
+        errorCode,
+        errorDescription,
+        validatedURL
+      });
+    });
+
+    // Listen for console messages from renderer
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      console.log(`Renderer console [${level}]:`, message, `at ${sourceId}:${line}`);
+    });
   }
 }
 

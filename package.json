@@ -1,7 +1,10 @@
 {
   "name": "ztmm-assessment",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "main": "main.js",
+  "type": "commonjs",
+  "author": "Cameron McCormick",
+  "license": "MIT",
   "description": "A ZTMM assessment application built with Angular and Electron",
   "scripts": {
     "ng": "ng",
@@ -43,7 +46,7 @@
     "concurrently": "^9.1.2",
     "electron": "^36.3.2",
     "electron-builder": "^26.0.12",
-    "electron-is-dev": "^3.0.1",
+    "electron-notarize": "^1.2.2",
     "electron-rebuild": "^3.2.9",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
@@ -76,11 +79,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "category": "public.app-category.business",
@@ -98,15 +107,19 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "src/assets/icon.ico",
-      "publisherName": "ZTMM Assessment",
       "requestedExecutionLevel": "asInvoker"
     },
     "nsis": {
@@ -119,7 +132,6 @@
     "portable": {
       "artifactName": "${productName}-${version}-portable.${ext}"
     },
-    "afterSign": "scripts/notarize.js",
     "publish": {
       "provider": "github",
       "owner": "your-github-username",
