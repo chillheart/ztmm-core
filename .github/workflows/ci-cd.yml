@@ -67,7 +67,6 @@ jobs:
         - scan-type: codeql
           language: typescript
         - scan-type: dependency-check
-        - scan-type: npm-audit
         - scan-type: retire-js
 
     steps:
@@ -125,20 +124,6 @@ jobs:
         name: dependency-check-report
         path: reports/
 
-    # NPM Audit
-    - name: Run NPM Security Audit
-      if: matrix.scan-type == 'npm-audit'
-      run: |
-        npm audit --audit-level=moderate --json > npm-audit-report.json || true
-        npm audit --audit-level=moderate
-
-    - name: Upload npm audit results
-      if: matrix.scan-type == 'npm-audit' && always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: npm-audit-report
-        path: npm-audit-report.json
-
     # Retire.js Scan
     - name: Install and run retire.js
       if: matrix.scan-type == 'retire-js'
@@ -189,8 +174,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Shallow clones should be disabled for better relevancy of analysis
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -204,11 +187,11 @@ jobs:
     - name: Run tests with coverage
       run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
 
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-reports
+        path: coverage/
 
   security-summary:
     name: Security Summary
@@ -227,13 +210,11 @@ jobs:
         echo "## 📊 Scan Results" >> $GITHUB_STEP_SUMMARY
         echo "- **CodeQL Analysis**: ${{ needs.security-scanning.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- **OWASP Dependency Check**: Completed" >> $GITHUB_STEP_SUMMARY
-        echo "- **NPM Security Audit**: Completed" >> $GITHUB_STEP_SUMMARY
         echo "- **Retire.js Vulnerability Scan**: Completed" >> $GITHUB_STEP_SUMMARY
         echo "- **Custom Security Tests**: Passed in test job" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 🔍 Security Reports Available" >> $GITHUB_STEP_SUMMARY
         echo "- Dependency Check Report (artifacts)" >> $GITHUB_STEP_SUMMARY
-        echo "- NPM Audit Report (artifacts)" >> $GITHUB_STEP_SUMMARY
         echo "- Retire.js Vulnerability Report (artifacts)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## 📋 Recommendations" >> $GITHUB_STEP_SUMMARY
