@@ -45,3 +45,23 @@ Thumbs.db
 # SQLite Files
 *.sqlite
 *.db
+
+# Security test results
+security-test-results.log
+integration-test-results.log
+npm-audit-report.json
+retire-report.json
+
+# Environment and sensitive files
+.env
+.env.local
+.env.production
+*.key
+*.pem
+*.p12
+config.json
+secrets.json
+
+# OWASP Dependency Check reports
+reports/
+dependency-check-report.*

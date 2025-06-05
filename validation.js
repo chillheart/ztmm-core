@@ -53,6 +53,12 @@ function validateString(input, maxLength = 255, required = true) {
     }
   }
 
+  // Whitelist validation: Only allow safe characters
+  const allowedCharacters = /^[a-zA-Z0-9\s\-_.@()]+$/;
+  if (!allowedCharacters.test(trimmed)) {
+    throw new Error('Input contains characters outside the allowed whitelist');
+  }
+
   // Remove control characters but preserve allowed whitespace
   const sanitized = trimmed.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
