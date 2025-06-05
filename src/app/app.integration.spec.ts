@@ -256,7 +256,11 @@ describe('Application Integration Tests', () => {
       await assessmentFixture.whenStable();
       await adminFixture.whenStable();
 
-      expect(errorSpy).toHaveBeenCalledTimes(2);
+      // Each component logs an error, and the service also logs an error for each failed call
+      // AssessmentComponent: service error + component error = 2
+      // AdminComponent: service error + component error = 2
+      // Total: 4 console.error calls
+      expect(errorSpy).toHaveBeenCalledTimes(4);
 
       // Reset for other tests
       mockApi.getPillars.and.returnValue(Promise.resolve([]));
