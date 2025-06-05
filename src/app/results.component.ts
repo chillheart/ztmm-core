@@ -1,8 +1,45 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm, NgModel } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ZtmmDataService } from './services/ztmm-data.service';
-import { Pillar, FunctionCapability, TechnologyProcess, AssessmentResponse, MaturityStage } from './models/ztmm.models';
+import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from './models/ztmm.models';
+
+interface ResultItem {
+  pillarName: string;
+  functionCapabilityName: string;
+  functionCapabilityType: string;
+  description: string;
+  type: string;
+  maturityStageName: string;
+  status: string;
+  notes: string;
+}
+
+interface StageResult {
+  stage: MaturityStage;
+  status: 'green' | 'yellow' | 'red' | 'not-assessed';
+  assessedCount: number;
+  totalCount: number;
+  completionPercentage: number;
+}
+
+interface FunctionResult {
+  functionCapabilityName: string;
+  functionCapabilityType: string;
+  items: ResultItem[];
+  maturityStageStatus: StageResult[];
+  assessedCount: number;
+  totalItems: number;
+  assessmentPercentage: number;
+}
+
+interface PillarResult {
+  pillarName: string;
+  functions: FunctionResult[];
+  totalItems: number;
+  assessedItems: number;
+  assessmentPercentage: number;
+}
 
 @Component({
   selector: 'app-results',
@@ -17,8 +54,8 @@ export class ResultsComponent {
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
-  assessmentResponses: any[] = [];
-  results: any[] = [];
+  assessmentResponses: AssessmentResponse[] = [];
+  results: ResultItem[] = [];
   selectedPillarId: number | null = null;
 
   constructor(private data: ZtmmDataService) {
@@ -93,7 +130,7 @@ export class ResultsComponent {
       const pillar = this.pillars.find(p => p.id === fc?.pillar_id);
       const ms = this.maturityStages.find(m => m.id === tp.maturity_stage_id);
       // Find assessment response for this technology/process (if available)
-      const ar = this.assessmentResponses.find((a: any) => a.tech_process_id === tp.id);
+      const ar = this.assessmentResponses.find(a => a.tech_process_id === tp.id);
       return {
         pillarName: pillar?.name || '',
         functionCapabilityName: fc?.name || '',
@@ -137,8 +174,8 @@ export class ResultsComponent {
     }
   }
 
-  calculateFunctionMaturityStages(items: any[]) {
-    const stageResults: any[] = [];
+  calculateFunctionMaturityStages(items: ResultItem[]): StageResult[] {
+    const stageResults: StageResult[] = [];
 
     // Group items by maturity stage for this function
     for (const stage of this.maturityStages) {
@@ -185,8 +222,17 @@ export class ResultsComponent {
     return stageResults;
   }
 
-  get groupedResults() {
-    const grouped: { [key: string]: any } = {};
+  get groupedResults(): PillarResult[] {
+    const grouped: Record<string, {
+      pillarName: string;
+      functions: Record<string, {
+        functionCapabilityName: string;
+        functionCapabilityType: string;
+        items: ResultItem[];
+      }>;
+      totalItems: number;
+      assessedItems: number;
+    }> = {};
 
     for (const result of this.results) {
       const pillarKey = result.pillarName;
@@ -231,11 +277,11 @@ export class ResultsComponent {
         const maturityStageStatus = this.calculateFunctionMaturityStages(func.items);
 
         // Calculate assessment counts for this function
-        const assessedCount = func.items.filter((item: any) => item.status !== 'Not Assessed').length;
+        const assessedCount = func.items.filter(item => item.status !== 'Not Assessed').length;
         const totalItems = func.items.length;
 
         // Sort items within each function by maturity stage and description
-        func.items.sort((a: any, b: any) => {
+        func.items.sort((a, b) => {
           const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
           const stageComparison = stageOrder.indexOf(a.maturityStageName) - stageOrder.indexOf(b.maturityStageName);
           if (stageComparison !== 0) {
@@ -254,7 +300,7 @@ export class ResultsComponent {
       });
 
       // Sort functions alphabetically
-      functionsArray.sort((a: any, b: any) => a.functionCapabilityName.localeCompare(b.functionCapabilityName));
+      functionsArray.sort((a, b) => a.functionCapabilityName.localeCompare(b.functionCapabilityName));
 
       return {
         pillarName: pillar.pillarName,
@@ -266,7 +312,7 @@ export class ResultsComponent {
     });
 
     // Sort pillars alphabetically
-    pillarArray.sort((a: any, b: any) => a.pillarName.localeCompare(b.pillarName));
+    pillarArray.sort((a, b) => a.pillarName.localeCompare(b.pillarName));
 
     return pillarArray;
   }

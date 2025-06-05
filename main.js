@@ -373,5 +373,5 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
   // On macOS, if the app is still running and user clicks the dock icon,
   // create a new window if none exist
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) {createWindow();}
 });

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ZtmmDataService } from './ztmm-data.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../models/ztmm.models';
 
 // Mock the Electron API
 const mockApi = {

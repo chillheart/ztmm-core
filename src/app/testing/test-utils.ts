@@ -202,7 +202,7 @@ export class TestUtils {
   /**
    * Validates form field requirements
    */
-  static validateFormField(fixture: ComponentFixture<any>, fieldSelector: string, expectedRequired: boolean = true) {
+  static validateFormField(fixture: ComponentFixture<any>, fieldSelector: string, expectedRequired = true) {
     const field = fixture.debugElement.query(By.css(fieldSelector));
     expect(field).toBeTruthy();
 
@@ -226,7 +226,7 @@ export class TestUtils {
   /**
    * Tests component error handling
    */
-  static async testErrorHandling(component: any, methodName: string, errorMessage: string = 'Test error') {
+  static async testErrorHandling(component: any, methodName: string, errorMessage = 'Test error') {
     const originalConsoleError = console.error;
     console.error = jasmine.createSpy('console.error');
 
@@ -289,7 +289,7 @@ export class TestUtils {
   /**
    * Tests component loading states
    */
-  static testLoadingState(fixture: ComponentFixture<any>, loadingSelector: string = '.loading') {
+  static testLoadingState(fixture: ComponentFixture<any>, loadingSelector = '.loading') {
     // Component should show loading state initially
     const loadingElement = fixture.debugElement.query(By.css(loadingSelector));
     return loadingElement !== null;
@@ -298,7 +298,7 @@ export class TestUtils {
   /**
    * Validates pagination or list functionality
    */
-  static validateListFunctionality(fixture: ComponentFixture<any>, listSelector: string, expectedMinItems: number = 1) {
+  static validateListFunctionality(fixture: ComponentFixture<any>, listSelector: string, expectedMinItems = 1) {
     const listItems = fixture.debugElement.queryAll(By.css(listSelector));
     expect(listItems.length).toBeGreaterThanOrEqual(expectedMinItems);
 

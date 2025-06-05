@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { Component } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './navbar.component';
@@ -10,21 +9,6 @@ import { AssessmentComponent } from './assessment.component';
 import { AdminComponent } from './admin.component';
 import { ResultsComponent } from './results.component';
 import { ZtmmDataService } from './services/ztmm-data.service';
-import { routes } from './app.routes';
-import { provideRouter } from '@angular/router';
-
-// Mock components for routing tests
-@Component({ template: '' })
-class MockHomeComponent { }
-
-@Component({ template: '' })
-class MockAssessmentComponent { }
-
-@Component({ template: '' })
-class MockAdminComponent { }
-
-@Component({ template: '' })
-class MockResultsComponent { }
 
 // Mock the Electron API
 const mockApi = {
@@ -290,7 +274,7 @@ describe('Application Integration Tests', () => {
       // This call should fail but not crash the component
       try {
         await component.addPillar();
-      } catch (error) {
+      } catch {
         // Expected to fail
       }
 

@@ -344,7 +344,7 @@ describe('AdminComponent', () => {
   describe('Drag and Drop', () => {
     it('should handle pillar reorder', async () => {
       const newOrder = [2, 1];
-      component.pillars = newOrder.map((id, index) => ({ id, name: `Pillar ${id}` }));
+      component.pillars = newOrder.map((id, _index) => ({ id, name: `Pillar ${id}` }));
 
       await component.savePillarOrder();
 
@@ -354,7 +354,7 @@ describe('AdminComponent', () => {
 
     it('should handle function capability reorder', async () => {
       const newOrder = [2, 1];
-      component.functionCapabilities = newOrder.map((id, index) => ({
+      component.functionCapabilities = newOrder.map((id, _index) => ({
         id,
         name: `Function ${id}`,
         type: 'Function' as const,
