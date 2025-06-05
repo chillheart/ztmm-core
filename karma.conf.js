@@ -25,13 +25,13 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/ztmm-assessment'),
-      subdir: '.',
+      dir: require('path').join(__dirname, './coverage'),
       reporters: [
-        { type: 'html' },
+        { type: 'html', subdir: 'html-report' },
         { type: 'text-summary' },
-        { type: 'lcov' }
+        { type: 'lcovonly', subdir: '.', file: 'lcov.info' }
       ],
+      fixWebpackSourcePaths: true,
       check: {
         global: {
           statements: 80,
@@ -44,6 +44,7 @@ module.exports = function (config) {
     reporters: ['progress', 'kjhtml', 'coverage'],
     browsers: ['Chrome'],
     restartOnFileChange: true,
+    singleRun: false,
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',

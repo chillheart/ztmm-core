@@ -28,35 +28,25 @@ jobs:
       run: npm ci
 
     - name: Run linting
-      run: npm run lint --if-present
+      run: npm run lint
 
     - name: Run type checking
-      run: npx tsc --noEmit --if-present
+      run: npm run type-check
 
     - name: Run unit tests
-      run: npm test -- --watch=false --browsers=ChromeHeadless --code-coverage
+      run: npm run test:ci
 
     - name: Run security tests
       run: |
         node security-test.js
         node integration-test.js
 
-    - name: Upload test coverage
-      uses: codecov/codecov-action@v3
-      if: always()
-      with:
-        directory: ./coverage
-        flags: unittests
-        name: codecov-umbrella
-
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
-        path: |
-          coverage/
-          karma-results.xml
+        path: karma-results.xml
 
   build:
     name: Build Application

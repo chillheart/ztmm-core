@@ -19,6 +19,7 @@
     "lint:all": "npm run lint && npm run lint:js",
     "lint:js": "eslint *.js **/*.js --fix",
     "lint:check": "eslint --print-config eslint.config.js",
+    "type-check": "tsc --noEmit",
     "security:test": "node security-test.js && node integration-test.js",
     "security:audit": "npm audit --audit-level=moderate",
     "security:retire": "retire --path .",

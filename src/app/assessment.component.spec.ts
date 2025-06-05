@@ -112,7 +112,12 @@ describe('AssessmentComponent', () => {
     component.technologiesProcesses = [mockTechnologiesProcesses[0]];
     component.assessmentStatuses = ['Fully Implemented'];
     component.assessmentNotes = ['Test note'];
-    component.pillarSummary = [{ name: 'Test' }];
+    component.pillarSummary = [{
+      functionCapability: { id: 1, name: 'Test FC', type: 'Function', pillar_id: 1 },
+      totalCount: 1,
+      completedCount: 0,
+      completionPercentage: 0
+    }];
 
     await component.loadAll();
 
@@ -136,7 +141,12 @@ describe('AssessmentComponent', () => {
 
   it('should clear summary when no pillar is selected', async () => {
     component.selectedPillarId = null;
-    component.pillarSummary = [{ name: 'Test' }];
+    component.pillarSummary = [{
+      functionCapability: { id: 1, name: 'Test FC', type: 'Function', pillar_id: 1 },
+      totalCount: 1,
+      completedCount: 0,
+      completionPercentage: 0
+    }];
 
     await component.onPillarChange();
 
