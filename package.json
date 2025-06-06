@@ -137,8 +137,8 @@
           "arch": [
             "x64"
           ]
-        }
-      ],
+        }      ],
+      "icon": "src/assets/icon.ico",
       "requestedExecutionLevel": "asInvoker",
       "verifyUpdateCodeSignature": false,
       "signAndEditExecutable": false
