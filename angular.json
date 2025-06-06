@@ -35,7 +35,8 @@
               "src/styles.scss"
             ],
             "scripts": []
-          },            "configurations": {
+          },
+          "configurations": {
             "production": {
               "budgets": [
                 {
@@ -94,8 +95,25 @@
             ],
             "scripts": []
           }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html",
+              "*.js",
+              "**/*.js"
+            ],
+            "eslintConfig": "eslint.config.js"
+          }
         }
       }
     }
+  },
+  "cli": {
+    "schematicCollections": [
+      "angular-eslint"
+    ]
   }
 }

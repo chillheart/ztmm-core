@@ -1,10 +1,37 @@
 import { Injectable } from '@angular/core';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
 
+// Define the Electron API interface
+interface ElectronAPI {
+  getPillars(): Promise<Pillar[]>;
+  addPillar(name: string): Promise<void>;
+  removePillar(id: number): Promise<void>;
+  editPillar(id: number, name: string): Promise<void>;
+  savePillarOrder(order: number[]): Promise<void>;
+  getFunctionCapabilities(): Promise<FunctionCapability[]>;
+  addFunctionCapability(name: string, type: string, pillarId: number): Promise<void>;
+  removeFunctionCapability(id: number): Promise<void>;
+  editFunctionCapability(id: number, name: string, type: string, pillarId: number): Promise<void>;
+  saveFunctionOrder(order: number[]): Promise<void>;
+  getMaturityStages(): Promise<MaturityStage[]>;
+  getTechnologiesProcesses(functionCapabilityId?: number): Promise<TechnologyProcess[]>;
+  addTechnologyProcess(description: string, type: string, functionCapabilityId: number, maturityStageId: number): Promise<void>;
+  removeTechnologyProcess(id: number): Promise<void>;
+  editTechnologyProcess(id: number, description: string, type: string, functionCapabilityId: number, maturityStageId: number): Promise<void>;
+  saveAssessment(techProcessId: number, status: AssessmentStatus, notes?: string): Promise<void>;
+  getAssessmentResponses(): Promise<AssessmentResponse[]>;
+}
+
+declare global {
+  interface Window {
+    api: ElectronAPI;
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class ZtmmDataService {
-  private get api() {
-    const windowApi = (window as any).api;
+  private get api(): ElectronAPI {
+    const windowApi = window.api;
     if (!windowApi) {
       throw new Error('Electron API not available. Make sure the application is running in Electron environment.');
     }

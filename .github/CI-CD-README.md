@@ -61,9 +61,9 @@ The CI/CD pipeline consists of three main workflows:
 - **Custom Tests**: Application-specific security controls
 
 ### Code Quality
-- **SonarCloud**: Static analysis and quality metrics
 - **TypeScript**: Type checking with `tsc --noEmit`
 - **Linting**: ESLint for code style and potential issues
+- **Test Coverage**: Karma/Jasmine with coverage reports
 
 ## 🏗️ Build Process
 
@@ -114,7 +114,6 @@ The CI/CD pipeline consists of three main workflows:
 
 ### Security Configuration
 - `dependency-check-suppressions.xml` - OWASP suppressions
-- `sonar-project.properties` - SonarCloud configuration
 - `security-test.js` - Custom security tests
 - `integration-test.js` - Integration security tests
 
@@ -124,7 +123,6 @@ Configure these secrets in your GitHub repository settings:
 
 ### Required Secrets
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
-- `SONAR_TOKEN` - SonarCloud authentication token
 
 ### Optional Secrets
 - `CODECOV_TOKEN` - Enhanced Codecov integration
@@ -141,7 +139,6 @@ Configure these secrets in your GitHub repository settings:
 - **Summary**: Pipeline summary with security status
 
 ### Quality Reports
-- **SonarCloud Dashboard**: Code quality metrics
 - **Codecov**: Test coverage tracking
 - **GitHub Checks**: PR status checks
 
@@ -173,7 +170,6 @@ Configure these secrets in your GitHub repository settings:
 
 ### Quality
 - Minimum test coverage requirements
-- Code quality gates with SonarCloud
 - TypeScript strict mode enforcement
 - Automated code formatting and linting
 
@@ -216,7 +212,6 @@ Configure these secrets in your GitHub repository settings:
 
 ### Quality Metrics
 - >90% test coverage target
-- SonarCloud quality gate passing
 - Zero linting errors
 
 ### Release Metrics

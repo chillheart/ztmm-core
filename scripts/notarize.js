@@ -9,6 +9,7 @@ exports.default = async function notarizing(context) {
   const appName = context.packager.appInfo.productFilename;
 
   if (!process.env.APPLE_ID || !process.env.APPLE_ID_PASS || !process.env.APPLE_TEAM_ID) {
+    // eslint-disable-next-line no-console
     console.log('Skipping notarization: APPLE_ID, APPLE_ID_PASS, and APPLE_TEAM_ID environment variables must be set');
     return;
   }

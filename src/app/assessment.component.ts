@@ -1,8 +1,16 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm, NgModel } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ZtmmDataService } from './services/ztmm-data.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentStatus } from './models/ztmm.models';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from './models/ztmm.models';
+import { AssessmentStatus } from './models/ztmm.models';
+
+interface PillarSummary {
+  functionCapability: FunctionCapability;
+  totalCount: number;
+  completedCount: number;
+  completionPercentage: number;
+}
 
 @Component({
   selector: 'app-assessment',
@@ -16,8 +24,8 @@ export class AssessmentComponent {
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
-  assessmentResponses: any[] = [];
-  pillarSummary: any[] = [];
+  assessmentResponses: AssessmentResponse[] = [];
+  pillarSummary: PillarSummary[] = [];
 
   selectedPillarId: number | null = null;
   selectedFunctionCapabilityId: number | null = null;
@@ -121,21 +129,21 @@ export class AssessmentComponent {
     return this.functionCapabilities.find(fc => fc.id === this.selectedFunctionCapabilityId)?.type || '';
   }
 
-  getButtonClass(summary: any): string {
+  getButtonClass(summary: PillarSummary): string {
     if (summary.totalCount === 0) {
       return 'btn btn-sm btn-outline-secondary';
     }
     return this.selectedFunctionCapabilityId === summary.functionCapability.id ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline-primary';
   }
 
-  getButtonText(summary: any): string {
+  getButtonText(summary: PillarSummary): string {
     if (summary.totalCount === 0) {
       return 'No Items';
     }
     return this.selectedFunctionCapabilityId === summary.functionCapability.id ? 'Assessing' : 'Assess';
   }
 
-  onAssessButtonClick(summary: any): void {
+  onAssessButtonClick(summary: PillarSummary): void {
     if (summary.totalCount > 0) {
       this.selectedFunctionCapabilityId = summary.functionCapability.id;
       this.onFunctionCapabilityChange();
@@ -169,10 +177,11 @@ export class AssessmentComponent {
   async submitAssessment() {
     try {
       for (let i = 0; i < this.technologiesProcesses.length; i++) {
-        if (this.assessmentStatuses[i]) {
+        const status = this.assessmentStatuses[i];
+        if (status) {
           await this.data.saveAssessment(
             this.technologiesProcesses[i].id,
-            this.assessmentStatuses[i]!,
+            status,
             this.assessmentNotes[i]
           );
         }

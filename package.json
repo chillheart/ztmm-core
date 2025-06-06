@@ -1,6 +1,6 @@
 {
   "name": "ztmm-assessment",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "main": "main.js",
   "type": "commonjs",
   "author": "Cameron McCormick",
@@ -15,6 +15,11 @@
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
     "test:coverage": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
     "lint": "ng lint",
+    "lint:fix": "ng lint --fix",
+    "lint:all": "npm run lint && npm run lint:js",
+    "lint:js": "eslint *.js **/*.js --fix",
+    "lint:check": "eslint --print-config eslint.config.js",
+    "type-check": "tsc --noEmit",
     "security:test": "node security-test.js && node integration-test.js",
     "security:audit": "npm audit --audit-level=moderate",
     "security:retire": "retire --path .",
@@ -27,7 +32,7 @@
     "dist": "npm run electron:build:all",
     "release": "npm run electron:build:all --publish=never",
     "prerelease": "npm run security:test && npm run security:audit",
-    "ci:full": "npm ci && npm run lint && npm run test:ci && npm run security:test"
+    "ci:full": "npm ci && npm run lint:all && npm run test:ci && npm run security:test"
   },
   "private": true,
   "dependencies": {
@@ -50,12 +55,18 @@
     "@angular/cli": "^19.2.14",
     "@angular/compiler-cli": "^19.2.0",
     "@types/jasmine": "~5.1.0",
+    "angular-eslint": "19.7.1",
     "chokidar": "^4.0.3",
     "concurrently": "^9.1.2",
     "electron": "^36.3.2",
     "electron-builder": "^26.0.12",
     "electron-notarize": "^1.2.2",
     "electron-rebuild": "^3.2.9",
+    "eslint": "^9.28.0",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-unicorn": "^59.0.1",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -63,6 +74,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.7.2",
+    "typescript-eslint": "8.33.1",
     "wait-on": "^8.0.3"
   },
   "build": {

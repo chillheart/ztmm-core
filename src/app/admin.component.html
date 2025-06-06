@@ -153,8 +153,9 @@
           <form class="mb-4" #functionForm="ngForm" (ngSubmit)="addFunctionCapability(functionForm)">
             <div class="row g-2 mb-3">
               <div class="col-md-6">
-                <label class="form-label small text-muted">Pillar</label>
+                <label for="pillarSelect" class="form-label small text-muted">Pillar</label>
                 <select [(ngModel)]="selectedPillarId"
+                        id="pillarSelect"
                         name="pillarSelect"
                         class="form-select"
                         required
@@ -167,8 +168,9 @@
                 </div>
               </div>
               <div class="col-md-6">
-                <label class="form-label small text-muted">Type</label>
+                <label for="functionCapabilityType" class="form-label small text-muted">Type</label>
                 <select [(ngModel)]="newFunctionCapabilityType"
+                        id="functionCapabilityType"
                         name="functionCapabilityType"
                         class="form-select"
                         required>
@@ -179,9 +181,10 @@
             </div>
             <div class="row g-2 mb-3">
               <div class="col-12">
-                <label class="form-label small text-muted">Function/Capability Name</label>
+                <label for="functionCapability" class="form-label small text-muted">Function/Capability Name</label>
                 <div class="input-group">
                   <input [(ngModel)]="newFunctionCapability"
+                         id="functionCapability"
                          name="functionCapability"
                          class="form-control"
                          placeholder="Enter function or capability name..."
@@ -282,8 +285,9 @@
           <form class="mb-4" #techForm="ngForm" (ngSubmit)="addTechnologyProcess(techForm)">
             <div class="row g-2 mb-3">
               <div class="col-md-3">
-                <label class="form-label small text-muted">Filter by Pillar</label>
+                <label for="techPillarSelect" class="form-label small text-muted">Filter by Pillar</label>
                 <select [(ngModel)]="selectedTechPillarId"
+                        id="techPillarSelect"
                         name="techPillarSelect"
                         class="form-select"
                         (change)="onTechPillarChange()">
@@ -292,8 +296,9 @@
                 </select>
               </div>
               <div class="col-md-4">
-                <label class="form-label small text-muted">Function/Capability</label>
+                <label for="fcSelect" class="form-label small text-muted">Function/Capability</label>
                 <select [(ngModel)]="selectedFunctionCapabilityId"
+                        id="fcSelect"
                         name="fcSelect"
                         class="form-select"
                         required
@@ -308,8 +313,9 @@
                 </div>
               </div>
               <div class="col-md-3">
-                <label class="form-label small text-muted">Maturity Stage</label>
+                <label for="maturityStageSelect" class="form-label small text-muted">Maturity Stage</label>
                 <select [(ngModel)]="selectedMaturityStageId"
+                        id="maturityStageSelect"
                         name="maturityStageSelect"
                         class="form-select"
                         required
@@ -322,8 +328,9 @@
                 </div>
               </div>
               <div class="col-md-2">
-                <label class="form-label small text-muted">Type</label>
+                <label for="technologyProcessType" class="form-label small text-muted">Type</label>
                 <select [(ngModel)]="newTechnologyProcessType"
+                        id="technologyProcessType"
                         name="technologyProcessType"
                         class="form-select"
                         required>
@@ -334,9 +341,10 @@
             </div>
             <div class="row g-2 mb-3">
               <div class="col-12">
-                <label class="form-label small text-muted">Technology/Process Description</label>
+                <label for="technologyProcess" class="form-label small text-muted">Technology/Process Description</label>
                 <div class="input-group">
                   <input [(ngModel)]="newTechnologyProcess"
+                         id="technologyProcess"
                          name="technologyProcess"
                          class="form-control"
                          placeholder="Enter detailed description of the technology or process..."
@@ -383,31 +391,38 @@
                     <ng-container *ngIf="editingTechProcessId === tp.id; else techView">
                       <div class="row g-2 align-items-center">
                         <div class="col-md-4">
-                          <label class="form-label small text-muted">Description</label>
-                          <input [(ngModel)]="editingTechProcess.description" class="form-control" />
+                          <label for="editTechProcessDescription" class="form-label small text-muted">Description</label>
+                          <input [(ngModel)]="editingTechProcess.description"
+                                 id="editTechProcessDescription"
+                                 class="form-control" />
                         </div>
                         <div class="col-md-2">
-                          <label class="form-label small text-muted">Type</label>
-                          <select [(ngModel)]="editingTechProcess.type" class="form-select">
+                          <label for="editTechProcessType" class="form-label small text-muted">Type</label>
+                          <select [(ngModel)]="editingTechProcess.type"
+                                  id="editTechProcessType"
+                                  class="form-select">
                             <option value="Technology">Technology</option>
                             <option value="Process">Process</option>
                           </select>
                         </div>
                         <div class="col-md-3">
-                          <label class="form-label small text-muted">Function/Capability</label>
-                          <select [(ngModel)]="editingTechProcess.function_capability_id" class="form-select">
+                          <label for="editTechProcessFunction" class="form-label small text-muted">Function/Capability</label>
+                          <select [(ngModel)]="editingTechProcess.function_capability_id"
+                                  id="editTechProcessFunction"
+                                  class="form-select">
                             <option *ngFor="let fc of functionCapabilities" [ngValue]="fc.id">{{ fc.name }}</option>
                           </select>
                         </div>
                         <div class="col-md-2">
-                          <label class="form-label small text-muted">Maturity Stage</label>
-                          <select [(ngModel)]="editingTechProcess.maturity_stage_id" class="form-select">
+                          <label for="editTechProcessMaturity" class="form-label small text-muted">Maturity Stage</label>
+                          <select [(ngModel)]="editingTechProcess.maturity_stage_id"
+                                  id="editTechProcessMaturity"
+                                  class="form-select">
                             <option *ngFor="let ms of maturityStages" [ngValue]="ms.id">{{ ms.name }}</option>
                           </select>
                         </div>
                         <div class="col-md-1">
-                          <label class="form-label small text-muted">&nbsp;</label>
-                          <div class="d-flex gap-1">
+                          <div class="d-flex gap-1" style="margin-top: 1.5rem;">
                             <button class="btn btn-sm btn-success" (click)="saveEditTechProcess()" title="Save changes">
                               <i class="bi bi-check"></i>
                             </button>

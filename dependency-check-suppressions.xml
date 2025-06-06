@@ -18,6 +18,123 @@
     </suppress>
     -->
 
+    <!-- Electron build dependencies - these are build-time only and not distributed -->
+
+    <!-- Squirrel-Mono.exe - Electron auto-updater dependency -->
+    <suppress>
+        <notes><![CDATA[
+        Squirrel-Mono.exe is part of the Electron build process for Windows auto-updates.
+        These CVEs affect the Mono framework but are not exploitable in our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <cpe>cpe:2.3:a:mono-project:mono:2.0.1:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2015-2320</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+        Squirrel-Mono.exe is part of the Electron build process for Windows auto-updates.
+        These CVEs affect the Mono framework but are not exploitable in our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <cpe>cpe:2.3:a:mono-project:mono_framework:2.0.1:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2015-2319</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+        Squirrel-Mono.exe is part of the Electron build process for Windows auto-updates.
+        These CVEs affect the Mono framework but are not exploitable in our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <cpe>cpe:2.3:a:mono_project:mono:2.0.1:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2015-2318</cve>
+    </suppress>
+
+    <!-- Squirrel.exe - Electron auto-updater dependency -->
+    <suppress>
+        <notes><![CDATA[
+        Squirrel.exe is part of the Electron build process for Windows auto-updates.
+        These GitHub-related CVEs are not applicable to our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <cpe>cpe:2.3:a:github:github:2.0.1:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2020-10518</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+        Squirrel.exe is part of the Electron build process for Windows auto-updates.
+        These GitHub-related CVEs are not applicable to our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <cpe>cpe:2.3:a:github:github:2.0.1:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2020-10519</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+        Squirrel.exe is part of the Electron build process for Windows auto-updates.
+        These GitHub-related CVEs are not applicable to our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <cpe>cpe:2.3:a:github:github:2.0.1:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2012-2055</cve>
+    </suppress>
+
+    <!-- SyncReleases.exe - Electron build dependency -->
+    <suppress>
+        <notes><![CDATA[
+        SyncReleases.exe is part of the Electron build process.
+        These GitHub-related CVEs are not applicable to our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <packageUrl>pkg:generic/SyncReleases@2.0.1</packageUrl>
+        <cve>CVE-2020-10518</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+        SyncReleases.exe is part of the Electron build process.
+        These GitHub-related CVEs are not applicable to our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <packageUrl>pkg:generic/SyncReleases@2.0.1</packageUrl>
+        <cve>CVE-2020-10519</cve>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+        SyncReleases.exe is part of the Electron build process.
+        These GitHub-related CVEs are not applicable to our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <packageUrl>pkg:generic/SyncReleases@2.0.1</packageUrl>
+        <cve>CVE-2012-2055</cve>
+    </suppress>
+
+    <!-- liblzma.dll - Compression library dependency -->
+    <suppress>
+        <notes><![CDATA[
+        liblzma.dll is a compression library used in the Electron build process.
+        CVE-2022-1271 affects XZ utils but is not exploitable in our build context.
+        Build-time dependency only, not distributed to end users.
+        Review date: 2025-12-01
+        ]]></notes>
+        <packageUrl>pkg:generic/liblzma@5.2.3</packageUrl>
+        <cpe>cpe:2.3:a:tukaani:xz:5.2.3:*:*:*:*:*:*:*</cpe>
+        <cve>CVE-2022-1271</cve>
+    </suppress>
+
     <!-- Add specific suppressions here as needed -->
     <!--
     Example: Suppress development-only dependencies
