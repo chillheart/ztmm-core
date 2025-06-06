@@ -1,0 +1,50 @@
+{
+  "appId": "com.ztmm.assessment",
+  "productName": "ZTMM Assessment",
+  "directories": {
+    "output": "dist-electron"
+  },
+  "files": [
+    "dist/**/*",
+    "main.js",
+    "preload.js",
+    "ztmm.db",
+    "node_modules/better-sqlite3/**/*",
+    "!node_modules/better-sqlite3/build/Release/*.node",
+    "node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+  ],
+  "extraMetadata": {
+    "main": "main.js"
+  },
+  "npmRebuild": false,
+  "nodeGypRebuild": false,  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64",
+          "ia32"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "requestedExecutionLevel": "asInvoker",
+    "verifyUpdateCodeSignature": false,
+    "signAndEditExecutable": false
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "ZTMM Assessment"
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-portable.${ext}"
+  }
+}

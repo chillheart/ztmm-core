@@ -144,11 +144,113 @@ rm -rf build/icons/icon.iconset
 
 # For Windows .ico file
 print_status "Creating Windows .ico file..."
-if [ -f "src/assets/icons/icon-256.png" ]; then
-    sips -z 256 256 "$SOURCE_PNG" --out "src/assets/icon.ico" &> /dev/null
-    print_success "Windows .ico file created"
-else
-    print_warning "Could not create .ico file (source too small)"
+
+# Check for available ICO creation tools
+ICO_CREATED=false
+
+# Method 1: Try ImageMagick (most reliable)
+if command -v magick &> /dev/null; then
+    print_status "Using ImageMagick to create ICO file..."
+    
+    # Create multi-resolution ICO file with common Windows icon sizes
+    ICO_SIZES=""
+    for size in 16 24 32 48 64 96 128 256; do
+        if [ -f "src/assets/icons/icon-${size}.png" ]; then
+            ICO_SIZES="$ICO_SIZES src/assets/icons/icon-${size}.png"
+        fi
+    done
+    
+    if [ -n "$ICO_SIZES" ]; then
+        magick $ICO_SIZES "src/assets/icon.ico" 2>/dev/null
+        if [ -f "src/assets/icon.ico" ]; then
+            print_success "Windows .ico file created with ImageMagick (multi-resolution)"
+            ICO_CREATED=true
+        fi
+    fi
+    
+elif command -v convert &> /dev/null; then
+    print_status "Using ImageMagick convert to create ICO file..."
+    
+    # Create multi-resolution ICO file with common Windows icon sizes
+    ICO_SIZES=""
+    for size in 16 24 32 48 64 96 128 256; do
+        if [ -f "src/assets/icons/icon-${size}.png" ]; then
+            ICO_SIZES="$ICO_SIZES src/assets/icons/icon-${size}.png"
+        fi
+    done
+    
+    if [ -n "$ICO_SIZES" ]; then
+        convert $ICO_SIZES "src/assets/icon.ico" 2>/dev/null
+        if [ -f "src/assets/icon.ico" ]; then
+            print_success "Windows .ico file created with ImageMagick convert (multi-resolution)"
+            ICO_CREATED=true
+        fi
+    fi
+
+# Method 2: Try png2ico (if available)
+elif command -v png2ico &> /dev/null; then
+    print_status "Using png2ico to create ICO file..."
+    
+    # Use multiple sizes for better quality
+    PNG_FILES=""
+    for size in 16 32 48 256; do
+        if [ -f "src/assets/icons/icon-${size}.png" ]; then
+            PNG_FILES="$PNG_FILES src/assets/icons/icon-${size}.png"
+        fi
+    done
+    
+    if [ -n "$PNG_FILES" ]; then
+        png2ico "src/assets/icon.ico" $PNG_FILES 2>/dev/null
+        if [ -f "src/assets/icon.ico" ]; then
+            print_success "Windows .ico file created with png2ico"
+            ICO_CREATED=true
+        fi
+    fi
+
+# Method 3: Try icotool (from icoutils)
+elif command -v icotool &> /dev/null; then
+    print_status "Using icotool to create ICO file..."
+    
+    # Create multi-resolution ICO
+    TEMP_ICOS=""
+    for size in 16 32 48 256; do
+        if [ -f "src/assets/icons/icon-${size}.png" ]; then
+            icotool -c -o "temp-${size}.ico" "src/assets/icons/icon-${size}.png" 2>/dev/null
+            if [ -f "temp-${size}.ico" ]; then
+                TEMP_ICOS="$TEMP_ICOS temp-${size}.ico"
+            fi
+        fi
+    done
+    
+    if [ -n "$TEMP_ICOS" ]; then
+        # Combine into single ICO file
+        icotool -c -o "src/assets/icon.ico" $TEMP_ICOS 2>/dev/null
+        # Clean up temp files
+        rm -f temp-*.ico
+        if [ -f "src/assets/icon.ico" ]; then
+            print_success "Windows .ico file created with icotool"
+            ICO_CREATED=true
+        fi
+    fi
+fi
+
+# If no proper ICO tool available, provide instructions
+if [ "$ICO_CREATED" = false ]; then
+    print_warning "Could not create proper .ico file - no suitable tools found"
+    print_warning "To fix this, install one of the following:"
+    echo "   • ImageMagick: brew install imagemagick (macOS) or apt install imagemagick (Linux)"
+    echo "   • png2ico: brew install png2ico (macOS)"
+    echo "   • icoutils: brew install icoutils (macOS) or apt install icoutils (Linux)"
+    echo ""
+    echo "   Alternatively, use an online converter:"
+    echo "   • https://convertio.co/png-ico/"
+    echo "   • https://www.icoconverter.com/"
+    echo ""
+    print_status "Creating fallback PNG renamed as ICO (may not work properly)..."
+    if [ -f "src/assets/icons/icon-256.png" ]; then
+        cp "src/assets/icons/icon-256.png" "src/assets/icon.ico"
+        print_warning "Created fallback icon.ico (PNG format) - consider using proper ICO format"
+    fi
 fi
 
 # Update Angular favicon reference if needed
