@@ -14,9 +14,9 @@ The CI/CD pipeline consists of three main workflows:
 - **Triggers**: Push to main/develop, pull requests
 - **Purpose**: Continuous integration, testing, and deployment
 
-### 3. Build and Release (`release.yml`)
+### 3. Package and Release Source (`release.yml`)
 - **Triggers**: Git tags, manual workflow dispatch
-- **Purpose**: Build cross-platform applications and create GitHub releases
+- **Purpose**: Package source code and create GitHub releases
 
 ## 🔒 Security Scanning
 
@@ -72,38 +72,27 @@ The CI/CD pipeline consists of three main workflows:
 - **Output**: Minified and optimized web assets
 - **Location**: `dist/` directory
 
-### Electron Application Build
-
-#### macOS Build
-- **Runner**: macOS-latest
-- **Outputs**: 
-  - Universal DMG installer
-  - ZIP archive
-  - Auto-updater files
-- **Architecture**: Universal (Intel + Apple Silicon)
-
-#### Windows Build
-- **Runner**: Windows-latest
-- **Outputs**:
-  - NSIS installer (.exe)
-  - Portable ZIP archive
-  - Auto-updater files
-- **Requirements**: MSBuild, Python for native modules
+### Source Code Packaging
+- **Format**: Both tar.gz and zip archives
+- **Content**: Complete source code excluding build artifacts
+- **Includes**: Build instructions and documentation
+- **Checksums**: SHA256 verification files
 
 ## 📦 Release Management
 
-### Automated Releases
+### Source Code Releases
 - **Trigger**: Git tags (e.g., `v1.0.0`) or manual dispatch
-- **Security Gate**: Pre-release security verification
-- **Artifacts**: Cross-platform installers and archives
+- **Content**: Complete source code package
+- **Formats**: tar.gz and zip archives
+- **Documentation**: Build instructions and setup guide
 - **GitHub Release**: Automated with release notes
 
 ### Release Process
-1. **Security Verification**: All security tests must pass
-2. **Cross-Platform Build**: macOS and Windows applications
-3. **Artifact Testing**: Verify build outputs
-4. **Release Creation**: GitHub release with checksums
-5. **Documentation**: Auto-generated release notes
+1. **Source Packaging**: Clean source code without build artifacts
+2. **Archive Creation**: Multiple format support (tar.gz, zip)
+3. **Checksum Generation**: SHA256 verification files
+4. **Release Creation**: GitHub release with build instructions
+5. **Documentation**: Auto-generated release notes with setup guide
 
 ## 🔧 Configuration Files
 
@@ -143,8 +132,8 @@ Configure these secrets in your GitHub repository settings:
 - **GitHub Checks**: PR status checks
 
 ### Build Reports
-- **Build Artifacts**: Available for 30 days
-- **Release Assets**: Permanent GitHub releases
+- **Source Packages**: Available in GitHub releases
+- **Build Instructions**: Included with source packages
 - **Checksums**: SHA256 hashes for verification
 
 ## 🔄 Pipeline Triggers
@@ -176,17 +165,17 @@ Configure these secrets in your GitHub repository settings:
 ### Release
 - Semantic versioning for releases
 - Automated changelog generation
-- Cross-platform compatibility testing
-- Secure artifact distribution
+- Source code integrity verification
+- Build instructions included with releases
 
 ## 🚨 Troubleshooting
 
 ### Common Issues
 
-#### Build Failures
-- Check Node.js version compatibility
-- Verify native dependency compilation
-- Review Electron rebuild process
+#### Source Package Issues
+- Verify tag format (must start with 'v')
+- Check source file exclusions
+- Validate archive creation process
 
 #### Security Scan Failures
 - Review dependency vulnerabilities
@@ -195,13 +184,13 @@ Configure these secrets in your GitHub repository settings:
 
 #### Release Issues
 - Verify tag format (must start with 'v')
-- Check build artifact generation
+- Check source package generation
 - Validate GitHub token permissions
 
 ### Getting Help
 - Check GitHub Actions logs for detailed error messages
 - Review security scan reports for specific vulnerabilities
-- Consult Electron documentation for build issues
+- Consult build instructions in source packages for setup issues
 
 ## 📈 Metrics & KPIs
 
@@ -215,6 +204,6 @@ Configure these secrets in your GitHub repository settings:
 - Zero linting errors
 
 ### Release Metrics
-- Automated cross-platform builds
-- Sub-30 minute build times
-- Verified artifact integrity
+- Automated source code packaging
+- Sub-10 minute packaging times
+- Verified source package integrity

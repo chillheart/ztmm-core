@@ -1,4 +1,4 @@
-name: Build and Release
+name: Package and Release Source
 
 on:
   push:
@@ -15,205 +15,9 @@ env:
   NODE_VERSION: '18'
 
 jobs:
-  security-check:
-    name: Pre-Release Security Check
+  package-source:
+    name: Package Source Code
     runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Run security tests
-      run: |
-        echo "🔒 Running pre-release security verification..."
-        node security-test.js
-        node integration-test.js
-
-    - name: Run npm audit
-      run: npm audit --audit-level=high
-
-    - name: Install and run retire.js
-      run: |
-        npm install -g retire
-        retire --path . --exitwith 1
-
-    - name: Security verification complete
-      run: echo "✅ Security verification passed - ready for release!"
-
-  build-macos:
-    name: Build macOS Application
-    runs-on: macos-latest
-    needs: security-check
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Install Python for node-gyp
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Rebuild native dependencies for macOS
-      run: npm run electron:rebuild
-
-    - name: Build Angular application
-      run: npm run build --configuration=production
-
-    - name: Build macOS Electron app
-      run: npm run electron:build:mac
-      env:
-        CSC_IDENTITY_AUTO_DISCOVERY: false # Disable code signing for now
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create macOS artifacts info
-      run: |
-        echo "📦 macOS Build Information" > macos-build-info.txt
-        echo "Built on: $(date)" >> macos-build-info.txt
-        echo "Node version: $(node --version)" >> macos-build-info.txt
-        echo "NPM version: $(npm --version)" >> macos-build-info.txt
-        echo "Electron version: $(npx electron --version)" >> macos-build-info.txt
-        ls -la dist-electron/ >> macos-build-info.txt
-
-    - name: Upload macOS artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: macos-build
-        path: |
-          dist-electron/*.dmg
-          dist-electron/*.zip
-          dist-electron/*.yml
-          dist-electron/*.yaml
-          dist-electron/*.blockmap
-          macos-build-info.txt
-        retention-days: 30
-
-  build-windows:
-    name: Build Windows Application
-    runs-on: windows-latest
-    needs: security-check
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Install Python for node-gyp
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.1
-
-    - name: Rebuild native dependencies for Windows
-      run: npm run electron:rebuild
-
-    - name: Build Angular application
-      run: npm run build --configuration=production
-
-    - name: Build Windows Electron app
-      run: npm run electron:build:win
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create Windows artifacts info
-      run: |
-        echo "📦 Windows Build Information" > windows-build-info.txt
-        echo "Built on: $(Get-Date)" >> windows-build-info.txt
-        echo "Node version: $(node --version)" >> windows-build-info.txt
-        echo "NPM version: $(npm --version)" >> windows-build-info.txt
-        echo "Electron version: $(npx electron --version)" >> windows-build-info.txt
-        Get-ChildItem dist-electron/ | Format-Table >> windows-build-info.txt
-
-    - name: Upload Windows artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-build
-        path: |
-          dist-electron/*.exe
-          dist-electron/*.nsis.7z
-          dist-electron/*.yml
-          dist-electron/*.yaml
-          dist-electron/*.blockmap
-          windows-build-info.txt
-        retention-days: 30
-
-  test-builds:
-    name: Test Built Applications
-    runs-on: ubuntu-latest
-    needs: [ build-macos, build-windows ]
-
-    steps:
-    - name: Download macOS artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: macos-build
-        path: macos-artifacts/
-
-    - name: Download Windows artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: windows-build
-        path: windows-artifacts/
-
-    - name: Verify build artifacts
-      run: |
-        echo "🔍 Verifying build artifacts..."
-        echo "macOS artifacts:"
-        ls -la macos-artifacts/
-        echo ""
-        echo "Windows artifacts:"
-        ls -la windows-artifacts/
-        echo ""
-
-        # Check for expected files
-        if [ -f "macos-artifacts"/*.dmg ]; then
-          echo "✅ macOS DMG found"
-        else
-          echo "❌ macOS DMG missing"
-          exit 1
-        fi
-
-        if [ -f "windows-artifacts"/*.exe ]; then
-          echo "✅ Windows EXE found"
-        else
-          echo "❌ Windows EXE missing"
-          exit 1
-        fi
-
-        echo "✅ All expected build artifacts verified!"
-
-  create-release:
-    name: Create GitHub Release
-    runs-on: ubuntu-latest
-    needs: [ test-builds ]
     permissions:
       contents: write
 
@@ -221,53 +25,17 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Download macOS artifacts
-      uses: actions/download-artifact@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        name: macos-build
-        path: release-artifacts/
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
 
-    - name: Download Windows artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: windows-build
-        path: release-artifacts/
+    - name: Install dependencies
+      run: npm ci
 
-    - name: Prepare release notes
-      run: |
-        echo "# ZTMM Assessment Release" > release-notes.md
-        echo "" >> release-notes.md
-        echo "## 🔒 Security Features" >> release-notes.md
-        echo "- ✅ SQL injection protection implemented and tested" >> release-notes.md
-        echo "- ✅ Input validation on all user inputs" >> release-notes.md
-        echo "- ✅ Secure database operations with prepared statements" >> release-notes.md
-        echo "- ✅ Comprehensive security testing suite" >> release-notes.md
-        echo "" >> release-notes.md
-        echo "## 📦 What's Included" >> release-notes.md
-        echo "- **macOS**: Universal binary (.dmg and .zip)" >> release-notes.md
-        echo "- **Windows**: Installer (.exe) and portable (.zip)" >> release-notes.md
-        echo "" >> release-notes.md
-        echo "## 🛡️ Security Verification" >> release-notes.md
-        echo "This release has been scanned and verified for:" >> release-notes.md
-        echo "- SQL injection vulnerabilities" >> release-notes.md
-        echo "- Known dependency vulnerabilities" >> release-notes.md
-        echo "- Retired JavaScript libraries" >> release-notes.md
-        echo "" >> release-notes.md
-        echo "## 📋 Installation Instructions" >> release-notes.md
-        echo "### macOS" >> release-notes.md
-        echo "1. Download the .dmg file" >> release-notes.md
-        echo "2. Open the .dmg and drag the app to Applications" >> release-notes.md
-        echo "3. Right-click and 'Open' to bypass Gatekeeper if needed" >> release-notes.md
-        echo "" >> release-notes.md
-        echo "### Windows" >> release-notes.md
-        echo "1. Download the .exe file" >> release-notes.md
-        echo "2. Run the installer as Administrator" >> release-notes.md
-        echo "3. Follow the installation wizard" >> release-notes.md
-        echo "" >> release-notes.md
-        echo "## 🔍 Checksums" >> release-notes.md
-        echo "\`\`\`" >> release-notes.md
-        find release-artifacts/ -name "*.dmg" -o -name "*.exe" -o -name "*.zip" | xargs sha256sum >> release-notes.md
-        echo "\`\`\`" >> release-notes.md
+    - name: Build Angular application
+      run: npm run build --configuration=production
 
     - name: Get version from tag or input
       id: get_version
@@ -280,17 +48,114 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
 
+        # Clean version for directory name (remove 'v' prefix if present)
+        CLEAN_VERSION=${VERSION#v}
+        echo "clean_version=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Create source package
+      run: |
+        VERSION="${{ steps.get_version.outputs.clean_version }}"
+        PACKAGE_NAME="ztmm-assessment-${VERSION}"
+
+        # Create package directory
+        mkdir -p "${PACKAGE_NAME}"
+
+        # Copy source files excluding build artifacts and dependencies
+        rsync -av --exclude='node_modules' \
+                  --exclude='dist' \
+                  --exclude='dist-electron' \
+                  --exclude='.git' \
+                  --exclude='.github' \
+                  --exclude='*.log' \
+                  --exclude='.angular' \
+                  --exclude='coverage' \
+                  ./ "${PACKAGE_NAME}/"
+
+        # Create source tarball
+        tar -czf "${PACKAGE_NAME}-source.tar.gz" "${PACKAGE_NAME}"
+
+        # Create source zip
+        zip -r "${PACKAGE_NAME}-source.zip" "${PACKAGE_NAME}"
+
+        # Create checksums
+        sha256sum "${PACKAGE_NAME}-source.tar.gz" > "${PACKAGE_NAME}-source.tar.gz.sha256"
+        sha256sum "${PACKAGE_NAME}-source.zip" > "${PACKAGE_NAME}-source.zip.sha256"
+
+    - name: Create build info
+      run: |
+        VERSION="${{ steps.get_version.outputs.clean_version }}"
+        echo "📦 ZTMM Assessment Source Release Information" > source-build-info.txt
+        echo "Version: ${VERSION}" >> source-build-info.txt
+        echo "Built on: $(date)" >> source-build-info.txt
+        echo "Node version: $(node --version)" >> source-build-info.txt
+        echo "NPM version: $(npm --version)" >> source-build-info.txt
+        echo "Repository: ${{ github.repository }}" >> source-build-info.txt
+        echo "Commit: ${{ github.sha }}" >> source-build-info.txt
+        echo "" >> source-build-info.txt
+        echo "## Build Instructions" >> source-build-info.txt
+        echo "1. Install Node.js 18 or later" >> source-build-info.txt
+        echo "2. Run: npm install" >> source-build-info.txt
+        echo "3. Run: npm run build" >> source-build-info.txt
+        echo "4. Run: npm run electron:build" >> source-build-info.txt
+
+    - name: Prepare release notes
+      run: |
+        echo "# ZTMM Assessment Source Release" > release-notes.md
+        echo "" >> release-notes.md
+        echo "## 📦 Source Code Release" >> release-notes.md
+        echo "This release contains the complete source code for the ZTMM Assessment application." >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## 🔒 Security Features" >> release-notes.md
+        echo "- ✅ SQL injection protection implemented and tested" >> release-notes.md
+        echo "- ✅ Input validation on all user inputs" >> release-notes.md
+        echo "- ✅ Secure database operations with prepared statements" >> release-notes.md
+        echo "- ✅ Comprehensive security testing suite" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## 📋 What's Included" >> release-notes.md
+        echo "- **Source Archive**: Complete source code (tar.gz and zip formats)" >> release-notes.md
+        echo "- **Build Instructions**: Detailed setup and build guide" >> release-notes.md
+        echo "- **Security Documentation**: Security implementation details" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## 🛠️ Build Requirements" >> release-notes.md
+        echo "- Node.js 18 or later" >> release-notes.md
+        echo "- npm (comes with Node.js)" >> release-notes.md
+        echo "- Git (for cloning)" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## 🚀 Quick Start" >> release-notes.md
+        echo "\`\`\`bash" >> release-notes.md
+        echo "# Extract the source archive" >> release-notes.md
+        echo "tar -xzf ztmm-assessment-*-source.tar.gz" >> release-notes.md
+        echo "cd ztmm-assessment-*" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "# Install dependencies" >> release-notes.md
+        echo "npm install" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "# Build the application" >> release-notes.md
+        echo "npm run build" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "# Run development server" >> release-notes.md
+        echo "npm start" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "# Build Electron applications" >> release-notes.md
+        echo "npm run electron:build" >> release-notes.md
+        echo "\`\`\`" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## 🔍 Checksums" >> release-notes.md
+        echo "\`\`\`" >> release-notes.md
+        cat *.sha256 >> release-notes.md
+        echo "\`\`\`" >> release-notes.md
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.get_version.outputs.version }}
-        name: "ZTMM Assessment ${{ steps.get_version.outputs.version }}"
+        name: "ZTMM Assessment ${{ steps.get_version.outputs.version }} (Source)"
         body_path: release-notes.md
         files: |
-          release-artifacts/*.dmg
-          release-artifacts/*.exe
-          release-artifacts/*.zip
-          release-artifacts/*-build-info.txt
+          *-source.tar.gz
+          *-source.zip
+          *.sha256
+          source-build-info.txt
         draft: false
         prerelease: false
         generate_release_notes: true
@@ -299,14 +164,13 @@ jobs:
 
     - name: Release summary
       run: |
-        echo "🎉 Release ${{ steps.get_version.outputs.version }} created successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "🎉 Source release ${{ steps.get_version.outputs.version }} created successfully!" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## 📦 Released Artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "### macOS" >> $GITHUB_STEP_SUMMARY
-        find release-artifacts/ -name "*.dmg" -exec basename {} \; | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+        echo "## 📦 Released Source Packages" >> $GITHUB_STEP_SUMMARY
+        ls -la *-source.* | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Windows" >> $GITHUB_STEP_SUMMARY
-        find release-artifacts/ -name "*.exe" -exec basename {} \; | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## 🔒 Security Status" >> $GITHUB_STEP_SUMMARY
-        echo "✅ All security checks passed before release" >> $GITHUB_STEP_SUMMARY
+        echo "## 🔧 Build Instructions" >> $GITHUB_STEP_SUMMARY
+        echo "Users can download the source and build locally using:" >> $GITHUB_STEP_SUMMARY
+        echo "1. \`npm install\`" >> $GITHUB_STEP_SUMMARY
+        echo "2. \`npm run build\`" >> $GITHUB_STEP_SUMMARY
+        echo "3. \`npm run electron:build\`" >> $GITHUB_STEP_SUMMARY
