@@ -3,11 +3,11 @@
   "productName": "ZTMM Assessment",
   "directories": {
     "output": "dist-electron"
-  },
-  "files": [
+  },  "files": [
     "dist/**/*",
     "main.js",
     "preload.js",
+    "validation.js",
     "ztmm.db",
     "node_modules/better-sqlite3/**/*",
     "!node_modules/better-sqlite3/build/Release/*.node",
