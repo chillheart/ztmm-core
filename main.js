@@ -108,6 +108,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    autoHideMenuBar: process.platform === 'win32', // Hide menu bar on Windows only
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
