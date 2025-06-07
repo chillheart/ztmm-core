@@ -358,11 +358,11 @@ function runSecurityTests() {
 }
 
 // Run the tests
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runSecurityTests();
 }
 
-module.exports = {
+export {
   runSecurityTests,
   testResults
 };
