@@ -637,12 +637,12 @@ export class SqlJsService {
     console.log('Database backup created');
   }
 
-  async getBackups(): Promise<Array<{ name: string; timestamp: number }>> {
+  async getBackups(): Promise<{ name: string; timestamp: number }[]> {
     if (!this.idbConnection) {
       await this.initialize();
     }
 
-    const backups: Array<{ name: string; timestamp: number }> = [];
+    const backups: { name: string; timestamp: number }[] = [];
     const tx = this.idbConnection!.transaction('backups', 'readonly');
     const store = tx.objectStore('backups');
 

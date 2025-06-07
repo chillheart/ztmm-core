@@ -9,7 +9,7 @@ describe('AdminComponent', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
   let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
-  let mockExportService: jasmine.SpyObj<DataExportService>;
+  let _mockExportService: jasmine.SpyObj<DataExportService>; // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const mockPillars: Pillar[] = [
     { id: 1, name: 'Identity' },
@@ -105,7 +105,7 @@ describe('AdminComponent', () => {
     fixture = TestBed.createComponent(AdminComponent);
     component = fixture.componentInstance;
     mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
-    mockExportService = TestBed.inject(DataExportService) as jasmine.SpyObj<DataExportService>;
+    _mockExportService = TestBed.inject(DataExportService) as jasmine.SpyObj<DataExportService>;
 
     // Wait for async loadAll() to complete
     await fixture.whenStable();

@@ -150,7 +150,7 @@ export class ZtmmDataWebService {
     return this.sqlJs.createBackup();
   }
 
-  async getBackups(): Promise<Array<{ name: string; timestamp: number; date: string }>> {
+  async getBackups(): Promise<{ name: string; timestamp: number; date: string }[]> {
     await this.ensureInitialized();
     const backups = await this.sqlJs.getBackups();
     return backups.map(backup => ({

@@ -124,7 +124,7 @@
               "*.js",
               "**/*.js"
             ],
-            "eslintConfig": "eslint.config.js"
+            "eslintConfig": "eslint.config.cjs"
           }
         }
       }

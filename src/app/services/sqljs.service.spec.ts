@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { SqlJsService } from './sqljs.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../models/ztmm.models';
 
 // Mock SQL.js
 const mockDatabase = {
@@ -22,11 +21,11 @@ const mockIDBConnection = {
 };
 
 // Mock initSqlJs
-const mockInitSqlJs = jasmine.createSpy('initSqlJs').and.returnValue(Promise.resolve(mockSqlJs));
+// const mockInitSqlJs = jasmine.createSpy('initSqlJs').and.returnValue(Promise.resolve(mockSqlJs));
 
 describe('SqlJsService', () => {
   let service: SqlJsService;
-  let consoleSpy: jasmine.Spy;
+  // let consoleSpy: jasmine.Spy;
 
   beforeEach(async () => {
     // Mock the import of sql.js
@@ -37,7 +36,7 @@ describe('SqlJsService', () => {
     }).compileComponents();
 
     service = TestBed.inject(SqlJsService);
-    consoleSpy = spyOn(console, 'log');
+    // consoleSpy = spyOn(console, 'log');
     spyOn(console, 'error');
 
     // Reset spies
