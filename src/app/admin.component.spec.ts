@@ -1,13 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AdminComponent } from './admin.component';
-import { ZtmmDataService } from './services/ztmm-data.service';
+import { ZtmmDataWebService } from './services/ztmm-data-web.service';
+import { DataExportService } from './utilities/data-export.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
 
 describe('AdminComponent', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
-  let mockDataService: jasmine.SpyObj<ZtmmDataService>;
+  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
+  let _mockExportService: jasmine.SpyObj<DataExportService>; // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const mockPillars: Pillar[] = [
     { id: 1, name: 'Identity' },
@@ -31,7 +33,7 @@ describe('AdminComponent', () => {
   ];
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('ZtmmDataService', [
+    const spy = jasmine.createSpyObj('ZtmmDataWebService', [
       'getPillars',
       'addPillar',
       'removePillar',
@@ -47,6 +49,12 @@ describe('AdminComponent', () => {
       'addTechnologyProcess',
       'removeTechnologyProcess',
       'editTechnologyProcess'
+    ]);
+
+    const exportSpy = jasmine.createSpyObj('DataExportService', [
+      'getDataStatistics',
+      'downloadExport',
+      'importData'
     ]);
 
     // Setup default spy returns BEFORE component creation
@@ -75,16 +83,29 @@ describe('AdminComponent', () => {
     spy.removeTechnologyProcess.and.returnValue(Promise.resolve());
     spy.editTechnologyProcess.and.returnValue(Promise.resolve());
 
+    // Setup export service spies
+    exportSpy.getDataStatistics.and.returnValue(Promise.resolve({
+      pillars: 2,
+      functionCapabilities: 2,
+      maturityStages: 4,
+      technologiesProcesses: 1,
+      assessmentResponses: 0
+    }));
+    exportSpy.downloadExport.and.returnValue(Promise.resolve());
+    exportSpy.importData.and.returnValue(Promise.resolve());
+
     await TestBed.configureTestingModule({
       imports: [AdminComponent, FormsModule],
       providers: [
-        { provide: ZtmmDataService, useValue: spy }
+        { provide: ZtmmDataWebService, useValue: spy },
+        { provide: DataExportService, useValue: exportSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminComponent);
     component = fixture.componentInstance;
-    mockDataService = TestBed.inject(ZtmmDataService) as jasmine.SpyObj<ZtmmDataService>;
+    mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
+    _mockExportService = TestBed.inject(DataExportService) as jasmine.SpyObj<DataExportService>;
 
     // Wait for async loadAll() to complete
     await fixture.whenStable();

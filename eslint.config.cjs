@@ -63,15 +63,12 @@ module.exports = tseslint.config(
     },
   },
   {
-    // Configuration for JavaScript files (Electron main process, preload, etc.)
+    // Configuration for JavaScript files (ES modules)
     files: ["*.js", "**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
-      sourceType: "commonjs",
+      sourceType: "module",
       globals: {
-        require: "readonly",
-        module: "readonly",
-        exports: "readonly",
         __dirname: "readonly",
         __filename: "readonly",
         global: "readonly",

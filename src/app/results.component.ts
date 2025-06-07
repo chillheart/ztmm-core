@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ZtmmDataService } from './services/ztmm-data.service';
+import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from './models/ztmm.models';
 
 interface ResultItem {
@@ -58,7 +58,7 @@ export class ResultsComponent {
   results: ResultItem[] = [];
   selectedPillarId: number | null = null;
 
-  constructor(private data: ZtmmDataService) {
+  constructor(private data: ZtmmDataWebService) {
     this.loadAll();
   }
 

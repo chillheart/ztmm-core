@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ZtmmDataService } from './services/ztmm-data.service';
+import { ZtmmDataWebService } from './services/ztmm-data-web.service';
+import { DataExportService } from './utilities/data-export.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
 
 
@@ -26,7 +27,18 @@ export class AdminComponent {
   newTechnologyProcessType: 'Technology' | 'Process' = 'Technology';
   selectedFunctionCapabilityId: number | null = null;
   selectedMaturityStageId: number | null = null;
-  activeTab: 'pillars' | 'functions' | 'tech' = 'pillars';
+  activeTab: 'pillars' | 'functions' | 'tech' | 'export' = 'pillars';
+
+  // Data Export properties
+  dataStatistics = {
+    pillars: 0,
+    functionCapabilities: 0,
+    maturityStages: 0,
+    technologiesProcesses: 0,
+    assessmentResponses: 0
+  };
+  isImporting = false;
+  isExporting = false;
 
   // For drag-and-drop
   dragPillarIndex: number | null = null;
@@ -39,8 +51,9 @@ export class AdminComponent {
   editingTechProcessId: number | null = null;
   editingTechProcess: Partial<TechnologyProcess> = {};
 
-  constructor(private data: ZtmmDataService) {
+  constructor(private data: ZtmmDataWebService, private exportService: DataExportService) {
     this.loadAll();
+    this.loadDataStatistics();
   }
 
   async loadAll() {
@@ -315,18 +328,72 @@ export class AdminComponent {
   techFormSubmitted = false;
 
   selectedTechPillarId: number | null = null;
+
+  onTechPillarChange() {
+    // If a function capability is selected, check if it still matches the new pillar filter
+    if (this.selectedFunctionCapabilityId && this.selectedTechPillarId) {
+      const selectedFunction = this.functionCapabilities.find(fc => fc.id === this.selectedFunctionCapabilityId);
+      if (selectedFunction && selectedFunction.pillar_id !== this.selectedTechPillarId) {
+        // Reset function capability selection if it doesn't match the new pillar filter
+        this.selectedFunctionCapabilityId = null;
+        this.loadTechnologiesProcesses();
+      }
+    }
+  }
+
   get filteredFunctionCapabilities() {
     if (!this.selectedTechPillarId) return this.functionCapabilities;
     return this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedTechPillarId);
   }
-  onTechPillarChange() {
-    // Reset function capability selection if it doesn't match the filter
-    if (this.selectedFunctionCapabilityId && this.selectedTechPillarId) {
-      const match = this.functionCapabilities.find(fc => fc.id === this.selectedFunctionCapabilityId && fc.pillar_id === this.selectedTechPillarId);
-      if (!match) {
-        this.selectedFunctionCapabilityId = null;
-        this.loadTechnologiesProcesses();
-      }
+
+  // Data Export methods
+  async loadDataStatistics() {
+    try {
+      this.dataStatistics = await this.exportService.getDataStatistics();
+    } catch (error) {
+      console.error('Error loading data statistics:', error);
+    }
+  }
+
+  async exportData() {
+    try {
+      this.isExporting = true;
+      await this.exportService.downloadExport();
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('Error exporting data. Please check the console for details.');
+    } finally {
+      this.isExporting = false;
+    }
+  }
+
+  async onFileSelected(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      alert('Please select a JSON file');
+      return;
+    }
+
+    try {
+      this.isImporting = true;
+      await this.exportService.uploadAndImport(file);
+      alert('Data imported successfully!');
+
+      // Reload all data and statistics
+      await this.loadAll();
+      await this.loadDataStatistics();
+
+      // Reset the file input
+      target.value = '';
+    } catch (error) {
+      console.error('Error importing data:', error);
+      alert('Error importing data. Please check the console for details.');
+    } finally {
+      this.isImporting = false;
     }
   }
 }

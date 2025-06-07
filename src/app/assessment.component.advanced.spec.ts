@@ -1,13 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AssessmentComponent } from './assessment.component';
-import { ZtmmDataService } from './services/ztmm-data.service';
+import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { TestUtils } from './testing/test-utils';
 
 describe('AssessmentComponent - Advanced Tests', () => {
   let component: AssessmentComponent;
   let fixture: ComponentFixture<AssessmentComponent>;
-  let mockDataService: jasmine.SpyObj<ZtmmDataService>;
+  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
   let mockApi: any;
 
   beforeEach(async () => {
@@ -15,7 +15,7 @@ describe('AssessmentComponent - Advanced Tests', () => {
     (window as any).api = TestUtils.createMockElectronApi();
     mockApi = (window as any).api;
 
-    const spy = TestUtils.createServiceSpy<ZtmmDataService>('ZtmmDataService', [
+    const spy = TestUtils.createServiceSpy<ZtmmDataWebService>('ZtmmDataWebService', [
       'getPillars',
       'getFunctionCapabilities',
       'getMaturityStages',
@@ -27,13 +27,13 @@ describe('AssessmentComponent - Advanced Tests', () => {
     await TestBed.configureTestingModule({
       imports: [AssessmentComponent, FormsModule],
       providers: [
-        { provide: ZtmmDataService, useValue: spy }
+        { provide: ZtmmDataWebService, useValue: spy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AssessmentComponent);
     component = fixture.componentInstance;
-    mockDataService = TestBed.inject(ZtmmDataService) as jasmine.SpyObj<ZtmmDataService>;
+    mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
   });
 
   afterEach(() => {

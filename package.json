@@ -1,15 +1,16 @@
 {
   "name": "ztmm-assessment",
   "version": "1.0.1",
-  "main": "main.js",
-  "type": "commonjs",
+  "type": "module",
   "author": "Cameron McCormick",
   "license": "MIT",
-  "description": "A ZTMM assessment application built with Angular and Electron",
+  "description": "A ZTMM assessment application built with Angular and WebAssembly",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "build:web": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
@@ -17,21 +18,14 @@
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "lint:all": "npm run lint && npm run lint:js",
-    "lint:js": "eslint *.js **/*.js --fix",
-    "lint:check": "eslint --print-config eslint.config.js",
+    "lint:js": "eslint *.js --fix",
+    "lint:check": "eslint --print-config eslint.config.cjs",
     "type-check": "tsc --noEmit",
     "security:test": "node security-test.js && node integration-test.js",
     "security:audit": "npm audit --audit-level=moderate",
     "security:retire": "retire --path .",
-    "electron:dev": "concurrently \"npm run start\" \"wait-on http://localhost:4200 && electron .\"",
-    "electron:rebuild": "electron-rebuild -f -w better-sqlite3",
-    "electron:build": "ng build --configuration production && electron-builder",
-    "electron:build:mac": "ng build --configuration production && electron-builder --mac",
-    "electron:build:win": "ng build --configuration production && electron-builder --win --config.win.verifyUpdateCodeSignature=false --config.win.signAndEditExecutable=false",
-    "electron:build:win:config": "ng build --configuration production && electron-builder --config electron-builder.win.json",
-    "electron:build:all": "ng build --configuration production && electron-builder --mac --win",
-    "dist": "npm run electron:build:all",
-    "release": "npm run electron:build:all --publish=never",
+    "preview": "npm run build:prod && npx http-server dist -p 4200 -c-1",
+    "deploy:prepare": "npm run build:prod",
     "prerelease": "npm run security:test && npm run security:audit",
     "ci:full": "npm ci && npm run lint:all && npm run test:ci && npm run security:test"
   },
@@ -44,30 +38,28 @@
     "@angular/platform-browser": "^19.2.0",
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
-    "better-sqlite3": "^11.10.0",
     "bootstrap": "^5.3.6",
     "bootstrap-icons": "^1.13.1",
+    "idb": "^8.0.3",
     "rxjs": "~7.8.0",
+    "sql.js": "^1.13.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
+    "@angular-builders/custom-webpack": "^19.0.1",
     "@angular-devkit/build-angular": "^19.2.14",
     "@angular/cli": "^19.2.14",
     "@angular/compiler-cli": "^19.2.0",
     "@types/jasmine": "~5.1.0",
+    "@types/sql.js": "^1.4.9",
     "angular-eslint": "19.7.1",
-    "chokidar": "^4.0.3",
-    "concurrently": "^9.1.2",
-    "electron": "^36.3.2",
-    "electron-builder": "^26.0.12",
-    "electron-notarize": "^1.2.2",
-    "electron-rebuild": "^3.2.9",
     "eslint": "^9.28.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-security": "^3.0.1",
     "eslint-plugin-unicorn": "^59.0.1",
+    "http-server": "^14.1.1",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
@@ -75,90 +67,6 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.7.2",
-    "typescript-eslint": "8.33.1",
-    "wait-on": "^8.0.3"
-  },
-  "build": {
-    "appId": "com.ztmm.assessment",
-    "productName": "ZTMM Assessment",
-    "directories": {
-      "output": "dist-electron"
-    },    "files": [
-      "dist/**/*",
-      "main.js",
-      "preload.js",
-      "validation.js",
-      "ztmm.db",
-      "node_modules/better-sqlite3/**/*",
-      "!node_modules/better-sqlite3/build/Release/*.node",
-      "node_modules/better-sqlite3/build/Release/better_sqlite3.node"
-    ],
-    "extraMetadata": {
-      "main": "main.js"
-    },
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "category": "public.app-category.business",
-      "icon": "src/assets/icon.icns",
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "gatekeeperAssess": false,
-      "hardenedRuntime": true,
-      "extendInfo": {
-        "NSCameraUsageDescription": "This app does not use the camera",
-        "NSMicrophoneUsageDescription": "This app does not use the microphone"
-      }
-    },    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }      ],
-      "icon": "src/assets/icon.ico",
-      "requestedExecutionLevel": "asInvoker",
-      "verifyUpdateCodeSignature": false,
-      "signAndEditExecutable": false
-    },
-    "npmRebuild": false,
-    "nodeGypRebuild": false,
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "ZTMM Assessment"
-    },
-    "portable": {
-      "artifactName": "${productName}-${version}-portable.${ext}"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "your-github-username",
-      "repo": "ztmm-assessment"
-    }
+    "typescript-eslint": "8.33.1"
   }
 }
