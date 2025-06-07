@@ -45,6 +45,15 @@
           <span class="badge bg-light text-dark ms-2">{{ technologiesProcesses.length }}</span>
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link d-flex align-items-center justify-content-center"
+                [class.active]="activeTab === 'export'"
+                (click)="activeTab = 'export'"
+                type="button">
+          <i class="bi bi-arrow-left-right me-2"></i>
+          <span>Data Export</span>
+        </button>
+      </li>
     </ul>
   </div>
 <div [ngSwitch]="activeTab" class="admin-content">
@@ -464,6 +473,99 @@
                       </div>
                     </ng-template>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- DATA EXPORT TAB -->
+  <div *ngSwitchCase="'export'">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-arrow-left-right me-2"></i>
+          Data Export
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <!-- Data Statistics -->
+          <div class="col-lg-6 mb-4">
+            <h6 class="fw-bold mb-3">Current Data</h6>
+            <div class="list-group">
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-building me-2"></i>Pillars</span>
+                <span class="badge bg-primary rounded-pill">{{ dataStatistics.pillars }}</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-layers me-2"></i>Functions/Capabilities</span>
+                <span class="badge bg-primary rounded-pill">{{ dataStatistics.functionCapabilities }}</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-bar-chart-steps me-2"></i>Maturity Stages</span>
+                <span class="badge bg-primary rounded-pill">{{ dataStatistics.maturityStages }}</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-tools me-2"></i>Technologies/Processes</span>
+                <span class="badge bg-primary rounded-pill">{{ dataStatistics.technologiesProcesses }}</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-check-circle me-2"></i>Assessment Responses</span>
+                <span class="badge bg-primary rounded-pill">{{ dataStatistics.assessmentResponses }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export/Import Actions -->
+          <div class="col-lg-6 mb-4">
+            <h6 class="fw-bold mb-3">Actions</h6>
+
+            <!-- Export Data -->
+            <div class="card mb-3">
+              <div class="card-body">
+                <h6 class="card-title">
+                  <i class="bi bi-download me-2"></i>
+                  Export Data
+                </h6>
+                <p class="card-text text-muted small">
+                  Download all your configuration data as a JSON file.
+                </p>
+                <button
+                  class="btn btn-outline-primary"
+                  [disabled]="isExporting"
+                  (click)="exportData()">
+                  <span *ngIf="isExporting" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isExporting" class="bi bi-download me-2"></i>
+                  {{ isExporting ? 'Exporting...' : 'Export Data' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Import Data -->
+            <div class="card">
+              <div class="card-body">
+                <h6 class="card-title">
+                  <i class="bi bi-upload me-2"></i>
+                  Import Data
+                </h6>
+                <p class="card-text text-muted small">
+                  Upload a JSON export file to import configuration data.
+                </p>
+                <div class="mb-3">
+                  <input
+                    type="file"
+                    class="form-control"
+                    accept=".json"
+                    [disabled]="isImporting"
+                    (change)="onFileSelected($event)">
+                </div>
+                <div class="alert alert-warning" role="alert">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  <strong>Warning:</strong> Importing data will overwrite all existing data.
+                  Make sure to export your current data first as a backup.
                 </div>
               </div>
             </div>

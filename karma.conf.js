@@ -12,6 +12,21 @@ module.exports = function (config) {
       require('karma-coverage'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
+    files: [
+      {
+        pattern: 'src/assets/**/*.wasm',
+        served: true,
+        included: false,
+        watched: false,
+        nocache: false
+      }
+    ],
+    proxies: {
+      '/assets/': '/base/src/assets/'
+    },
+    mime: {
+      'application/wasm': ['wasm']
+    },
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here
@@ -49,6 +64,15 @@ module.exports = function (config) {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
         flags: ['--no-sandbox', '--disable-dev-shm-usage']
+      }
+    },
+    webpack: {
+      resolve: {
+        fallback: {
+          "fs": false,
+          "path": false,
+          "crypto": false
+        }
       }
     }
   });

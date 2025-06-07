@@ -9,7 +9,7 @@ import { AssessmentComponent } from './assessment.component';
 import { AdminComponent } from './admin.component';
 import { ResultsComponent } from './results.component';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
-import { DataExportService } from './utilities/data-export.service';
+import { DataMigrationService } from './utilities/data-migration.service';
 import { TestUtils } from './testing/test-utils';
 
 describe('Application Integration Tests', () => {
@@ -36,7 +36,7 @@ describe('Application Integration Tests', () => {
       ],
       providers: [
         ZtmmDataWebService,
-        DataExportService
+        DataMigrationService
       ]
     }).compileComponents();
 
@@ -99,11 +99,7 @@ describe('Application Integration Tests', () => {
     it('should handle empty database gracefully', async () => {
       try {
         const pillars = await dataService.getPillars();
-        // Database should contain 5 default pillars after initialization
-        expect(pillars.length).toBe(5);
-        expect(pillars.map(p => p.name)).toEqual([
-          'Identity', 'Devices', 'Networks', 'Applications & Workloads', 'Data'
-        ]);
+        expect(pillars).toEqual([]);
       } catch (error) {
         // Web service may throw initialization errors in test environment
         expect(error).toBeDefined();

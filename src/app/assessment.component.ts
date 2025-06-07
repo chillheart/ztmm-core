@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ZtmmDataService } from './services/ztmm-data.service';
+import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from './models/ztmm.models';
 import { AssessmentStatus } from './models/ztmm.models';
 
@@ -35,7 +35,7 @@ export class AssessmentComponent {
   statusOptions: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented'];
   showSuccess = false;
 
-  constructor(private data: ZtmmDataService) {
+  constructor(private data: ZtmmDataWebService) {
     this.loadAll();
   }
 
