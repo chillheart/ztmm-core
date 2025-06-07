@@ -290,35 +290,33 @@ export class SqlJsService {
       throw new Error('Invalid pillar ID');
     }
 
-    // Use transaction for cascading deletes
+    // Use transaction for cascading deletes with proper parameterized queries
     if (!this.db) await this.initialize();
 
     try {
-      this.db!.exec(`
-        BEGIN TRANSACTION;
-
-        -- Remove all assessment responses for technologies/processes under this pillar
+      // Remove all assessment responses for technologies/processes under this pillar
+      await this.executeUpdate(`
         DELETE FROM assessment_responses
         WHERE tech_process_id IN (
           SELECT tp.id FROM technologies_processes tp
           JOIN function_capabilities fc ON tp.function_capability_id = fc.id
-          WHERE fc.pillar_id = ${id}
-        );
+          WHERE fc.pillar_id = ?
+        )
+      `, [id]);
 
-        -- Remove all technologies/processes under this pillar
+      // Remove all technologies/processes under this pillar
+      await this.executeUpdate(`
         DELETE FROM technologies_processes
         WHERE function_capability_id IN (
-          SELECT id FROM function_capabilities WHERE pillar_id = ${id}
-        );
+          SELECT id FROM function_capabilities WHERE pillar_id = ?
+        )
+      `, [id]);
 
-        -- Remove all function capabilities under this pillar
-        DELETE FROM function_capabilities WHERE pillar_id = ${id};
+      // Remove all function capabilities under this pillar
+      await this.executeUpdate('DELETE FROM function_capabilities WHERE pillar_id = ?', [id]);
 
-        -- Remove the pillar
-        DELETE FROM pillars WHERE id = ${id};
-
-        COMMIT;
-      `);
+      // Remove the pillar
+      await this.executeUpdate('DELETE FROM pillars WHERE id = ?', [id]);
 
       await this.saveDatabase();
     } catch (error) {
@@ -345,24 +343,8 @@ export class SqlJsService {
       throw new Error('Invalid order array');
     }
 
-    if (!this.db) await this.initialize();
-
-    try {
-      this.db!.exec('BEGIN TRANSACTION;');
-
-      for (let i = 0; i < order.length; i++) {
-        const stmt = this.db!.prepare('UPDATE pillars SET order_index = ? WHERE id = ?');
-        stmt.run([i, order[i]]);
-        stmt.free();
-      }
-
-      this.db!.exec('COMMIT;');
-      await this.saveDatabase();
-    } catch (error) {
-      if (this.db) {
-        this.db.exec('ROLLBACK;');
-      }
-      throw error;
+    for (let i = 0; i < order.length; i++) {
+      await this.executeUpdate('UPDATE pillars SET order_index = ? WHERE id = ?', [i, order[i]]);
     }
   }
 
@@ -396,25 +378,19 @@ export class SqlJsService {
     if (!this.db) await this.initialize();
 
     try {
-      this.db!.exec(`
-        BEGIN TRANSACTION;
-
-        -- Remove assessment responses for technologies/processes under this function capability
+      // Remove assessment responses for technologies/processes under this function capability
+      await this.executeUpdate(`
         DELETE FROM assessment_responses
         WHERE tech_process_id IN (
-          SELECT id FROM technologies_processes WHERE function_capability_id = ${id}
-        );
+          SELECT id FROM technologies_processes WHERE function_capability_id = ?
+        )
+      `, [id]);
 
-        -- Remove technologies/processes under this function capability
-        DELETE FROM technologies_processes WHERE function_capability_id = ${id};
+      // Remove technologies/processes under this function capability
+      await this.executeUpdate('DELETE FROM technologies_processes WHERE function_capability_id = ?', [id]);
 
-        -- Remove the function capability
-        DELETE FROM function_capabilities WHERE id = ${id};
-
-        COMMIT;
-      `);
-
-      await this.saveDatabase();
+      // Remove the function capability
+      await this.executeUpdate('DELETE FROM function_capabilities WHERE id = ?', [id]);
     } catch (error) {
       if (this.db) {
         this.db.exec('ROLLBACK;');
@@ -448,24 +424,8 @@ export class SqlJsService {
       throw new Error('Invalid order array');
     }
 
-    if (!this.db) await this.initialize();
-
-    try {
-      this.db!.exec('BEGIN TRANSACTION;');
-
-      for (let i = 0; i < order.length; i++) {
-        const stmt = this.db!.prepare('UPDATE function_capabilities SET order_index = ? WHERE id = ?');
-        stmt.run([i, order[i]]);
-        stmt.free();
-      }
-
-      this.db!.exec('COMMIT;');
-      await this.saveDatabase();
-    } catch (error) {
-      if (this.db) {
-        this.db.exec('ROLLBACK;');
-      }
-      throw error;
+    for (let i = 0; i < order.length; i++) {
+      await this.executeUpdate('UPDATE function_capabilities SET order_index = ? WHERE id = ?', [i, order[i]]);
     }
   }
 
@@ -519,19 +479,11 @@ export class SqlJsService {
     if (!this.db) await this.initialize();
 
     try {
-      this.db!.exec(`
-        BEGIN TRANSACTION;
+      // Remove assessment responses for this technology process
+      await this.executeUpdate('DELETE FROM assessment_responses WHERE tech_process_id = ?', [id]);
 
-        -- Remove assessment responses for this technology process
-        DELETE FROM assessment_responses WHERE tech_process_id = ${id};
-
-        -- Remove the technology process
-        DELETE FROM technologies_processes WHERE id = ${id};
-
-        COMMIT;
-      `);
-
-      await this.saveDatabase();
+      // Remove the technology process
+      await this.executeUpdate('DELETE FROM technologies_processes WHERE id = ?', [id]);
     } catch (error) {
       if (this.db) {
         this.db.exec('ROLLBACK;');
