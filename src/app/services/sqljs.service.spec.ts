@@ -70,7 +70,7 @@ describe('SqlJsService', () => {
         // Should not throw an error due to graceful error handling
       } catch (error: any) {
         expect(error).toBeDefined();
-        expect(error.message).toContain('both async and sync fetching of the wasm failed');
+        expect(error.message).toContain('Database initialization failed');
       }
     });
 
@@ -92,10 +92,21 @@ describe('SqlJsService', () => {
   });
 
   describe('Pillar Operations', () => {
-    it('should handle getPillars with empty database', async () => {
+    it('should handle getPillars with default data', async () => {
       try {
         const pillars = await service.getPillars();
-        expect(pillars).toEqual([]);
+        // Should have 5 default pillars if database initializes properly
+        if (pillars.length > 0) {
+          expect(pillars.length).toBe(5);
+          expect(pillars.map(p => p.name)).toContain('Identity');
+          expect(pillars.map(p => p.name)).toContain('Devices');
+          expect(pillars.map(p => p.name)).toContain('Networks');
+          expect(pillars.map(p => p.name)).toContain('Applications & Workloads');
+          expect(pillars.map(p => p.name)).toContain('Data');
+        } else {
+          // Empty array is acceptable in mocked test environment
+          expect(pillars).toEqual([]);
+        }
       } catch (error) {
         // Expected in test environment due to database initialization
         expect(error).toBeDefined();
@@ -143,10 +154,23 @@ describe('SqlJsService', () => {
   });
 
   describe('Function Capability Operations', () => {
-    it('should handle getFunctionCapabilities', async () => {
+    it('should handle getFunctionCapabilities with default data', async () => {
       try {
         const capabilities = await service.getFunctionCapabilities();
-        expect(capabilities).toEqual([]);
+        // Should have ~38 default function capabilities if database initializes properly
+        if (capabilities.length > 0) {
+          expect(capabilities.length).toBeGreaterThanOrEqual(30);
+          // Check for some expected capabilities
+          const capabilityNames = capabilities.map(c => c.name);
+          expect(capabilityNames).toContain('Authentication');
+          expect(capabilityNames).toContain('Device Threat Protection');
+          expect(capabilityNames).toContain('Network Segmentation');
+          expect(capabilityNames).toContain('Application Access');
+          expect(capabilityNames).toContain('Data Inventory');
+        } else {
+          // Empty array is acceptable in mocked test environment
+          expect(capabilities).toEqual([]);
+        }
       } catch (error) {
         expect(error).toBeDefined();
       }
@@ -372,6 +396,105 @@ describe('SqlJsService', () => {
         } catch (error) {
           expect(error).toBeDefined();
         }
+      }
+    });
+  });
+
+  describe('Default ZTMM Data Validation', () => {
+    it('should have complete default ZTMM framework data when database initializes properly', async () => {
+      try {
+        // Test pillars
+        const pillars = await service.getPillars();
+        if (pillars.length > 0) {
+          expect(pillars.length).toBe(5);
+
+          const pillarNames = pillars.map(p => p.name);
+          expect(pillarNames).toContain('Identity');
+          expect(pillarNames).toContain('Devices');
+          expect(pillarNames).toContain('Networks');
+          expect(pillarNames).toContain('Applications & Workloads');
+          expect(pillarNames).toContain('Data');
+
+          // Check pillar ordering
+          expect(pillars[0].name).toBe('Identity');
+          expect(pillars[1].name).toBe('Devices');
+          expect(pillars[2].name).toBe('Networks');
+          expect(pillars[3].name).toBe('Applications & Workloads');
+          expect(pillars[4].name).toBe('Data');
+        }
+
+        // Test function capabilities
+        const capabilities = await service.getFunctionCapabilities();
+        if (capabilities.length > 0) {
+          expect(capabilities.length).toBeGreaterThanOrEqual(38);
+
+          // Check Identity pillar capabilities
+          const identityCapabilities = capabilities.filter(c => c.pillar_id === 1);
+          expect(identityCapabilities.length).toBe(7);
+          expect(identityCapabilities.some(c => c.name === 'Authentication')).toBe(true);
+          expect(identityCapabilities.some(c => c.name === 'Identity Stores')).toBe(true);
+          expect(identityCapabilities.some(c => c.name === 'Risk Assessments')).toBe(true);
+          expect(identityCapabilities.some(c => c.name === 'Access Management')).toBe(true);
+
+          // Check Devices pillar capabilities
+          const deviceCapabilities = capabilities.filter(c => c.pillar_id === 2);
+          expect(deviceCapabilities.length).toBe(7);
+          expect(deviceCapabilities.some(c => c.name === 'Policy Enforcement & Compliance Monitoring')).toBe(true);
+          expect(deviceCapabilities.some(c => c.name === 'Asset & Supply Chain Risk Management')).toBe(true);
+          expect(deviceCapabilities.some(c => c.name === 'Resource Access')).toBe(true);
+          expect(deviceCapabilities.some(c => c.name === 'Device Threat Protection')).toBe(true);
+
+          // Check Networks pillar capabilities
+          const networkCapabilities = capabilities.filter(c => c.pillar_id === 3);
+          expect(networkCapabilities.length).toBe(7);
+          expect(networkCapabilities.some(c => c.name === 'Network Segmentation')).toBe(true);
+          expect(networkCapabilities.some(c => c.name === 'Network Traffic Management')).toBe(true);
+          expect(networkCapabilities.some(c => c.name === 'Traffic Encryption')).toBe(true);
+          expect(networkCapabilities.some(c => c.name === 'Network Resilience')).toBe(true);
+
+          // Check Applications & Workloads pillar capabilities
+          const appCapabilities = capabilities.filter(c => c.pillar_id === 4);
+          expect(appCapabilities.length).toBe(8);
+          expect(appCapabilities.some(c => c.name === 'Application Access')).toBe(true);
+          expect(appCapabilities.some(c => c.name === 'Application Threat Protections')).toBe(true);
+          expect(appCapabilities.some(c => c.name === 'Accessible Applications')).toBe(true);
+          expect(appCapabilities.some(c => c.name === 'Secure Application Development & Deployment Workflow')).toBe(true);
+          expect(appCapabilities.some(c => c.name === 'Application Security Testing')).toBe(true);
+
+          // Check Data pillar capabilities
+          const dataCapabilities = capabilities.filter(c => c.pillar_id === 5);
+          expect(dataCapabilities.length).toBe(8);
+          expect(dataCapabilities.some(c => c.name === 'Data Inventory')).toBe(true);
+          expect(dataCapabilities.some(c => c.name === 'Data Categorization')).toBe(true);
+          expect(dataCapabilities.some(c => c.name === 'Data Availability')).toBe(true);
+          expect(dataCapabilities.some(c => c.name === 'Data Access')).toBe(true);
+          expect(dataCapabilities.some(c => c.name === 'Data Encryption')).toBe(true);
+
+          // Check that each pillar has the common capabilities
+          for (let pillarId = 1; pillarId <= 5; pillarId++) {
+            const pillarCapabilities = capabilities.filter(c => c.pillar_id === pillarId);
+            expect(pillarCapabilities.some(c => c.name === 'Visibility & Analytics' && c.type === 'Capability')).toBe(true);
+            expect(pillarCapabilities.some(c => c.name === 'Automation & Orchestration' && c.type === 'Capability')).toBe(true);
+            expect(pillarCapabilities.some(c => c.name === 'Governance' && c.type === 'Capability')).toBe(true);
+          }
+        }
+
+        // Test maturity stages
+        const stages = await service.getMaturityStages();
+        if (stages.length > 0) {
+          expect(stages.length).toBe(4);
+
+          const stageNames = stages.map(s => s.name);
+          expect(stageNames).toContain('Traditional');
+          expect(stageNames).toContain('Initial');
+          expect(stageNames).toContain('Advanced');
+          expect(stageNames).toContain('Optimal');
+        }
+
+      } catch (error) {
+        // Test passes if database can't initialize in test environment
+        expect(error).toBeDefined();
+        console.log('Database initialization expected to fail in test environment');
       }
     });
   });

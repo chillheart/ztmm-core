@@ -82,6 +82,55 @@ export class SqlJsService {
         ('Networks', 3),
         ('Applications & Workloads', 4),
         ('Data', 5);
+
+    -- Insert default function capabilities for each pillar
+    INSERT OR IGNORE INTO function_capabilities (name, type, pillar_id, order_index) VALUES
+        -- Identity pillar functions and capabilities
+        ('Authentication', 'Function', 1, 1),
+        ('Identity Stores', 'Function', 1, 2),
+        ('Risk Assessments', 'Function', 1, 3),
+        ('Access Management', 'Function', 1, 4),
+        ('Visibility & Analytics', 'Capability', 1, 5),
+        ('Automation & Orchestration', 'Capability', 1, 6),
+        ('Governance', 'Capability', 1, 7),
+
+        -- Devices pillar functions and capabilities
+        ('Policy Enforcement & Compliance Monitoring', 'Function', 2, 1),
+        ('Asset & Supply Chain Risk Management', 'Function', 2, 2),
+        ('Resource Access', 'Function', 2, 3),
+        ('Device Threat Protection', 'Function', 2, 4),
+        ('Visibility & Analytics', 'Capability', 2, 5),
+        ('Automation & Orchestration', 'Capability', 2, 6),
+        ('Governance', 'Capability', 2, 7),
+
+        -- Networks pillar functions and capabilities
+        ('Network Segmentation', 'Function', 3, 1),
+        ('Network Traffic Management', 'Function', 3, 2),
+        ('Traffic Encryption', 'Function', 3, 3),
+        ('Network Resilience', 'Function', 3, 4),
+        ('Visibility & Analytics', 'Capability', 3, 5),
+        ('Automation & Orchestration', 'Capability', 3, 6),
+        ('Governance', 'Capability', 3, 7),
+
+        -- Applications & Workloads pillar functions and capabilities
+        ('Application Access', 'Function', 4, 1),
+        ('Application Threat Protections', 'Function', 4, 2),
+        ('Accessible Applications', 'Function', 4, 3),
+        ('Secure Application Development & Deployment Workflow', 'Function', 4, 4),
+        ('Application Security Testing', 'Function', 4, 5),
+        ('Visibility & Analytics', 'Capability', 4, 6),
+        ('Automation & Orchestration', 'Capability', 4, 7),
+        ('Governance', 'Capability', 4, 8),
+
+        -- Data pillar functions and capabilities
+        ('Data Inventory', 'Function', 5, 1),
+        ('Data Categorization', 'Function', 5, 2),
+        ('Data Availability', 'Function', 5, 3),
+        ('Data Access', 'Function', 5, 4),
+        ('Data Encryption', 'Function', 5, 5),
+        ('Visibility & Analytics', 'Capability', 5, 6),
+        ('Automation & Orchestration', 'Capability', 5, 7),
+        ('Governance', 'Capability', 5, 8);
   `;
 
   async initialize(): Promise<void> {
