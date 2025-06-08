@@ -1,15 +1,46 @@
-<div class="container">
-  <h2 class="mb-4">Assessment Results</h2>
+<div class="container" id="results-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Assessment Results</h2>
+    <div class="btn-group" role="group" aria-label="Export options">
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        (click)="exportToPdf()"
+        [disabled]="isExportingPdf || groupedResults.length === 0"
+        title="Export current view as PDF">
+        <i class="bi bi-file-earmark-pdf me-2"></i>
+        <span *ngIf="!isExportingPdf">Export PDF</span>
+        <span *ngIf="isExportingPdf">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Generating...
+        </span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="exportDetailedReport()"
+        [disabled]="isExportingPdf || groupedResults.length === 0"
+        title="Export detailed assessment report">
+        <i class="bi bi-file-text me-2"></i>
+        <span *ngIf="!isExportingPdf">Detailed Report</span>
+        <span *ngIf="isExportingPdf">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Generating...
+        </span>
+      </button>
+    </div>
+  </div>
 
   <!-- Filter Controls -->
   <div class="mb-3">
-    <h3 class="mb-3">Assessment Results by Pillar and Function</h3>
+    <h3 class="mb-3">Results by Pillar and Function</h3>
     <label for="pillarFilter" class="form-label">Filter by Pillar:</label>
     <select id="pillarFilter" class="form-select w-auto d-inline-block" [(ngModel)]="selectedPillarId" (change)="onPillarChange()">
       <option [ngValue]="null">All Pillars</option>
       <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
     </select>
   </div>
+
   <!-- Results grouped by Pillar, then by Function/Capability -->
   <div *ngFor="let pillar of groupedResults" class="pillar-group">
     <div class="pillar-header">

@@ -47,11 +47,11 @@
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link d-flex align-items-center justify-content-center"
-                [class.active]="activeTab === 'export'"
-                (click)="activeTab = 'export'"
+                [class.active]="activeTab === 'management'"
+                (click)="activeTab = 'management'"
                 type="button">
-          <i class="bi bi-arrow-left-right me-2"></i>
-          <span>Data Export</span>
+          <i class="bi bi-gear-wide-connected me-2"></i>
+          <span>Data Management</span>
         </button>
       </li>
     </ul>
@@ -481,13 +481,13 @@
       </div>
     </div>
   </div>
-  <!-- DATA EXPORT TAB -->
-  <div *ngSwitchCase="'export'">
+  <!-- DATA MANAGEMENT TAB -->
+  <div *ngSwitchCase="'management'">
     <div class="card shadow-sm">
       <div class="card-header bg-primary text-white">
         <h5 class="mb-0">
-          <i class="bi bi-arrow-left-right me-2"></i>
-          Data Export
+          <i class="bi bi-gear-wide-connected me-2"></i>
+          Data Management
         </h5>
       </div>
       <div class="card-body">
@@ -545,7 +545,7 @@
             </div>
 
             <!-- Import Data -->
-            <div class="card">
+            <div class="card mb-3">
               <div class="card-body">
                 <h6 class="card-title">
                   <i class="bi bi-upload me-2"></i>
@@ -566,6 +566,33 @@
                   <i class="bi bi-exclamation-triangle me-2"></i>
                   <strong>Warning:</strong> Importing data will overwrite all existing data.
                   Make sure to export your current data first as a backup.
+                </div>
+              </div>
+            </div>
+
+            <!-- Reset Database -->
+            <div class="card border-danger">
+              <div class="card-body">
+                <h6 class="card-title text-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  Reset Database
+                </h6>
+                <p class="card-text text-muted small">
+                  Reset the database to default ZTMM framework structure. This will delete all custom data.
+                </p>
+                <button
+                  class="btn btn-outline-danger"
+                  [disabled]="isResetting"
+                  (click)="resetDatabase()">
+                  <span *ngIf="isResetting" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isResetting" class="bi bi-arrow-clockwise me-2"></i>
+                  {{ isResetting ? 'Resetting...' : 'Reset Database' }}
+                </button>
+                <div class="alert alert-danger mt-3" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  <strong>Danger Zone:</strong> This action will permanently delete all your custom pillars, 
+                  function/capabilities, technologies/processes, and assessment responses. Only the default 
+                  ZTMM framework structure will remain.
                 </div>
               </div>
             </div>

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
+import { PdfExportService } from './services/pdf-export.service';
 import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from './models/ztmm.models';
 
 interface ResultItem {
@@ -47,7 +48,6 @@ interface PillarResult {
   styleUrls: ['./results.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule]
-
 })
 export class ResultsComponent {
   pillars: Pillar[] = [];
@@ -57,8 +57,12 @@ export class ResultsComponent {
   assessmentResponses: AssessmentResponse[] = [];
   results: ResultItem[] = [];
   selectedPillarId: number | null = null;
+  isExportingPdf = false;
 
-  constructor(private data: ZtmmDataWebService) {
+  constructor(
+    private data: ZtmmDataWebService,
+    private pdfExportService: PdfExportService
+  ) {
     this.loadAll();
   }
 
@@ -118,8 +122,6 @@ export class ResultsComponent {
   }
 
   buildResults() {
-    // This should be replaced with real assessment response fetching logic
-    // For now, just show all technologies/processes with no status
     let filteredTP = this.technologiesProcesses;
     if (this.selectedPillarId) {
       const fcIds = this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedPillarId).map(fc => fc.id);
@@ -129,7 +131,6 @@ export class ResultsComponent {
       const fc = this.functionCapabilities.find(f => f.id === tp.function_capability_id);
       const pillar = this.pillars.find(p => p.id === fc?.pillar_id);
       const ms = this.maturityStages.find(m => m.id === tp.maturity_stage_id);
-      // Find assessment response for this technology/process (if available)
       const ar = this.assessmentResponses.find(a => a.tech_process_id === tp.id);
       return {
         pillarName: pillar?.name || '',
@@ -142,6 +143,52 @@ export class ResultsComponent {
         notes: ar?.notes || ''
       };
     });
+  }
+
+  /**
+   * Export current assessment results to PDF
+   */
+  async exportToPdf(): Promise<void> {
+    if (this.isExportingPdf) return;
+
+    this.isExportingPdf = true;
+    try {
+      const element = document.getElementById('results-container');
+      if (element) {
+        await this.pdfExportService.exportElementToPDF(element, {
+          filename: 'ztmm-assessment-results.pdf',
+          quality: 0.95,
+          scale: 2
+        });
+      } else {
+        console.error('Results container element not found');
+      }
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      this.isExportingPdf = false;
+    }
+  }
+
+  /**
+   * Export detailed assessment report to PDF
+   */
+  async exportDetailedReport(): Promise<void> {
+    if (this.isExportingPdf) return;
+
+    this.isExportingPdf = true;
+    try {
+      const resultsData = this.results; // Use the flattened results array
+      await this.pdfExportService.exportAssessmentReport(resultsData, {
+        filename: 'ztmm-detailed-assessment-report.pdf'
+      });
+    } catch (error) {
+      console.error('Error exporting detailed report:', error);
+      alert('Failed to export detailed report. Please try again.');
+    } finally {
+      this.isExportingPdf = false;
+    }
   }
 
   getMaturityStageStatusClass(status: string): string {
@@ -177,15 +224,13 @@ export class ResultsComponent {
   calculateFunctionMaturityStages(items: ResultItem[]): StageResult[] {
     const stageResults: StageResult[] = [];
 
-    // Group items by maturity stage for this function
     for (const stage of this.maturityStages) {
       const stageItems = items.filter(item => item.maturityStageName === stage.name);
 
       if (stageItems.length === 0) {
-        continue; // Skip stages with no items for this function
+        continue;
       }
 
-      // Calculate status based on assessment results for this stage within this function
       const fullyImplementedCount = stageItems.filter(item => item.status === 'Fully Implemented').length;
       const partiallyImplementedCount = stageItems.filter(item => item.status === 'Partially Implemented').length;
       const notImplementedCount = stageItems.filter(item => item.status === 'Not Implemented').length;
@@ -196,13 +241,10 @@ export class ResultsComponent {
       if (assessedCount === 0) {
         status = 'not-assessed';
       } else if (fullyImplementedCount === stageItems.length) {
-        // All items in this stage are fully implemented - GREEN
         status = 'green';
       } else if (assessedCount === stageItems.length && notImplementedCount === stageItems.length) {
-        // All items are assessed but none implemented - RED
         status = 'red';
       } else {
-        // Some implementation (mix of partial, full, or not implemented) - YELLOW
         status = 'yellow';
       }
 
@@ -215,7 +257,6 @@ export class ResultsComponent {
       });
     }
 
-    // Sort by maturity stage order
     const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
     stageResults.sort((a, b) => stageOrder.indexOf(a.stage.name) - stageOrder.indexOf(b.stage.name));
 
@@ -238,7 +279,6 @@ export class ResultsComponent {
       const pillarKey = result.pillarName;
       const functionKey = result.functionCapabilityName;
 
-      // Initialize pillar group if it doesn't exist
       if (!grouped[pillarKey]) {
         grouped[pillarKey] = {
           pillarName: result.pillarName,
@@ -248,7 +288,6 @@ export class ResultsComponent {
         };
       }
 
-      // Initialize function group within pillar if it doesn't exist
       if (!grouped[pillarKey].functions[functionKey]) {
         grouped[pillarKey].functions[functionKey] = {
           functionCapabilityName: result.functionCapabilityName,
@@ -257,7 +296,6 @@ export class ResultsComponent {
         };
       }
 
-      // Add the item to the function group
       grouped[pillarKey].functions[functionKey].items.push(result);
       grouped[pillarKey].totalItems++;
       if (result.status !== 'Not Assessed') {
@@ -265,22 +303,17 @@ export class ResultsComponent {
       }
     }
 
-    // Convert to array format and sort
     const pillarArray = Object.keys(grouped).map(pillarName => {
       const pillar = grouped[pillarName];
 
-      // Convert functions object to array and sort
       const functionsArray = Object.keys(pillar.functions).map(functionName => {
         const func = pillar.functions[functionName];
 
-        // Calculate maturity stage status for this function
         const maturityStageStatus = this.calculateFunctionMaturityStages(func.items);
 
-        // Calculate assessment counts for this function
         const assessedCount = func.items.filter(item => item.status !== 'Not Assessed').length;
         const totalItems = func.items.length;
 
-        // Sort items within each function by maturity stage and description
         func.items.sort((a, b) => {
           const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
           const stageComparison = stageOrder.indexOf(a.maturityStageName) - stageOrder.indexOf(b.maturityStageName);
@@ -299,7 +332,6 @@ export class ResultsComponent {
         };
       });
 
-      // Sort functions alphabetically
       functionsArray.sort((a, b) => a.functionCapabilityName.localeCompare(b.functionCapabilityName));
 
       return {
@@ -311,7 +343,6 @@ export class ResultsComponent {
       };
     });
 
-    // Sort pillars alphabetically
     pillarArray.sort((a, b) => a.pillarName.localeCompare(b.pillarName));
 
     return pillarArray;

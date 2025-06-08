@@ -27,7 +27,7 @@ export class AdminComponent {
   newTechnologyProcessType: 'Technology' | 'Process' = 'Technology';
   selectedFunctionCapabilityId: number | null = null;
   selectedMaturityStageId: number | null = null;
-  activeTab: 'pillars' | 'functions' | 'tech' | 'export' = 'pillars';
+  activeTab: 'pillars' | 'functions' | 'tech' | 'management' = 'pillars';
 
   // Data Export properties
   dataStatistics = {
@@ -39,6 +39,7 @@ export class AdminComponent {
   };
   isImporting = false;
   isExporting = false;
+  isResetting = false;
 
   // For drag-and-drop
   dragPillarIndex: number | null = null;
@@ -142,21 +143,33 @@ export class AdminComponent {
 
   async addTechnologyProcess(techForm?: NgForm) {
     this.techFormSubmitted = true;
-    if (techForm && techForm.invalid) return;
-    if (!this.newTechnologyProcess.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) return;
-    await this.data.addTechnologyProcess(
-      this.newTechnologyProcess.trim(),
-      this.newTechnologyProcessType,
-      this.selectedFunctionCapabilityId,
-      this.selectedMaturityStageId
-    );
-    this.newTechnologyProcess = '';
-    this.newTechnologyProcessType = 'Technology';
-    this.loadTechnologiesProcesses();
-    this.techFormSubmitted = false;
-    // Do not reset the form, just clear validation styling
-    if (techForm) {
-      setTimeout(() => techForm.form.markAsPristine());
+    if (techForm && techForm.invalid) {
+      return;
+    }
+    if (!this.newTechnologyProcess.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
+      return;
+    }
+
+    try {
+      await this.data.addTechnologyProcess(
+        this.newTechnologyProcess.trim(),
+        this.newTechnologyProcessType,
+        this.selectedFunctionCapabilityId,
+        this.selectedMaturityStageId
+      );
+
+      this.newTechnologyProcess = '';
+      this.newTechnologyProcessType = 'Technology';
+
+      await this.loadTechnologiesProcesses();
+
+      this.techFormSubmitted = false;
+      // Do not reset the form, just clear validation styling
+      if (techForm) {
+        setTimeout(() => techForm.form.markAsPristine());
+      }
+    } catch (error) {
+      console.error('Error in addTechnologyProcess:', error);
     }
   }
 
@@ -396,4 +409,44 @@ export class AdminComponent {
       this.isImporting = false;
     }
   }
+
+  async resetDatabase() {
+    const confirmation = confirm(
+      'Are you sure you want to reset the database? This will:\n\n' +
+      '• Delete ALL technologies/processes\n' +
+      '• Delete ALL custom function/capabilities\n' +
+      '• Delete ALL custom pillars\n' +
+      '• Delete ALL assessment responses\n' +
+      '• Keep only the default ZTMM framework structure\n\n' +
+      'This action cannot be undone!'
+    );
+
+    if (!confirmation) return;
+
+    const doubleConfirmation = confirm(
+      'This is your final warning! All your data will be permanently deleted.\n\n' +
+      'Click OK to proceed with the database reset.'
+    );
+
+    if (!doubleConfirmation) return;
+
+    try {
+      this.isResetting = true;
+      
+      // Clear all data using the SQL service
+      await this.data.clearAllData();
+      
+      // Reload all data and statistics to reflect the reset
+      await this.loadAll();
+      await this.loadDataStatistics();
+      
+      alert('Database has been successfully reset to default ZTMM framework!');
+    } catch (error) {
+      console.error('Error resetting database:', error);
+      alert('Error resetting database. Please check the console for details.');
+    } finally {
+      this.isResetting = false;
+    }
+  }
+
 }
