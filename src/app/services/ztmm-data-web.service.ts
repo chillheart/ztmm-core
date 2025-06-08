@@ -169,6 +169,11 @@ export class ZtmmDataWebService {
     return this.handleApiCall(() => this.sqlJs.clearAllData(), 'clearAllData');
   }
 
+  async resetDatabase(): Promise<void> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.resetDatabase(), 'resetDatabase');
+  }
+
   // Migration helper - import data from exported Electron database
   async migrateFromElectronData(electronData: any): Promise<void> {
     await this.ensureInitialized();

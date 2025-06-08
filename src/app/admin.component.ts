@@ -412,35 +412,37 @@ export class AdminComponent {
 
   async resetDatabase() {
     const confirmation = confirm(
-      'Are you sure you want to reset the database? This will:\n\n' +
+      'Are you sure you want to completely reset the database? This will:\n\n' +
+      '• Delete the ENTIRE database from IndexedDB\n' +
+      '• Reinitialize with fresh ZTMM framework structure\n' +
       '• Delete ALL technologies/processes\n' +
-      '• Delete ALL custom function/capabilities\n' +
-      '• Delete ALL custom pillars\n' +
+      '• Delete ALL function/capabilities (including custom ones)\n' +
+      '• Delete ALL pillars (including custom ones)\n' +
       '• Delete ALL assessment responses\n' +
-      '• Keep only the default ZTMM framework structure\n\n' +
+      '• Reset to default ZTMM framework only\n\n' +
       'This action cannot be undone!'
     );
 
     if (!confirmation) return;
 
     const doubleConfirmation = confirm(
-      'This is your final warning! All your data will be permanently deleted.\n\n' +
-      'Click OK to proceed with the database reset.'
+      'This is your final warning! The entire database will be permanently deleted and recreated.\n\n' +
+      'Click OK to proceed with the complete database reset.'
     );
 
     if (!doubleConfirmation) return;
 
     try {
       this.isResetting = true;
-      
-      // Clear all data using the SQL service
-      await this.data.clearAllData();
-      
+
+      // Use the new resetDatabase method that completely drops and recreates the database
+      await this.data.resetDatabase();
+
       // Reload all data and statistics to reflect the reset
       await this.loadAll();
       await this.loadDataStatistics();
-      
-      alert('Database has been successfully reset to default ZTMM framework!');
+
+      alert('Database has been completely reset and reinitialized with fresh ZTMM framework!');
     } catch (error) {
       console.error('Error resetting database:', error);
       alert('Error resetting database. Please check the console for details.');

@@ -578,7 +578,7 @@
                   Reset Database
                 </h6>
                 <p class="card-text text-muted small">
-                  Reset the database to default ZTMM framework structure. This will delete all custom data.
+                  Completely drop the database from IndexedDB and reinitialize with fresh ZTMM framework structure.
                 </p>
                 <button
                   class="btn btn-outline-danger"
@@ -590,8 +590,9 @@
                 </button>
                 <div class="alert alert-danger mt-3" role="alert">
                   <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                  <strong>Danger Zone:</strong> This action will permanently delete all your custom pillars, 
-                  function/capabilities, technologies/processes, and assessment responses. Only the default 
+                  <strong>Danger Zone:</strong> This action will completely delete the entire database from
+                  IndexedDB and recreate it from scratch. All data including custom pillars, function/capabilities,
+                  technologies/processes, and assessment responses will be permanently lost. Only the default
                   ZTMM framework structure will remain.
                 </div>
               </div>

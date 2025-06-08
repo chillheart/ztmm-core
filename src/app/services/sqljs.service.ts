@@ -645,4 +645,40 @@ export class SqlJsService {
       throw error;
     }
   }
+
+  async resetDatabase(): Promise<void> {
+    try {
+      console.log('Starting complete database reset...');
+
+      // Close the current database connection if it exists
+      if (this.db) {
+        this.db.close();
+        this.db = null;
+      }
+
+      // Clear the database from IndexedDB completely
+      if (!this.idbConnection) {
+        await this.initialize();
+      }
+
+      // Delete the main database from IndexedDB
+      await this.idbConnection!.delete('database', 'main');
+      console.log('Database deleted from IndexedDB');
+
+      // Reset initialization flag to force re-initialization
+      this.isInitialized = false;
+
+      // Create a completely new database with fresh schema and default data
+      this.db = new this.sql!.Database();
+      this.db.exec(this.schema);
+
+      // Save the new database to IndexedDB
+      await this.saveDatabase();
+
+      console.log('Database completely reset and reinitialized successfully');
+    } catch (error) {
+      console.error('Error resetting database:', error);
+      throw new Error(`Failed to reset database: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
