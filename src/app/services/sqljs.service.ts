@@ -44,7 +44,8 @@ export class SqlJsService {
         type TEXT CHECK(type IN ('Function', 'Capability')) NOT NULL,
         pillar_id INTEGER NOT NULL,
         order_index INTEGER,
-        FOREIGN KEY(pillar_id) REFERENCES pillars(id)
+        FOREIGN KEY(pillar_id) REFERENCES pillars(id),
+        UNIQUE(name, type, pillar_id)
     );
 
     CREATE TABLE IF NOT EXISTS maturity_stages (
@@ -95,42 +96,42 @@ export class SqlJsService {
         ('Governance', 'Capability', 1, 7),
 
         -- Devices pillar functions and capabilities
-        ('Policy Enforcement & Compliance Monitoring', 'Function', 2, 1),
-        ('Asset & Supply Chain Risk Management', 'Function', 2, 2),
-        ('Resource Access', 'Function', 2, 3),
-        ('Device Threat Protection', 'Function', 2, 4),
-        ('Visibility & Analytics', 'Capability', 2, 5),
-        ('Automation & Orchestration', 'Capability', 2, 6),
-        ('Governance', 'Capability', 2, 7),
+        ('Policy Enforcement & Compliance Monitoring', 'Function', 2, 8),
+        ('Asset & Supply Chain Risk Management', 'Function', 2, 9),
+        ('Resource Access', 'Function', 2, 10),
+        ('Device Threat Protection', 'Function', 2, 11),
+        ('Visibility & Analytics', 'Capability', 2, 12),
+        ('Automation & Orchestration', 'Capability', 2, 13),
+        ('Governance', 'Capability', 2, 14),
 
         -- Networks pillar functions and capabilities
-        ('Network Segmentation', 'Function', 3, 1),
-        ('Network Traffic Management', 'Function', 3, 2),
-        ('Traffic Encryption', 'Function', 3, 3),
-        ('Network Resilience', 'Function', 3, 4),
-        ('Visibility & Analytics', 'Capability', 3, 5),
-        ('Automation & Orchestration', 'Capability', 3, 6),
-        ('Governance', 'Capability', 3, 7),
+        ('Network Segmentation', 'Function', 3, 15),
+        ('Network Traffic Management', 'Function', 3, 16),
+        ('Traffic Encryption', 'Function', 3, 17),
+        ('Network Resilience', 'Function', 3, 18),
+        ('Visibility & Analytics', 'Capability', 3, 19),
+        ('Automation & Orchestration', 'Capability', 3, 20),
+        ('Governance', 'Capability', 3, 21),
 
         -- Applications & Workloads pillar functions and capabilities
-        ('Application Access', 'Function', 4, 1),
-        ('Application Threat Protections', 'Function', 4, 2),
-        ('Accessible Applications', 'Function', 4, 3),
-        ('Secure Application Development & Deployment Workflow', 'Function', 4, 4),
-        ('Application Security Testing', 'Function', 4, 5),
-        ('Visibility & Analytics', 'Capability', 4, 6),
-        ('Automation & Orchestration', 'Capability', 4, 7),
-        ('Governance', 'Capability', 4, 8),
+        ('Application Access', 'Function', 4, 22),
+        ('Application Threat Protections', 'Function', 4, 23),
+        ('Accessible Applications', 'Function', 4, 24),
+        ('Secure Application Development & Deployment Workflow', 'Function', 4, 25),
+        ('Application Security Testing', 'Function', 4, 26),
+        ('Visibility & Analytics', 'Capability', 4, 27),
+        ('Automation & Orchestration', 'Capability', 4, 28),
+        ('Governance', 'Capability', 4, 29),
 
         -- Data pillar functions and capabilities
-        ('Data Inventory', 'Function', 5, 1),
-        ('Data Categorization', 'Function', 5, 2),
-        ('Data Availability', 'Function', 5, 3),
-        ('Data Access', 'Function', 5, 4),
-        ('Data Encryption', 'Function', 5, 5),
-        ('Visibility & Analytics', 'Capability', 5, 6),
-        ('Automation & Orchestration', 'Capability', 5, 7),
-        ('Governance', 'Capability', 5, 8);
+        ('Data Inventory', 'Function', 5, 30),
+        ('Data Categorization', 'Function', 5, 31),
+        ('Data Availability', 'Function', 5, 32),
+        ('Data Access', 'Function', 5, 33),
+        ('Data Encryption', 'Function', 5, 34),
+        ('Visibility & Analytics', 'Capability', 5, 35),
+        ('Automation & Orchestration', 'Capability', 5, 36),
+        ('Governance', 'Capability', 5, 37);
   `;
 
   async initialize(): Promise<void> {
@@ -185,6 +186,12 @@ export class SqlJsService {
       if (existingDb && existingDb.data) {
         console.log('Loading existing database from IndexedDB');
         this.db = new this.sql.Database(existingDb.data);
+
+        // Apply schema (idempotent table creation and default data insertion)
+        this.db.exec(this.schema);
+
+        // Save database after applying schema defaults
+        await this.saveDatabase();
       } else {
         console.log('Creating new database');
         this.db = new this.sql.Database();
@@ -224,7 +231,7 @@ export class SqlJsService {
     }
   }
 
-  private async executeQuery<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  public async executeQuery<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     if (!this.db) {
       await this.initialize();
     }
@@ -436,16 +443,15 @@ export class SqlJsService {
 
   // Technology Process operations
   async getTechnologiesProcesses(functionCapabilityId?: number): Promise<TechnologyProcess[]> {
-    if (functionCapabilityId) {
-      if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
-        throw new Error('Invalid function capability ID');
-      }
-      return this.executeQuery<TechnologyProcess>(
-        'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
-        [functionCapabilityId]
-      );
-    }
-    return this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
+    console.log('Fetching technologies/processes...', { functionCapabilityId });
+    const results = functionCapabilityId
+      ? await this.executeQuery<TechnologyProcess>(
+          'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
+          [functionCapabilityId]
+        )
+      : await this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
+    console.log('Technologies/Processes fetched:', results);
+    return results;
   }
 
   async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
@@ -649,7 +655,7 @@ export class SqlJsService {
   async resetDatabase(): Promise<void> {
     try {
       console.log('Starting complete database reset...');
-      
+
       // Close the current database connection if it exists
       if (this.db) {
         this.db.close();
