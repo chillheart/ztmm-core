@@ -174,6 +174,12 @@ export class ZtmmDataWebService {
     return this.handleApiCall(() => this.sqlJs.resetDatabase(), 'resetDatabase');
   }
 
+  // Import data with preserved IDs from JSON export (complete database replacement)
+  async importDataWithPreservedIds(data: any): Promise<void> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.importDataWithPreservedIds(data), 'importDataWithPreservedIds');
+  }
+
   // Migration helper - import data from exported Electron database
   async migrateFromElectronData(electronData: any): Promise<void> {
     await this.ensureInitialized();

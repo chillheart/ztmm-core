@@ -552,7 +552,7 @@
                   Import Data
                 </h6>
                 <p class="card-text text-muted small">
-                  Upload a JSON export file to import configuration data.
+                  Upload a JSON export file to completely replace the current database. This performs a complete database reset and imports the data with original IDs preserved.
                 </p>
                 <div class="mb-3">
                   <input
@@ -564,8 +564,8 @@
                 </div>
                 <div class="alert alert-warning" role="alert">
                   <i class="bi bi-exclamation-triangle me-2"></i>
-                  <strong>Warning:</strong> Importing data will overwrite all existing data.
-                  Make sure to export your current data first as a backup.
+                  <strong>Warning:</strong> Importing data will completely reset the database and replace ALL existing data with the imported data. 
+                  The original IDs from the export will be preserved. Make sure to export your current data first as a backup.
                 </div>
               </div>
             </div>

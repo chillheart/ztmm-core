@@ -649,7 +649,7 @@ export class SqlJsService {
   async resetDatabase(): Promise<void> {
     try {
       console.log('Starting complete database reset...');
-
+      
       // Close the current database connection if it exists
       if (this.db) {
         this.db.close();
@@ -679,6 +679,79 @@ export class SqlJsService {
     } catch (error) {
       console.error('Error resetting database:', error);
       throw new Error(`Failed to reset database: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async importDataWithPreservedIds(data: any): Promise<void> {
+    await this.initialize();
+
+    try {
+      console.log('Starting import with preserved IDs...');
+
+      // Clear all existing data first (but keep schema)
+      await this.executeUpdate('DELETE FROM assessment_responses');
+      await this.executeUpdate('DELETE FROM technologies_processes');
+      await this.executeUpdate('DELETE FROM function_capabilities');
+      await this.executeUpdate('DELETE FROM pillars');
+      await this.executeUpdate('DELETE FROM maturity_stages');
+
+      // Import in dependency order with preserved IDs
+
+      // 1. Maturity Stages (independent)
+      if (data.maturityStages && Array.isArray(data.maturityStages)) {
+        for (const ms of data.maturityStages) {
+          await this.executeUpdate(
+            'INSERT INTO maturity_stages (id, name) VALUES (?, ?)',
+            [ms.id, ms.name]
+          );
+        }
+      }
+
+      // 2. Pillars (independent)
+      if (data.pillars && Array.isArray(data.pillars)) {
+        for (const pillar of data.pillars) {
+          await this.executeUpdate(
+            'INSERT INTO pillars (id, name, order_index) VALUES (?, ?, ?)',
+            [pillar.id, pillar.name, pillar.order_index || null]
+          );
+        }
+      }
+
+      // 3. Function Capabilities (depend on pillars)
+      if (data.functionCapabilities && Array.isArray(data.functionCapabilities)) {
+        for (const fc of data.functionCapabilities) {
+          await this.executeUpdate(
+            'INSERT INTO function_capabilities (id, name, type, pillar_id, order_index) VALUES (?, ?, ?, ?, ?)',
+            [fc.id, fc.name, fc.type, fc.pillar_id, fc.order_index || null]
+          );
+        }
+      }
+
+      // 4. Technologies/Processes (depend on function capabilities and maturity stages)
+      if (data.technologiesProcesses && Array.isArray(data.technologiesProcesses)) {
+        for (const tp of data.technologiesProcesses) {
+          await this.executeUpdate(
+            'INSERT INTO technologies_processes (id, description, type, function_capability_id, maturity_stage_id) VALUES (?, ?, ?, ?, ?)',
+            [tp.id, tp.description, tp.type, tp.function_capability_id, tp.maturity_stage_id]
+          );
+        }
+      }
+
+      // 5. Assessment Responses (depend on everything else)
+      if (data.assessmentResponses && Array.isArray(data.assessmentResponses)) {
+        for (const ar of data.assessmentResponses) {
+          await this.executeUpdate(
+            'INSERT INTO assessment_responses (id, tech_process_id, status, notes) VALUES (?, ?, ?, ?)',
+            [ar.id, ar.tech_process_id, ar.status, ar.notes || null]
+          );
+        }
+      }
+
+      await this.saveDatabase();
+      console.log('Import with preserved IDs completed successfully');
+    } catch (error) {
+      console.error('Error importing data with preserved IDs:', error);
+      throw new Error(`Failed to import data with preserved IDs: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

@@ -391,10 +391,37 @@ export class AdminComponent {
       return;
     }
 
+    // Enhanced confirmation since import now performs complete database reset
+    const confirmation = confirm(
+      'Are you sure you want to import this data? This will:\n\n' +
+      '• COMPLETELY RESET the database (same as "Reset Database" button)\n' +
+      '• Delete ALL existing data\n' +
+      '• Import the JSON data with original IDs preserved\n' +
+      '• Replace the entire database structure with the imported data\n\n' +
+      'This action cannot be undone!'
+    );
+
+    if (!confirmation) {
+      // Reset the file input if user cancels
+      target.value = '';
+      return;
+    }
+
+    const doubleConfirmation = confirm(
+      'Final confirmation: The database will be completely reset and replaced with the imported data.\n\n' +
+      'Click OK to proceed with the import.'
+    );
+
+    if (!doubleConfirmation) {
+      // Reset the file input if user cancels
+      target.value = '';
+      return;
+    }
+
     try {
       this.isImporting = true;
       await this.exportService.uploadAndImport(file);
-      alert('Data imported successfully!');
+      alert('Data imported successfully! The database has been completely replaced with the imported data.');
 
       // Reload all data and statistics
       await this.loadAll();
