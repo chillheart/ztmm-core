@@ -1,0 +1,89 @@
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">
+          <i class="bi bi-building me-2"></i>
+          Zero Trust Pillars
+        </h4>
+        <small>Define the core pillars of your Zero Trust architecture</small>
+      </div>
+      <div class="card-body">
+        <form class="mb-4" #pillarForm="ngForm" (ngSubmit)="onAddPillar(pillarForm)">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-plus-circle"></i>
+            </span>
+            <input [(ngModel)]="newPillar"
+                   name="pillar"
+                   class="form-control"
+                   placeholder="Enter pillar name (e.g., Identity, Device, Network)"
+                   required
+                   [ngClass]="{'is-invalid': isInvalid(pillarForm, 'pillar', pillarFormSubmitted)}" />
+            <button class="btn btn-primary" type="submit">
+              <i class="bi bi-plus me-1"></i>Add Pillar
+            </button>
+          </div>
+          <div *ngIf="isInvalid(pillarForm, 'pillar', pillarFormSubmitted)" class="invalid-feedback d-block mt-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>Pillar name is required.
+          </div>
+        </form>
+
+        <!-- Empty State -->
+        <div *ngIf="pillars.length === 0" class="text-center py-5">
+          <i class="bi bi-building display-1 text-muted mb-3"></i>
+          <h5 class="text-muted">No pillars defined yet</h5>
+          <p class="text-muted">Start by adding your first pillar above.</p>
+        </div>
+
+        <!-- Pillars List -->
+        <div *ngIf="pillars.length > 0" class="pillars-list">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted mb-0">Your Pillars ({{ pillars.length }})</h6>
+            <small class="text-muted"><i class="bi bi-arrows-move me-1"></i>Drag to reorder</small>
+          </div>
+          <div class="list-group">
+            <div *ngFor="let pillar of pillars; let i = index"
+                 class="list-group-item list-group-item-action"
+                 draggable="true"
+                 (dragstart)="onPillarDragStart(i)"
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onPillarDrop(i)"
+                 (dragend)="onPillarDragEnd()">
+              <div class="d-flex justify-content-between align-items-center">
+                <ng-container *ngIf="editingPillarId === pillar.id; else pillarView">
+                  <div class="d-flex align-items-center flex-grow-1">
+                    <i class="bi bi-building text-primary me-2"></i>
+                    <input [(ngModel)]="editingPillarName"
+                           class="form-control me-2"
+                           style="max-width: 300px;" />
+                    <button class="btn btn-sm btn-success me-1" (click)="saveEditPillar()">
+                      <i class="bi bi-check"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" (click)="cancelEditPillar()">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </ng-container>
+                <ng-template #pillarView>
+                  <div class="d-flex align-items-center flex-grow-1">
+                    <i class="bi bi-building text-primary me-3"></i>
+                    <span class="fw-medium">{{ pillar.name }}</span>
+                  </div>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" (click)="startEditPillar(pillar)" title="Edit pillar">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" (click)="onRemovePillar(pillar.id)" title="Delete pillar">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

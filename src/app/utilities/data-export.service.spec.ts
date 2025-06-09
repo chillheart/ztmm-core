@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { DataExportService, ExportedData } from './data-export.service';
 import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
+import { SqlJsService } from '../services/sqljs.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
+import { TestUtils } from '../testing/test-utils';
 
 describe('DataExportService', () => {
   let service: DataExportService;
@@ -54,13 +56,19 @@ describe('DataExportService', () => {
       'addTechnologyProcess',
       'getAssessmentResponses',
       'saveAssessment',
-      'clearAllData'
+      'clearAllData',
+      'resetDatabase',
+      'importDataWithPreservedIds'
     ]);
+
+    // Create mock SqljsService to avoid WebAssembly initialization issues
+    const mockSqlJsService = TestUtils.createMockSqlJsService();
 
     TestBed.configureTestingModule({
       providers: [
         DataExportService,
-        { provide: ZtmmDataWebService, useValue: dataServiceSpy }
+        { provide: ZtmmDataWebService, useValue: dataServiceSpy },
+        { provide: SqlJsService, useValue: mockSqlJsService }
       ]
     });
 
@@ -78,6 +86,8 @@ describe('DataExportService', () => {
     mockDataService.getAssessmentResponses.and.returnValue(Promise.resolve([mockAssessmentResponse]));
     mockDataService.saveAssessment.and.returnValue(Promise.resolve());
     mockDataService.clearAllData.and.returnValue(Promise.resolve());
+    mockDataService.resetDatabase.and.returnValue(Promise.resolve());
+    mockDataService.importDataWithPreservedIds.and.returnValue(Promise.resolve());
   });
 
   it('should be created', () => {
@@ -143,10 +153,8 @@ describe('DataExportService', () => {
       await service.importFromJson(mockExportedData);
 
       // Verify correct order of operations
-      expect(mockDataService.addPillar).toHaveBeenCalledWith('Test Pillar');
-      expect(mockDataService.addFunctionCapability).toHaveBeenCalledWith('Test Function', 'Function', 1);
-      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('Test Technology', 'Technology', 1, 1);
-      expect(mockDataService.saveAssessment).toHaveBeenCalledWith(1, 'Fully Implemented', 'Test notes');
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mockExportedData);
     });
 
     it('should handle empty data arrays during import', async () => {
@@ -162,15 +170,13 @@ describe('DataExportService', () => {
 
       await service.importFromJson(emptyData);
 
-      expect(mockDataService.addPillar).not.toHaveBeenCalled();
-      expect(mockDataService.addFunctionCapability).not.toHaveBeenCalled();
-      expect(mockDataService.addTechnologyProcess).not.toHaveBeenCalled();
-      expect(mockDataService.saveAssessment).not.toHaveBeenCalled();
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(emptyData);
     });
 
     it('should handle import errors and propagate them', async () => {
       const error = new Error('Import failed');
-      mockDataService.addPillar.and.returnValue(Promise.reject(error));
+      mockDataService.importDataWithPreservedIds.and.returnValue(Promise.reject(error));
 
       await expectAsync(service.importFromJson(mockExportedData)).toBeRejectedWith(error);
     });
@@ -181,8 +187,8 @@ describe('DataExportService', () => {
 
       await service.uploadAndImport(mockFile);
 
-      expect(mockDataService.addPillar).toHaveBeenCalledWith('Test Pillar');
-      expect(mockDataService.addFunctionCapability).toHaveBeenCalledWith('Test Function', 'Function', 1);
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mockExportedData);
     });
 
     it('should validate import data format', async () => {
@@ -335,10 +341,8 @@ describe('DataExportService', () => {
 
       await service.importFromJson(multiPillarData);
 
-      expect(mockDataService.addPillar).toHaveBeenCalledTimes(3);
-      expect(mockDataService.addPillar).toHaveBeenCalledWith('Pillar 1');
-      expect(mockDataService.addPillar).toHaveBeenCalledWith('Pillar 2');
-      expect(mockDataService.addPillar).toHaveBeenCalledWith('Pillar 3');
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(multiPillarData);
     });
 
     it('should handle multiple function capabilities in import', async () => {
@@ -352,9 +356,8 @@ describe('DataExportService', () => {
 
       await service.importFromJson(multiFunctionData);
 
-      expect(mockDataService.addFunctionCapability).toHaveBeenCalledTimes(2);
-      expect(mockDataService.addFunctionCapability).toHaveBeenCalledWith('Function 1', 'Function', 1);
-      expect(mockDataService.addFunctionCapability).toHaveBeenCalledWith('Capability 1', 'Capability', 1);
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(multiFunctionData);
     });
 
     it('should handle technology and process types in import', async () => {
@@ -368,9 +371,8 @@ describe('DataExportService', () => {
 
       await service.importFromJson(mixedTechProcessData);
 
-      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledTimes(2);
-      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('Tech 1', 'Technology', 1, 1);
-      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('Process 1', 'Process', 1, 2);
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mixedTechProcessData);
     });
 
     it('should handle different assessment statuses in import', async () => {
@@ -385,10 +387,8 @@ describe('DataExportService', () => {
 
       await service.importFromJson(multiAssessmentData);
 
-      expect(mockDataService.saveAssessment).toHaveBeenCalledTimes(3);
-      expect(mockDataService.saveAssessment).toHaveBeenCalledWith(1, 'Fully Implemented', 'Notes 1');
-      expect(mockDataService.saveAssessment).toHaveBeenCalledWith(2, 'Partially Implemented', 'Notes 2');
-      expect(mockDataService.saveAssessment).toHaveBeenCalledWith(3, 'Not Implemented', undefined);
+      expect(mockDataService.resetDatabase).toHaveBeenCalled();
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(multiAssessmentData);
     });
   });
 
@@ -403,7 +403,6 @@ describe('DataExportService', () => {
       await service.importFromJson(mockExportedData);
 
       expect(console.log).toHaveBeenCalledWith('Data import completed successfully');
-      expect(console.log).toHaveBeenCalledWith('Skipping maturity stages import (read-only data)');
     });
 
     it('should log export errors', async () => {
@@ -416,7 +415,7 @@ describe('DataExportService', () => {
 
     it('should log import errors', async () => {
       const error = new Error('Import error');
-      mockDataService.addPillar.and.returnValue(Promise.reject(error));
+      mockDataService.importDataWithPreservedIds.and.returnValue(Promise.reject(error));
 
       await expectAsync(service.importFromJson(mockExportedData)).toBeRejected();
       expect(console.error).toHaveBeenCalledWith('Error importing data:', error);

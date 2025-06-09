@@ -4,6 +4,10 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { DataExportService } from './utilities/data-export.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
+import { PillarsTabComponent } from './admin/pillars-tab.component';
+import { FunctionsTabComponent } from './admin/functions-tab.component';
+import { TechnologiesTabComponent } from './admin/technologies-tab.component';
+import { DataManagementTabComponent } from './admin/data-management-tab.component';
 
 
 @Component({
@@ -11,7 +15,7 @@ import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, DataManagementTabComponent]
 })
 export class AdminComponent {
   pillars: Pillar[] = [];
@@ -476,6 +480,72 @@ export class AdminComponent {
     } finally {
       this.isResetting = false;
     }
+  }
+
+  // Event handlers for tab components
+  async onAddPillar(name: string) {
+    await this.data.addPillar(name);
+    this.pillars = await this.data.getPillars();
+  }
+
+  async onRemovePillar(id: number) {
+    if (!confirm('Are you sure you want to delete this pillar? This will also delete all associated functions, capabilities, technologies, processes, and assessments.')) {
+      return;
+    }
+    await this.data.removePillar(id);
+    this.pillars = await this.data.getPillars();
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onEditPillar(data: {id: number, name: string}) {
+    await this.data.editPillar(data.id, data.name);
+    this.pillars = await this.data.getPillars();
+  }
+
+  async onSavePillarOrder(pillarIds: number[]) {
+    await this.data.savePillarOrder(pillarIds);
+  }
+
+  async onAddFunctionCapability(data: {name: string, type: 'Function' | 'Capability', pillarId: number}) {
+    await this.data.addFunctionCapability(data.name, data.type, data.pillarId);
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onRemoveFunctionCapability(id: number) {
+    await this.data.removeFunctionCapability(id);
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onEditFunctionCapability(data: {id: number, name: string, type: 'Function' | 'Capability', pillarId: number}) {
+    await this.data.editFunctionCapability(data.id, data.name, data.type, data.pillarId);
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onSaveFunctionOrder(functionIds: number[]) {
+    await this.data.saveFunctionOrder(functionIds);
+  }
+
+  async onAddTechnologyProcess(data: {description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
+    await this.data.addTechnologyProcess(data.description, data.type, data.functionCapabilityId, data.maturityStageId);
+    await this.loadTechnologiesProcesses();
+  }
+
+  async onRemoveTechnologyProcess(id: number) {
+    await this.data.removeTechnologyProcess(id);
+    this.loadTechnologiesProcesses();
+  }
+
+  async onEditTechnologyProcess(data: {id: number, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
+    await this.data.editTechnologyProcess(data.id, data.description, data.type, data.functionCapabilityId, data.maturityStageId);
+    this.loadTechnologiesProcesses();
+  }
+
+  onLoadTechnologiesProcesses() {
+    this.loadTechnologiesProcesses();
   }
 
 }
