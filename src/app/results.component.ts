@@ -88,23 +88,13 @@ export class ResultsComponent {
       this.maturityStages = [];
     }
 
-    // Gather all technologies/processes for all functionCapabilities
-    let allTP: TechnologyProcess[] = [];
+    // Load all technologies/processes efficiently using the specialized method
     try {
-      if (Array.isArray(this.functionCapabilities)) {
-        for (const fc of this.functionCapabilities) {
-          try {
-            const tps = await this.data.getTechnologiesProcesses(fc.id);
-            allTP = allTP.concat(tps);
-          } catch (error) {
-            console.error(`Error loading technologies/processes for function capability ${fc.id}:`, error);
-          }
-        }
-      }
+      this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
     } catch (error) {
       console.error('Error loading technologies/processes:', error);
+      this.technologiesProcesses = [];
     }
-    this.technologiesProcesses = allTP;
 
     // Load assessment responses
     try {

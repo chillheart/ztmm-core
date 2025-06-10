@@ -2,11 +2,19 @@
   <div class="col-12">
     <div class="card shadow-sm">
       <div class="card-header bg-warning text-dark">
-        <h4 class="mb-0">
-          <i class="bi bi-tools me-2"></i>
-          Technologies & Processes
-        </h4>
-        <small>Define specific technologies and processes for each function/capability</small>
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0">
+              <i class="bi bi-tools me-2"></i>
+              Technologies & Processes
+            </h4>
+            <small>Define specific technologies and processes for each function/capability</small>
+          </div>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadTechnologiesProcesses.emit()" title="Refresh data">
+            <i class="bi bi-arrow-clockwise"></i>
+            Refresh
+          </button>
+        </div>
       </div>
       <div class="card-body">
         <form class="mb-4" #techForm="ngForm" (ngSubmit)="onAddTechnologyProcess(techForm)">
@@ -89,29 +97,44 @@
         </form>
 
         <!-- Empty State -->
-        <div *ngIf="technologiesProcesses.length === 0" class="text-center py-5">
+        <div *ngIf="filteredTechnologiesProcesses.length === 0" class="text-center py-5">
           <i class="bi bi-tools display-1 text-muted mb-3"></i>
-          <h5 class="text-muted">No technologies or processes defined yet</h5>
-          <p class="text-muted">Start by adding your first technology or process above.</p>
-          <div class="alert alert-info mt-3">
+          <h5 class="text-muted">
+            <span *ngIf="selectedTechPillarId">No technologies or processes found for the selected pillar</span>
+            <span *ngIf="!selectedTechPillarId">No technologies or processes defined yet</span>
+          </h5>
+          <p class="text-muted">
+            <span *ngIf="selectedTechPillarId">Try selecting a different pillar or clearing the filter.</span>
+            <span *ngIf="!selectedTechPillarId">Start by adding your first technology or process above.</span>
+          </p>
+          <div class="alert alert-info mt-3" *ngIf="!selectedTechPillarId">
             <i class="bi bi-lightbulb me-2"></i>
             <strong>Tip:</strong> Use the pillar filter to focus on specific areas when adding items.
+          </div>
+          <div class="alert alert-success mt-3" *ngIf="!selectedTechPillarId && technologiesProcesses.length === 0">
+            <i class="bi bi-database me-2"></i>
+            <strong>New Installation:</strong> This application now includes sample technologies and processes.
+            If you're seeing this message, you may need to refresh the page or reset your database to load the examples.
+            <br><small class="mt-2 d-block">Visit the <a href="/debug" target="_blank">debug page</a> to reset with sample data if needed.</small>
           </div>
         </div>
 
         <!-- Technologies/Processes List -->
-        <div *ngIf="technologiesProcesses.length > 0" class="tech-list">
+        <div *ngIf="filteredTechnologiesProcesses.length > 0" class="tech-list">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-muted mb-0">Your Technologies & Processes ({{ technologiesProcesses.length }})</h6>
+            <h6 class="text-muted mb-0">Your Technologies & Processes ({{ filteredTechnologiesProcesses.length }})</h6>
             <div class="d-flex align-items-center gap-3">
               <small class="text-muted">
                 <i class="bi bi-filter me-1"></i>
                 {{ selectedTechPillarId ? 'Filtered by: ' + getPillarName(selectedTechPillarId) : 'Showing all' }}
+                <span *ngIf="selectedTechPillarId && technologiesProcesses.length > filteredTechnologiesProcesses.length">
+                  ({{ technologiesProcesses.length - filteredTechnologiesProcesses.length }} hidden)
+                </span>
               </small>
             </div>
           </div>
           <div class="row">
-            <div *ngFor="let tp of technologiesProcesses" class="col-12 mb-3">
+            <div *ngFor="let tp of filteredTechnologiesProcesses" class="col-12 mb-3">
               <div class="card h-100 border-start border-4"
                    [ngClass]="tp.type === 'Technology' ? 'border-primary' : 'border-success'">
                 <div class="card-body">

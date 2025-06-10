@@ -34,6 +34,20 @@ export class TechnologiesTabComponent {
     return this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedTechPillarId);
   }
 
+  get filteredTechnologiesProcesses() {
+    if (!this.selectedTechPillarId) return this.technologiesProcesses;
+
+    // Get function capability IDs that belong to the selected pillar
+    const pillarFunctionCapabilityIds = this.functionCapabilities
+      .filter(fc => fc.pillar_id === this.selectedTechPillarId)
+      .map(fc => fc.id);
+
+    // Filter technologies/processes that belong to those function capabilities
+    return this.technologiesProcesses.filter(tp =>
+      pillarFunctionCapabilityIds.includes(tp.function_capability_id)
+    );
+  }
+
   onAddTechnologyProcess(form: NgForm) {
     this.techFormSubmitted = true;
     if (form.valid && this.newTechnologyProcess.trim() &&

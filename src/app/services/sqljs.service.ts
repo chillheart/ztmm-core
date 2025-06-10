@@ -443,15 +443,28 @@ export class SqlJsService {
 
   // Technology Process operations
   async getTechnologiesProcesses(functionCapabilityId?: number): Promise<TechnologyProcess[]> {
-    console.log('Fetching technologies/processes...', { functionCapabilityId });
-    const results = functionCapabilityId
-      ? await this.executeQuery<TechnologyProcess>(
-          'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
-          [functionCapabilityId]
-        )
-      : await this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
-    console.log('Technologies/Processes fetched:', results);
-    return results;
+    if (functionCapabilityId !== undefined) {
+      return this.executeQuery<TechnologyProcess>(
+        'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
+        [functionCapabilityId]
+      );
+    } else {
+      return this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
+    }
+  }
+
+  async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
+    return this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
+  }
+
+  async getTechnologiesProcessesByFunction(functionCapabilityId: number): Promise<TechnologyProcess[]> {
+    if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
+      throw new Error('Invalid function capability ID');
+    }
+    return this.executeQuery<TechnologyProcess>(
+      'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
+      [functionCapabilityId]
+    );
   }
 
   async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {

@@ -89,21 +89,11 @@ export class AdminComponent {
   async loadTechnologiesProcesses() {
     try {
       if (this.selectedFunctionCapabilityId) {
-        this.technologiesProcesses = await this.data.getTechnologiesProcesses(this.selectedFunctionCapabilityId);
+        // Use specialized method for loading by function capability
+        this.technologiesProcesses = await this.data.getTechnologiesProcessesByFunction(this.selectedFunctionCapabilityId);
       } else {
-        // Show all for admin view
-        let all: TechnologyProcess[] = [];
-        if (Array.isArray(this.functionCapabilities)) {
-          for (const fc of this.functionCapabilities) {
-            try {
-              const tps = await this.data.getTechnologiesProcesses(fc.id);
-              all = all.concat(tps);
-            } catch (error) {
-              console.error(`Error loading technologies/processes for function capability ${fc.id}:`, error);
-            }
-          }
-        }
-        this.technologiesProcesses = all;
+        // Use specialized method for loading all technologies/processes
+        this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
       }
     } catch (error) {
       console.error('Error loading technologies/processes:', error);

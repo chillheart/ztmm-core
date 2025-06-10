@@ -91,6 +91,16 @@ export class ZtmmDataWebService {
     return this.handleApiCall(() => this.sqlJs.getTechnologiesProcesses(functionCapabilityId), 'getTechnologiesProcesses');
   }
 
+  async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.getAllTechnologiesProcesses(), 'getAllTechnologiesProcesses');
+  }
+
+  async getTechnologiesProcessesByFunction(functionCapabilityId: number): Promise<TechnologyProcess[]> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.getTechnologiesProcessesByFunction(functionCapabilityId), 'getTechnologiesProcessesByFunction');
+  }
+
   async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
     return this.handleApiCall(() => this.sqlJs.addTechnologyProcess(description, type, functionCapabilityId, maturityStageId), 'addTechnologyProcess');
