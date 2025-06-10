@@ -91,6 +91,16 @@ export class ZtmmDataWebService {
     return this.handleApiCall(() => this.sqlJs.getTechnologiesProcesses(functionCapabilityId), 'getTechnologiesProcesses');
   }
 
+  async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.getAllTechnologiesProcesses(), 'getAllTechnologiesProcesses');
+  }
+
+  async getTechnologiesProcessesByFunction(functionCapabilityId: number): Promise<TechnologyProcess[]> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.getTechnologiesProcessesByFunction(functionCapabilityId), 'getTechnologiesProcessesByFunction');
+  }
+
   async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
     return this.handleApiCall(() => this.sqlJs.addTechnologyProcess(description, type, functionCapabilityId, maturityStageId), 'addTechnologyProcess');
@@ -167,6 +177,17 @@ export class ZtmmDataWebService {
   async clearAllData(): Promise<void> {
     await this.ensureInitialized();
     return this.handleApiCall(() => this.sqlJs.clearAllData(), 'clearAllData');
+  }
+
+  async resetDatabase(): Promise<void> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.resetDatabase(), 'resetDatabase');
+  }
+
+  // Import data with preserved IDs from JSON export (complete database replacement)
+  async importDataWithPreservedIds(data: any): Promise<void> {
+    await this.ensureInitialized();
+    return this.handleApiCall(() => this.sqlJs.importDataWithPreservedIds(data), 'importDataWithPreservedIds');
   }
 
   // Migration helper - import data from exported Electron database

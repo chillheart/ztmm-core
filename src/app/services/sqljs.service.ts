@@ -44,7 +44,8 @@ export class SqlJsService {
         type TEXT CHECK(type IN ('Function', 'Capability')) NOT NULL,
         pillar_id INTEGER NOT NULL,
         order_index INTEGER,
-        FOREIGN KEY(pillar_id) REFERENCES pillars(id)
+        FOREIGN KEY(pillar_id) REFERENCES pillars(id),
+        UNIQUE(name, type, pillar_id)
     );
 
     CREATE TABLE IF NOT EXISTS maturity_stages (
@@ -95,42 +96,42 @@ export class SqlJsService {
         ('Governance', 'Capability', 1, 7),
 
         -- Devices pillar functions and capabilities
-        ('Policy Enforcement & Compliance Monitoring', 'Function', 2, 1),
-        ('Asset & Supply Chain Risk Management', 'Function', 2, 2),
-        ('Resource Access', 'Function', 2, 3),
-        ('Device Threat Protection', 'Function', 2, 4),
-        ('Visibility & Analytics', 'Capability', 2, 5),
-        ('Automation & Orchestration', 'Capability', 2, 6),
-        ('Governance', 'Capability', 2, 7),
+        ('Policy Enforcement & Compliance Monitoring', 'Function', 2, 8),
+        ('Asset & Supply Chain Risk Management', 'Function', 2, 9),
+        ('Resource Access', 'Function', 2, 10),
+        ('Device Threat Protection', 'Function', 2, 11),
+        ('Visibility & Analytics', 'Capability', 2, 12),
+        ('Automation & Orchestration', 'Capability', 2, 13),
+        ('Governance', 'Capability', 2, 14),
 
         -- Networks pillar functions and capabilities
-        ('Network Segmentation', 'Function', 3, 1),
-        ('Network Traffic Management', 'Function', 3, 2),
-        ('Traffic Encryption', 'Function', 3, 3),
-        ('Network Resilience', 'Function', 3, 4),
-        ('Visibility & Analytics', 'Capability', 3, 5),
-        ('Automation & Orchestration', 'Capability', 3, 6),
-        ('Governance', 'Capability', 3, 7),
+        ('Network Segmentation', 'Function', 3, 15),
+        ('Network Traffic Management', 'Function', 3, 16),
+        ('Traffic Encryption', 'Function', 3, 17),
+        ('Network Resilience', 'Function', 3, 18),
+        ('Visibility & Analytics', 'Capability', 3, 19),
+        ('Automation & Orchestration', 'Capability', 3, 20),
+        ('Governance', 'Capability', 3, 21),
 
         -- Applications & Workloads pillar functions and capabilities
-        ('Application Access', 'Function', 4, 1),
-        ('Application Threat Protections', 'Function', 4, 2),
-        ('Accessible Applications', 'Function', 4, 3),
-        ('Secure Application Development & Deployment Workflow', 'Function', 4, 4),
-        ('Application Security Testing', 'Function', 4, 5),
-        ('Visibility & Analytics', 'Capability', 4, 6),
-        ('Automation & Orchestration', 'Capability', 4, 7),
-        ('Governance', 'Capability', 4, 8),
+        ('Application Access', 'Function', 4, 22),
+        ('Application Threat Protections', 'Function', 4, 23),
+        ('Accessible Applications', 'Function', 4, 24),
+        ('Secure Application Development & Deployment Workflow', 'Function', 4, 25),
+        ('Application Security Testing', 'Function', 4, 26),
+        ('Visibility & Analytics', 'Capability', 4, 27),
+        ('Automation & Orchestration', 'Capability', 4, 28),
+        ('Governance', 'Capability', 4, 29),
 
         -- Data pillar functions and capabilities
-        ('Data Inventory', 'Function', 5, 1),
-        ('Data Categorization', 'Function', 5, 2),
-        ('Data Availability', 'Function', 5, 3),
-        ('Data Access', 'Function', 5, 4),
-        ('Data Encryption', 'Function', 5, 5),
-        ('Visibility & Analytics', 'Capability', 5, 6),
-        ('Automation & Orchestration', 'Capability', 5, 7),
-        ('Governance', 'Capability', 5, 8);
+        ('Data Inventory', 'Function', 5, 30),
+        ('Data Categorization', 'Function', 5, 31),
+        ('Data Availability', 'Function', 5, 32),
+        ('Data Access', 'Function', 5, 33),
+        ('Data Encryption', 'Function', 5, 34),
+        ('Visibility & Analytics', 'Capability', 5, 35),
+        ('Automation & Orchestration', 'Capability', 5, 36),
+        ('Governance', 'Capability', 5, 37);
   `;
 
   async initialize(): Promise<void> {
@@ -185,6 +186,12 @@ export class SqlJsService {
       if (existingDb && existingDb.data) {
         console.log('Loading existing database from IndexedDB');
         this.db = new this.sql.Database(existingDb.data);
+
+        // Apply schema (idempotent table creation and default data insertion)
+        this.db.exec(this.schema);
+
+        // Save database after applying schema defaults
+        await this.saveDatabase();
       } else {
         console.log('Creating new database');
         this.db = new this.sql.Database();
@@ -224,7 +231,7 @@ export class SqlJsService {
     }
   }
 
-  private async executeQuery<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  public async executeQuery<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     if (!this.db) {
       await this.initialize();
     }
@@ -436,16 +443,28 @@ export class SqlJsService {
 
   // Technology Process operations
   async getTechnologiesProcesses(functionCapabilityId?: number): Promise<TechnologyProcess[]> {
-    if (functionCapabilityId) {
-      if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
-        throw new Error('Invalid function capability ID');
-      }
+    if (functionCapabilityId !== undefined) {
       return this.executeQuery<TechnologyProcess>(
         'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
         [functionCapabilityId]
       );
+    } else {
+      return this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
     }
+  }
+
+  async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
     return this.executeQuery<TechnologyProcess>('SELECT * FROM technologies_processes');
+  }
+
+  async getTechnologiesProcessesByFunction(functionCapabilityId: number): Promise<TechnologyProcess[]> {
+    if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
+      throw new Error('Invalid function capability ID');
+    }
+    return this.executeQuery<TechnologyProcess>(
+      'SELECT * FROM technologies_processes WHERE function_capability_id = ?',
+      [functionCapabilityId]
+    );
   }
 
   async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
@@ -643,6 +662,115 @@ export class SqlJsService {
     } catch (error) {
       console.error('Error clearing database:', error);
       throw error;
+    }
+  }
+
+  async resetDatabase(): Promise<void> {
+    try {
+      console.log('Starting complete database reset...');
+
+      // Close the current database connection if it exists
+      if (this.db) {
+        this.db.close();
+        this.db = null;
+      }
+
+      // Clear the database from IndexedDB completely
+      if (!this.idbConnection) {
+        await this.initialize();
+      }
+
+      // Delete the main database from IndexedDB
+      await this.idbConnection!.delete('database', 'main');
+      console.log('Database deleted from IndexedDB');
+
+      // Reset initialization flag to force re-initialization
+      this.isInitialized = false;
+
+      // Create a completely new database with fresh schema and default data
+      this.db = new this.sql!.Database();
+      this.db.exec(this.schema);
+
+      // Save the new database to IndexedDB
+      await this.saveDatabase();
+
+      console.log('Database completely reset and reinitialized successfully');
+    } catch (error) {
+      console.error('Error resetting database:', error);
+      throw new Error(`Failed to reset database: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async importDataWithPreservedIds(data: any): Promise<void> {
+    await this.initialize();
+
+    try {
+      console.log('Starting import with preserved IDs...');
+
+      // Clear all existing data first (but keep schema)
+      await this.executeUpdate('DELETE FROM assessment_responses');
+      await this.executeUpdate('DELETE FROM technologies_processes');
+      await this.executeUpdate('DELETE FROM function_capabilities');
+      await this.executeUpdate('DELETE FROM pillars');
+      await this.executeUpdate('DELETE FROM maturity_stages');
+
+      // Import in dependency order with preserved IDs
+
+      // 1. Maturity Stages (independent)
+      if (data.maturityStages && Array.isArray(data.maturityStages)) {
+        for (const ms of data.maturityStages) {
+          await this.executeUpdate(
+            'INSERT INTO maturity_stages (id, name) VALUES (?, ?)',
+            [ms.id, ms.name]
+          );
+        }
+      }
+
+      // 2. Pillars (independent)
+      if (data.pillars && Array.isArray(data.pillars)) {
+        for (const pillar of data.pillars) {
+          await this.executeUpdate(
+            'INSERT INTO pillars (id, name, order_index) VALUES (?, ?, ?)',
+            [pillar.id, pillar.name, pillar.order_index || null]
+          );
+        }
+      }
+
+      // 3. Function Capabilities (depend on pillars)
+      if (data.functionCapabilities && Array.isArray(data.functionCapabilities)) {
+        for (const fc of data.functionCapabilities) {
+          await this.executeUpdate(
+            'INSERT INTO function_capabilities (id, name, type, pillar_id, order_index) VALUES (?, ?, ?, ?, ?)',
+            [fc.id, fc.name, fc.type, fc.pillar_id, fc.order_index || null]
+          );
+        }
+      }
+
+      // 4. Technologies/Processes (depend on function capabilities and maturity stages)
+      if (data.technologiesProcesses && Array.isArray(data.technologiesProcesses)) {
+        for (const tp of data.technologiesProcesses) {
+          await this.executeUpdate(
+            'INSERT INTO technologies_processes (id, description, type, function_capability_id, maturity_stage_id) VALUES (?, ?, ?, ?, ?)',
+            [tp.id, tp.description, tp.type, tp.function_capability_id, tp.maturity_stage_id]
+          );
+        }
+      }
+
+      // 5. Assessment Responses (depend on everything else)
+      if (data.assessmentResponses && Array.isArray(data.assessmentResponses)) {
+        for (const ar of data.assessmentResponses) {
+          await this.executeUpdate(
+            'INSERT INTO assessment_responses (id, tech_process_id, status, notes) VALUES (?, ?, ?, ?)',
+            [ar.id, ar.tech_process_id, ar.status, ar.notes || null]
+          );
+        }
+      }
+
+      await this.saveDatabase();
+      console.log('Import with preserved IDs completed successfully');
+    } catch (error) {
+      console.error('Error importing data with preserved IDs:', error);
+      throw new Error(`Failed to import data with preserved IDs: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

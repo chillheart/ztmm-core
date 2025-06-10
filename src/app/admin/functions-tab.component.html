@@ -1,0 +1,131 @@
+<div class="row justify-content-center">
+  <div class="col-md-10 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-info text-white">
+        <h4 class="mb-0">
+          <i class="bi bi-layers me-2"></i>
+          Functions & Capabilities
+        </h4>
+        <small>Define the functions and capabilities within each pillar</small>
+      </div>
+      <div class="card-body">
+        <form class="mb-4" #functionForm="ngForm" (ngSubmit)="onAddFunctionCapability(functionForm)">
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label for="pillarSelect" class="form-label small text-muted">Pillar</label>
+              <select [(ngModel)]="selectedPillarId"
+                      id="pillarSelect"
+                      name="pillarSelect"
+                      class="form-select"
+                      required
+                      [ngClass]="{'is-invalid': isInvalid(functionForm, 'pillarSelect', functionFormSubmitted)}">
+                <option [ngValue]="null">Choose pillar...</option>
+                <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+              </select>
+              <div *ngIf="isInvalid(functionForm, 'pillarSelect', functionFormSubmitted)" class="invalid-feedback">
+                Pillar is required.
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="functionCapabilityType" class="form-label small text-muted">Type</label>
+              <select [(ngModel)]="newFunctionCapabilityType"
+                      id="functionCapabilityType"
+                      name="functionCapabilityType"
+                      class="form-select"
+                      required>
+                <option value="Function">Function</option>
+                <option value="Capability">Capability</option>
+              </select>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-12">
+              <label for="functionCapability" class="form-label small text-muted">Function/Capability Name</label>
+              <div class="input-group">
+                <input [(ngModel)]="newFunctionCapability"
+                       id="functionCapability"
+                       name="functionCapability"
+                       class="form-control"
+                       placeholder="Enter function or capability name..."
+                       required
+                       [ngClass]="{'is-invalid': isInvalid(functionForm, 'functionCapability', functionFormSubmitted)}" />
+                <button class="btn btn-info" type="submit">
+                  <i class="bi bi-plus me-1"></i>Add
+                </button>
+              </div>
+              <div *ngIf="isInvalid(functionForm, 'functionCapability', functionFormSubmitted)" class="invalid-feedback">
+                Function/Capability name is required.
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Empty State -->
+        <div *ngIf="functionCapabilities.length === 0" class="text-center py-5">
+          <i class="bi bi-layers display-1 text-muted mb-3"></i>
+          <h5 class="text-muted">No functions or capabilities defined yet</h5>
+          <p class="text-muted">Start by adding your first function or capability above.</p>
+        </div>
+
+        <!-- Functions List -->
+        <div *ngIf="functionCapabilities.length > 0" class="functions-list">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted mb-0">Your Functions & Capabilities ({{ functionCapabilities.length }})</h6>
+            <small class="text-muted"><i class="bi bi-arrows-move me-1"></i>Drag to reorder</small>
+          </div>
+          <div class="list-group">
+            <div *ngFor="let fc of functionCapabilities; let i = index"
+                 class="list-group-item list-group-item-action"
+                 draggable="true"
+                 (dragstart)="onFunctionDragStart(i)"
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onFunctionDrop(i)"
+                 (dragend)="onFunctionDragEnd()">
+              <div class="d-flex justify-content-between align-items-center">
+                <ng-container *ngIf="editingFunctionId === fc.id; else functionView">
+                  <div class="d-flex align-items-center flex-grow-1 gap-2">
+                    <i class="bi bi-layers text-info"></i>
+                    <input [(ngModel)]="editingFunction.name" class="form-control" style="max-width: 200px;" />
+                    <select [(ngModel)]="editingFunction.type" class="form-select" style="max-width: 120px;">
+                      <option value="Function">Function</option>
+                      <option value="Capability">Capability</option>
+                    </select>
+                    <select [(ngModel)]="editingFunction.pillar_id" class="form-select" style="max-width: 150px;">
+                      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+                    </select>
+                    <button class="btn btn-sm btn-success" (click)="saveEditFunction()">
+                      <i class="bi bi-check"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" (click)="cancelEditFunction()">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                </ng-container>
+                <ng-template #functionView>
+                  <div class="d-flex align-items-center flex-grow-1">
+                    <i class="bi bi-layers text-info me-3"></i>
+                    <div>
+                      <div class="fw-medium">{{ fc.name }}</div>
+                      <div class="small text-muted">
+                        <span class="badge bg-secondary me-1">{{ fc.type }}</span>
+                        <span class="badge bg-primary">{{ getPillarName(fc.pillar_id) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" (click)="startEditFunction(fc)" title="Edit function/capability">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" (click)="onRemoveFunctionCapability(fc.id)" title="Delete function/capability">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

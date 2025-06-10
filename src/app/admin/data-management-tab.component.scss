@@ -1,0 +1,37 @@
+// Data Management Tab Component Styles
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.list-group-item {
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  font-size: 0.9rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+.alert {
+  font-size: 0.85rem;
+}
+
+.card-title {
+  color: #495057;
+  font-weight: 600;
+}
+
+.border-danger {
+  border-color: #dc3545 !important;
+}
+
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}

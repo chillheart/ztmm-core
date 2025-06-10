@@ -55,49 +55,16 @@ export class DataExportService {
 
   /**
    * Import data from a JSON export into the current web database
+   * This method completely resets the database and imports with preserved IDs
    */
   async importFromJson(data: ExportedData): Promise<void> {
     try {
-      // Clear existing data before importing (overwrites all existing data)
-      await this.clearAllData();
+      // Completely reset the database instead of just clearing data
+      // This ensures we start with a fresh database and can preserve original IDs
+      await this.dataService.resetDatabase();
 
-      // Import in dependency order
-      // 1. Pillars (independent)
-      for (const pillar of data.pillars) {
-        await this.dataService.addPillar(pillar.name);
-      }
-
-      // 2. Function Capabilities (depend on pillars)
-      for (const functionCapability of data.functionCapabilities) {
-        await this.dataService.addFunctionCapability(
-          functionCapability.name,
-          functionCapability.type,
-          functionCapability.pillar_id
-        );
-      }
-
-      // 3. Maturity Stages (read-only, skip import)
-      // Note: Maturity stages are typically predefined and read-only
-      console.log('Skipping maturity stages import (read-only data)');
-
-      // 4. Technologies/Processes (depend on function capabilities)
-      for (const technologyProcess of data.technologiesProcesses) {
-        await this.dataService.addTechnologyProcess(
-          technologyProcess.description,
-          technologyProcess.type,
-          technologyProcess.function_capability_id,
-          technologyProcess.maturity_stage_id
-        );
-      }
-
-      // 5. Assessment Responses (depend on everything else)
-      for (const assessmentResponse of data.assessmentResponses) {
-        await this.dataService.saveAssessment(
-          assessmentResponse.tech_process_id,
-          assessmentResponse.status,
-          assessmentResponse.notes
-        );
-      }
+      // Import with preserved IDs using direct SQL inserts
+      await this.dataService.importDataWithPreservedIds(data);
 
       console.log('Data import completed successfully');
     } catch (error) {

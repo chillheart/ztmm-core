@@ -2,10 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { ZtmmDataWebService } from './ztmm-data-web.service';
 import { SqlJsService } from './sqljs.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
+import { TestUtils } from '../testing/test-utils';
 
 describe('ZtmmDataWebService', () => {
   let service: ZtmmDataWebService;
-  let mockSqlJsService: jasmine.SpyObj<SqlJsService>;
+  let mockSqlJsService: any;
 
   // Mock data for testing
   const mockPillar: Pillar = { id: 1, name: 'Test Pillar' };
@@ -34,41 +35,18 @@ describe('ZtmmDataWebService', () => {
   };
 
   beforeEach(() => {
-    const sqlJsSpy = jasmine.createSpyObj('SqlJsService', [
-      'initialize',
-      'getPillars',
-      'addPillar',
-      'removePillar',
-      'editPillar',
-      'savePillarOrder',
-      'getFunctionCapabilities',
-      'addFunctionCapability',
-      'removeFunctionCapability',
-      'editFunctionCapability',
-      'saveFunctionOrder',
-      'getMaturityStages',
-      'getTechnologiesProcesses',
-      'addTechnologyProcess',
-      'removeTechnologyProcess',
-      'editTechnologyProcess',
-      'saveAssessment',
-      'getAssessmentResponses',
-      'exportDatabase',
-      'importDatabase',
-      'createBackup',
-      'getBackups',
-      'restoreBackup'
-    ]);
+    // Use the mock SqljsService to avoid WebAssembly initialization issues
+    const sqlJsServiceMock = TestUtils.createMockSqlJsService();
 
     TestBed.configureTestingModule({
       providers: [
         ZtmmDataWebService,
-        { provide: SqlJsService, useValue: sqlJsSpy }
+        { provide: SqlJsService, useValue: sqlJsServiceMock }
       ]
     });
 
     service = TestBed.inject(ZtmmDataWebService);
-    mockSqlJsService = TestBed.inject(SqlJsService) as jasmine.SpyObj<SqlJsService>;
+    mockSqlJsService = TestBed.inject(SqlJsService) as any;
 
     // Setup default spy returns
     mockSqlJsService.initialize.and.returnValue(Promise.resolve());

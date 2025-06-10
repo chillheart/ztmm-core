@@ -1,0 +1,118 @@
+<div class="card shadow-sm">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">
+      <i class="bi bi-gear-wide-connected me-2"></i>
+      Data Management
+    </h5>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <!-- Data Statistics -->
+      <div class="col-lg-6 mb-4">
+        <h6 class="fw-bold mb-3">Current Data</h6>
+        <div class="list-group">
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-building me-2"></i>Pillars</span>
+            <span class="badge bg-primary rounded-pill">{{ dataStatistics.pillars }}</span>
+          </div>
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-layers me-2"></i>Functions/Capabilities</span>
+            <span class="badge bg-primary rounded-pill">{{ dataStatistics.functionCapabilities }}</span>
+          </div>
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-bar-chart-steps me-2"></i>Maturity Stages</span>
+            <span class="badge bg-primary rounded-pill">{{ dataStatistics.maturityStages }}</span>
+          </div>
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-tools me-2"></i>Technologies/Processes</span>
+            <span class="badge bg-primary rounded-pill">{{ dataStatistics.technologiesProcesses }}</span>
+          </div>
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-check-circle me-2"></i>Assessment Responses</span>
+            <span class="badge bg-primary rounded-pill">{{ dataStatistics.assessmentResponses }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export/Import Actions -->
+      <div class="col-lg-6 mb-4">
+        <h6 class="fw-bold mb-3">Actions</h6>
+
+        <!-- Export Data -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="bi bi-download me-2"></i>
+              Export Data
+            </h6>
+            <p class="card-text text-muted small">
+              Download all your configuration data as a JSON file.
+            </p>
+            <button
+              class="btn btn-outline-primary"
+              [disabled]="isExporting"
+              (click)="onExportData()">
+              <span *ngIf="isExporting" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!isExporting" class="bi bi-download me-2"></i>
+              {{ isExporting ? 'Exporting...' : 'Export Data' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Import Data -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6 class="card-title">
+              <i class="bi bi-upload me-2"></i>
+              Import Data
+            </h6>
+            <p class="card-text text-muted small">
+              Upload a JSON export file to completely replace the current database. This performs a complete database reset and imports the data with original IDs preserved.
+            </p>
+            <div class="mb-3">
+              <input
+                type="file"
+                class="form-control"
+                accept=".json"
+                [disabled]="isImporting"
+                (change)="onFileSelected($event)">
+            </div>
+            <div class="alert alert-warning" role="alert">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <strong>Warning:</strong> Importing data will completely reset the database and replace ALL existing data with the imported data.
+              The original IDs from the export will be preserved. Make sure to export your current data first as a backup.
+            </div>
+          </div>
+        </div>
+
+        <!-- Reset Database -->
+        <div class="card border-danger">
+          <div class="card-body">
+            <h6 class="card-title text-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Reset Database
+            </h6>
+            <p class="card-text text-muted small">
+              Completely drop the database from IndexedDB and reinitialize with fresh ZTMM framework structure.
+            </p>
+            <button
+              class="btn btn-outline-danger"
+              [disabled]="isResetting"
+              (click)="onResetDatabase()">
+              <span *ngIf="isResetting" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!isResetting" class="bi bi-arrow-clockwise me-2"></i>
+              {{ isResetting ? 'Resetting...' : 'Reset Database' }}
+            </button>
+            <div class="alert alert-danger mt-3" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Danger Zone:</strong> This action will completely delete the entire database from
+              IndexedDB and recreate it from scratch. All data including custom pillars, function/capabilities,
+              technologies/processes, and assessment responses will be permanently lost. Only the default
+              ZTMM framework structure will remain.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,10 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { DataExportService } from './utilities/data-export.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
+import { PillarsTabComponent } from './admin/pillars-tab.component';
+import { FunctionsTabComponent } from './admin/functions-tab.component';
+import { TechnologiesTabComponent } from './admin/technologies-tab.component';
+import { DataManagementTabComponent } from './admin/data-management-tab.component';
 
 
 @Component({
@@ -11,7 +15,7 @@ import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, DataManagementTabComponent]
 })
 export class AdminComponent {
   pillars: Pillar[] = [];
@@ -27,7 +31,7 @@ export class AdminComponent {
   newTechnologyProcessType: 'Technology' | 'Process' = 'Technology';
   selectedFunctionCapabilityId: number | null = null;
   selectedMaturityStageId: number | null = null;
-  activeTab: 'pillars' | 'functions' | 'tech' | 'export' = 'pillars';
+  activeTab: 'pillars' | 'functions' | 'tech' | 'management' = 'pillars';
 
   // Data Export properties
   dataStatistics = {
@@ -39,6 +43,7 @@ export class AdminComponent {
   };
   isImporting = false;
   isExporting = false;
+  isResetting = false;
 
   // For drag-and-drop
   dragPillarIndex: number | null = null;
@@ -84,21 +89,11 @@ export class AdminComponent {
   async loadTechnologiesProcesses() {
     try {
       if (this.selectedFunctionCapabilityId) {
-        this.technologiesProcesses = await this.data.getTechnologiesProcesses(this.selectedFunctionCapabilityId);
+        // Use specialized method for loading by function capability
+        this.technologiesProcesses = await this.data.getTechnologiesProcessesByFunction(this.selectedFunctionCapabilityId);
       } else {
-        // Show all for admin view
-        let all: TechnologyProcess[] = [];
-        if (Array.isArray(this.functionCapabilities)) {
-          for (const fc of this.functionCapabilities) {
-            try {
-              const tps = await this.data.getTechnologiesProcesses(fc.id);
-              all = all.concat(tps);
-            } catch (error) {
-              console.error(`Error loading technologies/processes for function capability ${fc.id}:`, error);
-            }
-          }
-        }
-        this.technologiesProcesses = all;
+        // Use specialized method for loading all technologies/processes
+        this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
       }
     } catch (error) {
       console.error('Error loading technologies/processes:', error);
@@ -142,21 +137,33 @@ export class AdminComponent {
 
   async addTechnologyProcess(techForm?: NgForm) {
     this.techFormSubmitted = true;
-    if (techForm && techForm.invalid) return;
-    if (!this.newTechnologyProcess.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) return;
-    await this.data.addTechnologyProcess(
-      this.newTechnologyProcess.trim(),
-      this.newTechnologyProcessType,
-      this.selectedFunctionCapabilityId,
-      this.selectedMaturityStageId
-    );
-    this.newTechnologyProcess = '';
-    this.newTechnologyProcessType = 'Technology';
-    this.loadTechnologiesProcesses();
-    this.techFormSubmitted = false;
-    // Do not reset the form, just clear validation styling
-    if (techForm) {
-      setTimeout(() => techForm.form.markAsPristine());
+    if (techForm && techForm.invalid) {
+      return;
+    }
+    if (!this.newTechnologyProcess.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
+      return;
+    }
+
+    try {
+      await this.data.addTechnologyProcess(
+        this.newTechnologyProcess.trim(),
+        this.newTechnologyProcessType,
+        this.selectedFunctionCapabilityId,
+        this.selectedMaturityStageId
+      );
+
+      this.newTechnologyProcess = '';
+      this.newTechnologyProcessType = 'Technology';
+
+      await this.loadTechnologiesProcesses();
+
+      this.techFormSubmitted = false;
+      // Do not reset the form, just clear validation styling
+      if (techForm) {
+        setTimeout(() => techForm.form.markAsPristine());
+      }
+    } catch (error) {
+      console.error('Error in addTechnologyProcess:', error);
     }
   }
 
@@ -378,10 +385,37 @@ export class AdminComponent {
       return;
     }
 
+    // Enhanced confirmation since import now performs complete database reset
+    const confirmation = confirm(
+      'Are you sure you want to import this data? This will:\n\n' +
+      '• COMPLETELY RESET the database (same as "Reset Database" button)\n' +
+      '• Delete ALL existing data\n' +
+      '• Import the JSON data with original IDs preserved\n' +
+      '• Replace the entire database structure with the imported data\n\n' +
+      'This action cannot be undone!'
+    );
+
+    if (!confirmation) {
+      // Reset the file input if user cancels
+      target.value = '';
+      return;
+    }
+
+    const doubleConfirmation = confirm(
+      'Final confirmation: The database will be completely reset and replaced with the imported data.\n\n' +
+      'Click OK to proceed with the import.'
+    );
+
+    if (!doubleConfirmation) {
+      // Reset the file input if user cancels
+      target.value = '';
+      return;
+    }
+
     try {
       this.isImporting = true;
       await this.exportService.uploadAndImport(file);
-      alert('Data imported successfully!');
+      alert('Data imported successfully! The database has been completely replaced with the imported data.');
 
       // Reload all data and statistics
       await this.loadAll();
@@ -396,4 +430,112 @@ export class AdminComponent {
       this.isImporting = false;
     }
   }
+
+  async resetDatabase() {
+    const confirmation = confirm(
+      'Are you sure you want to completely reset the database? This will:\n\n' +
+      '• Delete the ENTIRE database from IndexedDB\n' +
+      '• Reinitialize with fresh ZTMM framework structure\n' +
+      '• Delete ALL technologies/processes\n' +
+      '• Delete ALL function/capabilities (including custom ones)\n' +
+      '• Delete ALL pillars (including custom ones)\n' +
+      '• Delete ALL assessment responses\n' +
+      '• Reset to default ZTMM framework only\n\n' +
+      'This action cannot be undone!'
+    );
+
+    if (!confirmation) return;
+
+    const doubleConfirmation = confirm(
+      'This is your final warning! The entire database will be permanently deleted and recreated.\n\n' +
+      'Click OK to proceed with the complete database reset.'
+    );
+
+    if (!doubleConfirmation) return;
+
+    try {
+      this.isResetting = true;
+
+      // Use the new resetDatabase method that completely drops and recreates the database
+      await this.data.resetDatabase();
+
+      // Reload all data and statistics to reflect the reset
+      await this.loadAll();
+      await this.loadDataStatistics();
+
+      alert('Database has been completely reset and reinitialized with fresh ZTMM framework!');
+    } catch (error) {
+      console.error('Error resetting database:', error);
+      alert('Error resetting database. Please check the console for details.');
+    } finally {
+      this.isResetting = false;
+    }
+  }
+
+  // Event handlers for tab components
+  async onAddPillar(name: string) {
+    await this.data.addPillar(name);
+    this.pillars = await this.data.getPillars();
+  }
+
+  async onRemovePillar(id: number) {
+    if (!confirm('Are you sure you want to delete this pillar? This will also delete all associated functions, capabilities, technologies, processes, and assessments.')) {
+      return;
+    }
+    await this.data.removePillar(id);
+    this.pillars = await this.data.getPillars();
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onEditPillar(data: {id: number, name: string}) {
+    await this.data.editPillar(data.id, data.name);
+    this.pillars = await this.data.getPillars();
+  }
+
+  async onSavePillarOrder(pillarIds: number[]) {
+    await this.data.savePillarOrder(pillarIds);
+  }
+
+  async onAddFunctionCapability(data: {name: string, type: 'Function' | 'Capability', pillarId: number}) {
+    await this.data.addFunctionCapability(data.name, data.type, data.pillarId);
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onRemoveFunctionCapability(id: number) {
+    await this.data.removeFunctionCapability(id);
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onEditFunctionCapability(data: {id: number, name: string, type: 'Function' | 'Capability', pillarId: number}) {
+    await this.data.editFunctionCapability(data.id, data.name, data.type, data.pillarId);
+    this.functionCapabilities = await this.data.getFunctionCapabilities();
+    this.loadTechnologiesProcesses();
+  }
+
+  async onSaveFunctionOrder(functionIds: number[]) {
+    await this.data.saveFunctionOrder(functionIds);
+  }
+
+  async onAddTechnologyProcess(data: {description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
+    await this.data.addTechnologyProcess(data.description, data.type, data.functionCapabilityId, data.maturityStageId);
+    await this.loadTechnologiesProcesses();
+  }
+
+  async onRemoveTechnologyProcess(id: number) {
+    await this.data.removeTechnologyProcess(id);
+    this.loadTechnologiesProcesses();
+  }
+
+  async onEditTechnologyProcess(data: {id: number, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
+    await this.data.editTechnologyProcess(data.id, data.description, data.type, data.functionCapabilityId, data.maturityStageId);
+    this.loadTechnologiesProcesses();
+  }
+
+  onLoadTechnologiesProcesses() {
+    this.loadTechnologiesProcesses();
+  }
+
 }

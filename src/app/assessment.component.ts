@@ -40,38 +40,53 @@ export class AssessmentComponent {
   }
 
   async loadAll() {
+    console.log('🔄 Assessment component loadAll starting');
+
     try {
+      // Load all core data with enhanced debugging
+      console.log('🔄 Loading pillars...');
       this.pillars = await this.data.getPillars();
-    } catch (error) {
-      console.error('Error loading pillars:', error);
-      this.pillars = [];
-    }
+      console.log('✅ Assessment: Pillars loaded:', this.pillars.length);
 
-    try {
+      console.log('🔄 Loading function capabilities...');
       this.functionCapabilities = await this.data.getFunctionCapabilities();
-    } catch (error) {
-      console.error('Error loading function capabilities:', error);
-      this.functionCapabilities = [];
-    }
+      console.log('✅ Assessment: Function capabilities loaded:', this.functionCapabilities.length);
 
-    try {
+      console.log('🔄 Loading maturity stages...');
       this.maturityStages = await this.data.getMaturityStages();
-    } catch (error) {
-      console.error('Error loading maturity stages:', error);
-      this.maturityStages = [];
-    }
+      console.log('✅ Assessment: Maturity stages loaded:', this.maturityStages.length);
 
-    try {
+      console.log('🔄 Loading assessment responses...');
       this.assessmentResponses = await this.data.getAssessmentResponses();
+      console.log('✅ Assessment: Assessment responses loaded:', this.assessmentResponses.length);
+
+      // Test the technologies/processes loading
+      console.log('🔄 Testing technologies/processes loading...');
+      const allTech = await this.data.getAllTechnologiesProcesses();
+      console.log('✅ Assessment: Total technologies/processes available:', allTech.length);
+
+      if (allTech.length > 0) {
+        console.log('📊 Sample technology/process:', allTech[0]);
+        const fcIds = [...new Set(allTech.map(tp => tp.function_capability_id))];
+        console.log('📊 Function capability IDs referenced by tech/processes:', fcIds);
+      }
+
     } catch (error) {
-      console.error('Error loading assessment responses:', error);
+      console.error('❌ Error loading assessment data:', error);
+      // Initialize empty arrays to prevent errors
+      this.pillars = [];
+      this.functionCapabilities = [];
+      this.maturityStages = [];
       this.assessmentResponses = [];
     }
 
+    // Reset component state
     this.technologiesProcesses = [];
     this.assessmentStatuses = [];
     this.assessmentNotes = [];
     this.pillarSummary = [];
+
+    console.log('🔄 Assessment component loadAll completed');
   }
 
   async onPillarChange() {
@@ -90,8 +105,8 @@ export class AssessmentComponent {
 
   async onFunctionCapabilityChange() {
     if (this.selectedFunctionCapabilityId) {
-      // Load technologies/processes for the selected function capability
-      this.technologiesProcesses = await this.data.getTechnologiesProcesses(this.selectedFunctionCapabilityId);
+      // Use specialized method for loading technologies/processes by function capability
+      this.technologiesProcesses = await this.data.getTechnologiesProcessesByFunction(this.selectedFunctionCapabilityId);
       this.assessmentStatuses = Array(this.technologiesProcesses.length).fill(null);
       this.assessmentNotes = Array(this.technologiesProcesses.length).fill('');
 
@@ -153,24 +168,47 @@ export class AssessmentComponent {
   async buildPillarSummary() {
     this.pillarSummary = [];
 
-    // Get all function capabilities for this pillar
-    const filteredFunctionCapabilities = this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedPillarId);
+    try {
+      // Get all function capabilities for this pillar
+      const filteredFunctionCapabilities = this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedPillarId);
 
-    for (const fc of filteredFunctionCapabilities) {
-      // Get all technologies/processes for this function capability
-      const techProcesses = await this.data.getTechnologiesProcesses(fc.id);
+      if (filteredFunctionCapabilities.length === 0) {
+        return;
+      }
 
-      // Count completed assessments
-      const completedCount = techProcesses.filter(tp =>
-        this.assessmentResponses.some(ar => ar.tech_process_id === tp.id)
-      ).length;
+      for (const fc of filteredFunctionCapabilities) {
+        try {
+          // Use specialized method for loading technologies/processes by function capability
+          const techProcesses = await this.data.getTechnologiesProcessesByFunction(fc.id);
+          console.log(`🔄 Loaded ${techProcesses.length} technologies/processes for function capability ${fc.name} (${fc.id})`);
+          // Count completed assessments
+          const completedCount = techProcesses.filter(tp =>
+            this.assessmentResponses.some(ar => ar.tech_process_id === tp.id)
+          ).length;
 
-      this.pillarSummary.push({
-        functionCapability: fc,
-        totalCount: techProcesses.length,
-        completedCount: completedCount,
-        completionPercentage: techProcesses.length > 0 ? Math.round((completedCount / techProcesses.length) * 100) : 0
-      });
+          const summary = {
+            functionCapability: fc,
+            totalCount: techProcesses.length,
+            completedCount: completedCount,
+            completionPercentage: techProcesses.length > 0 ? Math.round((completedCount / techProcesses.length) * 100) : 0
+          };
+
+          this.pillarSummary.push(summary);
+        } catch (fcError) {
+          console.error('Error processing function capability', fc.id, ':', fcError);
+          // Still add the function capability with 0 count to show it exists
+          this.pillarSummary.push({
+            functionCapability: fc,
+            totalCount: 0,
+            completedCount: 0,
+            completionPercentage: 0
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error('Error building pillar summary:', error);
+      this.pillarSummary = [];
     }
   }
 
@@ -212,4 +250,5 @@ export class AssessmentComponent {
     this.showSuccess = true;
     setTimeout(() => (this.showSuccess = false), 3000);
   }
+
 }
