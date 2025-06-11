@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
@@ -19,7 +19,7 @@ interface PillarSummary {
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class AssessmentComponent {
+export class AssessmentComponent implements OnInit {
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
@@ -36,57 +36,52 @@ export class AssessmentComponent {
   showSuccess = false;
 
   constructor(private data: ZtmmDataWebService) {
+    // Constructor should only set up dependencies, not call async methods
+  }
+
+  ngOnInit() {
     this.loadAll();
   }
 
-  async loadAll() {
-    console.log('🔄 Assessment component loadAll starting');
-
-    try {
-      // Load all core data with enhanced debugging
-      console.log('🔄 Loading pillars...');
-      this.pillars = await this.data.getPillars();
-      console.log('✅ Assessment: Pillars loaded:', this.pillars.length);
-
-      console.log('🔄 Loading function capabilities...');
-      this.functionCapabilities = await this.data.getFunctionCapabilities();
-      console.log('✅ Assessment: Function capabilities loaded:', this.functionCapabilities.length);
-
-      console.log('🔄 Loading maturity stages...');
-      this.maturityStages = await this.data.getMaturityStages();
-      console.log('✅ Assessment: Maturity stages loaded:', this.maturityStages.length);
-
-      console.log('🔄 Loading assessment responses...');
-      this.assessmentResponses = await this.data.getAssessmentResponses();
-      console.log('✅ Assessment: Assessment responses loaded:', this.assessmentResponses.length);
-
-      // Test the technologies/processes loading
-      console.log('🔄 Testing technologies/processes loading...');
-      const allTech = await this.data.getAllTechnologiesProcesses();
-      console.log('✅ Assessment: Total technologies/processes available:', allTech.length);
-
-      if (allTech.length > 0) {
-        console.log('📊 Sample technology/process:', allTech[0]);
-        const fcIds = [...new Set(allTech.map(tp => tp.function_capability_id))];
-        console.log('📊 Function capability IDs referenced by tech/processes:', fcIds);
-      }
-
-    } catch (error) {
-      console.error('❌ Error loading assessment data:', error);
-      // Initialize empty arrays to prevent errors
-      this.pillars = [];
-      this.functionCapabilities = [];
-      this.maturityStages = [];
-      this.assessmentResponses = [];
+  async loadAll(resetUIState: boolean = true) {
+    // Reset UI arrays only if requested (default behavior for normal app usage)
+    if (resetUIState) {
+      this.technologiesProcesses = [];
+      this.assessmentStatuses = [];
+      this.assessmentNotes = [];
+      this.pillarSummary = [];
+      this.selectedPillarId = null;
+      this.selectedFunctionCapabilityId = null;
     }
 
-    // Reset component state
-    this.technologiesProcesses = [];
-    this.assessmentStatuses = [];
-    this.assessmentNotes = [];
-    this.pillarSummary = [];
+    // Load each data source independently with error handling
+    try {
+      this.pillars = await this.data.getPillars();
+    } catch (error) {
+      console.error('❌ Error loading pillars:', error);
+      this.pillars = [];
+    }
 
-    console.log('🔄 Assessment component loadAll completed');
+    try {
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+    } catch (error) {
+      console.error('❌ Error loading function capabilities:', error);
+      this.functionCapabilities = [];
+    }
+
+    try {
+      this.maturityStages = await this.data.getMaturityStages();
+    } catch (error) {
+      console.error('❌ Error loading maturity stages:', error);
+      this.maturityStages = [];
+    }
+
+    try {
+      this.assessmentResponses = await this.data.getAssessmentResponses();
+    } catch (error) {
+      console.error('❌ Error loading assessment responses:', error);
+      this.assessmentResponses = [];
+    }
   }
 
   async onPillarChange() {
@@ -180,7 +175,6 @@ export class AssessmentComponent {
         try {
           // Use specialized method for loading technologies/processes by function capability
           const techProcesses = await this.data.getTechnologiesProcessesByFunction(fc.id);
-          console.log(`🔄 Loaded ${techProcesses.length} technologies/processes for function capability ${fc.name} (${fc.id})`);
           // Count completed assessments
           const completedCount = techProcesses.filter(tp =>
             this.assessmentResponses.some(ar => ar.tech_process_id === tp.id)
@@ -205,7 +199,6 @@ export class AssessmentComponent {
           });
         }
       }
-
     } catch (error) {
       console.error('Error building pillar summary:', error);
       this.pillarSummary = [];
