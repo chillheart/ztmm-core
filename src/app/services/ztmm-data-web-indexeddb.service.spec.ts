@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ZtmmDataWebService } from './ztmm-data-web.service';
+import { ZtmmDataWebService } from './ztmm-data-web-indexeddb.service';
 import { IndexedDBService } from './indexeddb.service';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 

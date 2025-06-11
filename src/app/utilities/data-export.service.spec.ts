@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { DataExportService, ExportedData } from './data-export.service';
 import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
-import { SqlJsService } from '../services/sqljs.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
-import { TestUtils } from '../testing/test-utils';
+import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 
 describe('DataExportService', () => {
   let service: DataExportService;
@@ -53,6 +52,8 @@ describe('DataExportService', () => {
       'addFunctionCapability',
       'getMaturityStages',
       'getTechnologiesProcesses',
+      'getAllTechnologiesProcesses',
+      'getTechnologiesProcessesByFunction',
       'addTechnologyProcess',
       'getAssessmentResponses',
       'saveAssessment',
@@ -61,14 +62,13 @@ describe('DataExportService', () => {
       'importDataWithPreservedIds'
     ]);
 
-    // Create mock SqljsService to avoid WebAssembly initialization issues
-    const mockSqlJsService = TestUtils.createMockSqlJsService();
+    // Create mock services for testing
+    const mockZtmmDataWebService = TestUtilsIndexedDB.createMockZtmmDataWebService();
 
     TestBed.configureTestingModule({
       providers: [
         DataExportService,
-        { provide: ZtmmDataWebService, useValue: dataServiceSpy },
-        { provide: SqlJsService, useValue: mockSqlJsService }
+        { provide: ZtmmDataWebService, useValue: mockZtmmDataWebService }
       ]
     });
 
@@ -114,6 +114,7 @@ describe('DataExportService', () => {
     });
 
     it('should handle export errors gracefully', async () => {
+      spyOn(console, 'error'); // Suppress expected error logging
       const error = new Error('Database export failed');
       mockDataService.getPillars.and.returnValue(Promise.reject(error));
 
@@ -141,6 +142,7 @@ describe('DataExportService', () => {
     });
 
     it('should handle download errors', async () => {
+      spyOn(console, 'error'); // Suppress expected error logging
       const error = new Error('Export failed');
       mockDataService.getPillars.and.returnValue(Promise.reject(error));
 
@@ -175,6 +177,7 @@ describe('DataExportService', () => {
     });
 
     it('should handle import errors and propagate them', async () => {
+      spyOn(console, 'error'); // Suppress expected error logging
       const error = new Error('Import failed');
       mockDataService.importDataWithPreservedIds.and.returnValue(Promise.reject(error));
 
@@ -200,12 +203,14 @@ describe('DataExportService', () => {
     });
 
     it('should handle file read errors during upload', async () => {
+      spyOn(console, 'error'); // Suppress expected error logging
       const mockFile = new File(['invalid json content'], 'invalid.json', { type: 'application/json' });
 
       await expectAsync(service.uploadAndImport(mockFile)).toBeRejected();
     });
 
     it('should handle file text conversion errors', async () => {
+      spyOn(console, 'error'); // Suppress expected error logging
       const mockFile = jasmine.createSpyObj('File', ['text']);
       mockFile.text.and.returnValue(Promise.reject(new Error('Text conversion failed')));
 

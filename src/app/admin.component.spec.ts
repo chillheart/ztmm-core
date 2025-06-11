@@ -46,6 +46,8 @@ describe('AdminComponent', () => {
       'saveFunctionOrder',
       'getMaturityStages',
       'getTechnologiesProcesses',
+      'getAllTechnologiesProcesses',
+      'getTechnologiesProcessesByFunction',
       'addTechnologyProcess',
       'removeTechnologyProcess',
       'editTechnologyProcess'
@@ -79,6 +81,9 @@ describe('AdminComponent', () => {
       }
     });
 
+    spy.getAllTechnologiesProcesses.and.returnValue(Promise.resolve(mockTechnologiesProcesses));
+    spy.getTechnologiesProcessesByFunction.and.returnValue(Promise.resolve(mockTechnologiesProcesses));
+
     spy.addTechnologyProcess.and.returnValue(Promise.resolve());
     spy.removeTechnologyProcess.and.returnValue(Promise.resolve());
     spy.editTechnologyProcess.and.returnValue(Promise.resolve());
@@ -102,13 +107,14 @@ describe('AdminComponent', () => {
       ]
     }).compileComponents();
 
+    mockDataService = spy; // Store reference to spy directly
+    _mockExportService = exportSpy;
+
     fixture = TestBed.createComponent(AdminComponent);
     component = fixture.componentInstance;
-    mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
-    _mockExportService = TestBed.inject(DataExportService) as jasmine.SpyObj<DataExportService>;
 
-    // Wait for async loadAll() to complete
-    await fixture.whenStable();
+    // Explicitly wait for loadAll to complete during ngOnInit
+    await component.loadAll();
     fixture.detectChanges();
   });
 
@@ -116,7 +122,11 @@ describe('AdminComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize with loaded data and default form values', () => {
+  it('should initialize with loaded data and default form values', async () => {
+    // Ensure data is loaded
+    await component.loadAll();
+    fixture.detectChanges();
+
     // Data arrays should be populated from loadAll() during initialization
     expect(component.pillars).toEqual(mockPillars);
     expect(component.functionCapabilities).toEqual(mockFunctionCapabilities);
@@ -274,7 +284,7 @@ describe('AdminComponent', () => {
     it('should load technologies/processes for function capability', async () => {
       await component.loadTechnologiesProcesses();
 
-      expect(mockDataService.getTechnologiesProcesses).toHaveBeenCalledWith(1);
+      expect(mockDataService.getTechnologiesProcessesByFunction).toHaveBeenCalledWith(1);
       expect(component.technologiesProcesses).toEqual(mockTechnologiesProcesses);
     });
 
@@ -285,7 +295,7 @@ describe('AdminComponent', () => {
       await component.addTechnologyProcess();
 
       expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('New Technology', 'Technology', 1, 2);
-      expect(mockDataService.getTechnologiesProcesses).toHaveBeenCalledWith(1);
+      expect(mockDataService.getTechnologiesProcessesByFunction).toHaveBeenCalledWith(1);
       expect(component.newTechnologyProcess).toBe('');
       expect(component.newTechnologyProcessType).toBe('Technology');
     });

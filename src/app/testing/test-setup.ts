@@ -1,39 +1,39 @@
 /**
- * Test setup configuration for handling SQL.js WebAssembly initialization issues
+ * Test setup configuration for handling IndexedDB test environment
  */
 import { TestBed } from '@angular/core/testing';
-import { SqlJsService } from '../services/sqljs.service';
-import { TestUtils } from './test-utils';
+import { IndexedDBService } from '../services/indexeddb.service';
+import { TestUtilsIndexedDB } from './test-utils-indexeddb';
 
 /**
- * Configures the test environment with proper mocks to avoid WebAssembly issues
+ * Configures the test environment with proper mocks to avoid database initialization issues
  */
 export function configureTestEnvironment() {
-  // Create a global mock for SQL.js service to avoid WASM initialization issues
-  const mockSqlJsService = TestUtils.createMockSqlJsService();
+  // Create a global mock for IndexedDB service to avoid database initialization issues
+  const mockIndexedDBService = TestUtilsIndexedDB.createMockIndexedDBService();
 
   // Configure TestBed with the mock service
   TestBed.configureTestingModule({
     providers: [
-      { provide: SqlJsService, useValue: mockSqlJsService }
+      { provide: IndexedDBService, useValue: mockIndexedDBService }
     ]
   });
 
-  return mockSqlJsService;
+  return mockIndexedDBService;
 }
 
 /**
  * Helper function to get the configured mock service in tests
  */
-export function getMockSqlJsService(): any {
-  return TestBed.inject(SqlJsService);
+export function getMockIndexedDBService(): any {
+  return TestBed.inject(IndexedDBService);
 }
 
 /**
  * Resets the mock service to its initial state
  */
-export function resetMockSqlJsService() {
-  const mockService = getMockSqlJsService();
+export function resetMockIndexedDBService() {
+  const mockService = getMockIndexedDBService();
   if (mockService && mockService.resetMockData) {
     mockService.resetMockData();
   }

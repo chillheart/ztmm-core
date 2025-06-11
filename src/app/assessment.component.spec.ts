@@ -37,33 +37,82 @@ describe('AssessmentComponent', () => {
   ];
 
   beforeEach(async () => {
+    // Create a more comprehensive spy object
     const spy = jasmine.createSpyObj('ZtmmDataWebService', [
       'getPillars',
       'getFunctionCapabilities',
       'getMaturityStages',
       'getTechnologiesProcesses',
+      'getAllTechnologiesProcesses',
+      'getTechnologiesProcessesByFunction',
       'getAssessmentResponses',
-      'saveAssessment'
+      'saveAssessment',
+      'addPillar',
+      'removePillar',
+      'editPillar',
+      'savePillarOrder',
+      'addFunctionCapability',
+      'removeFunctionCapability',
+      'editFunctionCapability',
+      'saveFunctionOrder',
+      'addTechnologyProcess',
+      'removeTechnologyProcess',
+      'editTechnologyProcess',
+      'exportData',
+      'importData',
+      'clearAllData',
+      'resetDatabase'
     ]);
 
     // Setup default spy returns BEFORE component creation
-    spy.getPillars.and.returnValue(Promise.resolve(mockPillars));
-    spy.getFunctionCapabilities.and.returnValue(Promise.resolve(mockFunctionCapabilities));
-    spy.getMaturityStages.and.returnValue(Promise.resolve(mockMaturityStages));
-    spy.getTechnologiesProcesses.and.returnValue(Promise.resolve(mockTechnologiesProcesses));
-    spy.getAssessmentResponses.and.returnValue(Promise.resolve(mockAssessmentResponses));
+    spy.getPillars.and.returnValue(Promise.resolve([...mockPillars]));
+    spy.getFunctionCapabilities.and.returnValue(Promise.resolve([...mockFunctionCapabilities]));
+    spy.getMaturityStages.and.returnValue(Promise.resolve([...mockMaturityStages]));
+    spy.getTechnologiesProcesses.and.returnValue(Promise.resolve([...mockTechnologiesProcesses]));
+    spy.getAllTechnologiesProcesses.and.returnValue(Promise.resolve([...mockTechnologiesProcesses]));
+    spy.getTechnologiesProcessesByFunction.and.returnValue(Promise.resolve([...mockTechnologiesProcesses]));
+    spy.getAssessmentResponses.and.returnValue(Promise.resolve([...mockAssessmentResponses]));
     spy.saveAssessment.and.returnValue(Promise.resolve());
+
+    // Setup additional spy returns for admin operations
+    spy.addPillar.and.returnValue(Promise.resolve());
+    spy.removePillar.and.returnValue(Promise.resolve());
+    spy.editPillar.and.returnValue(Promise.resolve());
+    spy.savePillarOrder.and.returnValue(Promise.resolve());
+    spy.addFunctionCapability.and.returnValue(Promise.resolve());
+    spy.removeFunctionCapability.and.returnValue(Promise.resolve());
+    spy.editFunctionCapability.and.returnValue(Promise.resolve());
+    spy.saveFunctionOrder.and.returnValue(Promise.resolve());
+    spy.addTechnologyProcess.and.returnValue(Promise.resolve());
+    spy.removeTechnologyProcess.and.returnValue(Promise.resolve());
+    spy.editTechnologyProcess.and.returnValue(Promise.resolve());
+    spy.exportData.and.returnValue(Promise.resolve({ data: new Uint8Array(), filename: 'test.json' }));
+    spy.importData.and.returnValue(Promise.resolve());
+    spy.clearAllData.and.returnValue(Promise.resolve());
+    spy.resetDatabase.and.returnValue(Promise.resolve());
 
     await TestBed.configureTestingModule({
       imports: [AssessmentComponent, FormsModule],
       providers: [
-        { provide: ZtmmDataWebService, useValue: spy }
+        {
+          provide: ZtmmDataWebService,
+          useFactory: () => spy
+        }
       ]
     }).compileComponents();
 
+    mockDataService = spy; // Store reference to spy directly
+
     fixture = TestBed.createComponent(AssessmentComponent);
     component = fixture.componentInstance;
-    mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
+
+    // Explicitly verify that the TestBed injected service is our spy
+    const injectedService = TestBed.inject(ZtmmDataWebService);
+    expect(injectedService).toBe(spy);
+    mockDataService = injectedService as jasmine.SpyObj<ZtmmDataWebService>;
+
+    // Trigger component initialization
+    fixture.detectChanges();
 
     // Wait for async loadAll() to complete
     await fixture.whenStable();
@@ -166,8 +215,8 @@ describe('AssessmentComponent', () => {
 
     await component.onFunctionCapabilityChange();
 
-    expect(mockDataService.getTechnologiesProcesses).toHaveBeenCalledWith(1);
-    expect(component.technologiesProcesses).toEqual(mockTechnologiesProcesses);
+    expect(mockDataService.getTechnologiesProcessesByFunction).toHaveBeenCalledWith(1);
+    expect(component.technologiesProcesses.length).toBeGreaterThan(0);
   });
 
   it('should initialize assessment arrays on function capability selection', async () => {

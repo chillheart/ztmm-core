@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
@@ -17,7 +17,7 @@ import { DataManagementTabComponent } from './admin/data-management-tab.componen
   standalone: true,
   imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, DataManagementTabComponent]
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit {
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
@@ -57,6 +57,10 @@ export class AdminComponent {
   editingTechProcess: Partial<TechnologyProcess> = {};
 
   constructor(private data: ZtmmDataWebService, private exportService: DataExportService) {
+    // Constructor should only set up dependencies, not call async methods
+  }
+
+  ngOnInit() {
     this.loadAll();
     this.loadDataStatistics();
   }
