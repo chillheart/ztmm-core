@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminComponent } from './admin.component';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { DataExportService } from './utilities/data-export.service';
+import { DemoDataGeneratorService } from './services/demo-data-generator.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
 
 describe('AdminComponent', () => {
@@ -10,6 +11,7 @@ describe('AdminComponent', () => {
   let fixture: ComponentFixture<AdminComponent>;
   let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
   let _mockExportService: jasmine.SpyObj<DataExportService>; // eslint-disable-line @typescript-eslint/no-unused-vars
+  let mockDemoDataService: jasmine.SpyObj<DemoDataGeneratorService>;
 
   const mockPillars: Pillar[] = [
     { id: 1, name: 'Identity' },
@@ -59,6 +61,12 @@ describe('AdminComponent', () => {
       'importData'
     ]);
 
+    const demoDataSpy = jasmine.createSpyObj('DemoDataGeneratorService', [
+      'generateDemoData',
+      'isDemoDataAlreadyGenerated',
+      'getDemoDataStatistics'
+    ]);
+
     // Setup default spy returns BEFORE component creation
     spy.getPillars.and.returnValue(Promise.resolve(mockPillars));
     spy.addPillar.and.returnValue(Promise.resolve());
@@ -99,16 +107,28 @@ describe('AdminComponent', () => {
     exportSpy.downloadExport.and.returnValue(Promise.resolve());
     exportSpy.importData.and.returnValue(Promise.resolve());
 
+    // Setup demo data service spies
+    demoDataSpy.generateDemoData.and.returnValue(Promise.resolve());
+    demoDataSpy.isDemoDataAlreadyGenerated.and.returnValue(Promise.resolve(false));
+    demoDataSpy.getDemoDataStatistics.and.returnValue(Promise.resolve({
+      functionsWithData: 37,
+      totalTechnologies: 111,
+      totalProcesses: 111,
+      totalItems: 222
+    }));
+
     await TestBed.configureTestingModule({
       imports: [AdminComponent, FormsModule],
       providers: [
         { provide: ZtmmDataWebService, useValue: spy },
-        { provide: DataExportService, useValue: exportSpy }
+        { provide: DataExportService, useValue: exportSpy },
+        { provide: DemoDataGeneratorService, useValue: demoDataSpy }
       ]
     }).compileComponents();
 
     mockDataService = spy; // Store reference to spy directly
     _mockExportService = exportSpy;
+    mockDemoDataService = demoDataSpy;
 
     fixture = TestBed.createComponent(AdminComponent);
     component = fixture.componentInstance;
@@ -606,6 +626,47 @@ describe('AdminComponent', () => {
         const result = component.filteredFunctionCapabilities;
         expect(result).toEqual([]);
         expect(result.length).toBe(0);
+      });
+    });
+
+    describe('Demo Data Generation', () => {
+      it('should generate demo data successfully', async () => {
+        spyOn(window, 'alert'); // Suppress alert messages
+
+        await component.onGenerateDemoData();
+
+        expect(mockDemoDataService.generateDemoData).toHaveBeenCalled();
+        expect(component.isGeneratingDemo).toBe(false);
+        expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Demo data has been successfully generated'));
+      });
+
+      it('should not generate demo data if already exists', async () => {
+        component.demoDataExists = true;
+
+        await component.onGenerateDemoData();
+
+        expect(mockDemoDataService.generateDemoData).not.toHaveBeenCalled();
+      });
+
+      it('should handle demo data generation errors', async () => {
+        spyOn(window, 'alert'); // Suppress alert messages
+        spyOn(console, 'error'); // Suppress error messages
+        mockDemoDataService.generateDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
+
+        await component.onGenerateDemoData();
+
+        expect(console.error).toHaveBeenCalled();
+        expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Failed to generate demo data'));
+        expect(component.isGeneratingDemo).toBe(false);
+      });
+
+      it('should load demo data info on initialization', async () => {
+        await component.loadDemoDataInfo();
+
+        expect(mockDemoDataService.isDemoDataAlreadyGenerated).toHaveBeenCalled();
+        expect(mockDemoDataService.getDemoDataStatistics).toHaveBeenCalled();
+        expect(component.demoDataExists).toBe(false);
+        expect(component.demoDataStats).toBeDefined();
       });
     });
   });

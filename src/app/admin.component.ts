@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { DataExportService } from './utilities/data-export.service';
+import { DemoDataGeneratorService } from './services/demo-data-generator.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
 import { PillarsTabComponent } from './admin/pillars-tab.component';
 import { FunctionsTabComponent } from './admin/functions-tab.component';
@@ -44,6 +45,14 @@ export class AdminComponent implements OnInit {
   isImporting = false;
   isExporting = false;
   isResetting = false;
+  isGeneratingDemo = false;
+  demoDataExists = false;
+  demoDataStats: {
+    functionsWithData: number;
+    totalTechnologies: number;
+    totalProcesses: number;
+    totalItems: number;
+  } | null = null;
 
   // For drag-and-drop
   dragPillarIndex: number | null = null;
@@ -56,13 +65,18 @@ export class AdminComponent implements OnInit {
   editingTechProcessId: number | null = null;
   editingTechProcess: Partial<TechnologyProcess> = {};
 
-  constructor(private data: ZtmmDataWebService, private exportService: DataExportService) {
+  constructor(
+    private data: ZtmmDataWebService,
+    private exportService: DataExportService,
+    private demoDataGenerator: DemoDataGeneratorService
+  ) {
     // Constructor should only set up dependencies, not call async methods
   }
 
   ngOnInit() {
     this.loadAll();
     this.loadDataStatistics();
+    this.loadDemoDataInfo();
   }
 
   async loadAll() {
@@ -540,6 +554,46 @@ export class AdminComponent implements OnInit {
 
   onLoadTechnologiesProcesses() {
     this.loadTechnologiesProcesses();
+  }
+
+  // Demo Data Generation Methods
+  async loadDemoDataInfo() {
+    try {
+      this.demoDataExists = await this.demoDataGenerator.isDemoDataAlreadyGenerated();
+      this.demoDataStats = await this.demoDataGenerator.getDemoDataStatistics();
+    } catch (error) {
+      console.error('Error loading demo data info:', error);
+      this.demoDataExists = false;
+      this.demoDataStats = null;
+    }
+  }
+
+  async onGenerateDemoData() {
+    if (this.isGeneratingDemo || this.demoDataExists) {
+      return;
+    }
+
+    this.isGeneratingDemo = true;
+
+    try {
+      await this.demoDataGenerator.generateDemoData();
+
+      // Reload all data to reflect the new demo data
+      await this.loadAll();
+      await this.loadDataStatistics();
+      await this.loadDemoDataInfo();
+
+      console.log('Demo data generation completed successfully!');
+
+      // Show success message - you could add a toast notification here
+      alert('Demo data has been successfully generated! The application now includes comprehensive examples of technologies and processes for each function and capability.');
+
+    } catch (error) {
+      console.error('Error generating demo data:', error);
+      alert('Failed to generate demo data. Please check the console for details.');
+    } finally {
+      this.isGeneratingDemo = false;
+    }
   }
 
 }

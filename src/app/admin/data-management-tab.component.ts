@@ -20,10 +20,19 @@ export class DataManagementTabComponent {
   @Input() isExporting = false;
   @Input() isImporting = false;
   @Input() isResetting = false;
+  @Input() isGeneratingDemo = false;
+  @Input() demoDataExists = false;
+  @Input() demoDataStats: {
+    functionsWithData: number;
+    totalTechnologies: number;
+    totalProcesses: number;
+    totalItems: number;
+  } | null = null;
 
   @Output() exportData = new EventEmitter<void>();
   @Output() fileSelected = new EventEmitter<Event>();
   @Output() resetDatabase = new EventEmitter<void>();
+  @Output() generateDemoData = new EventEmitter<void>();
 
   onExportData() {
     this.exportData.emit();
@@ -35,5 +44,9 @@ export class DataManagementTabComponent {
 
   onResetDatabase() {
     this.resetDatabase.emit();
+  }
+
+  onGenerateDemoData() {
+    this.generateDemoData.emit();
   }
 }

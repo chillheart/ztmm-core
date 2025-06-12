@@ -98,9 +98,13 @@
       [isExporting]="isExporting"
       [isImporting]="isImporting"
       [isResetting]="isResetting"
+      [isGeneratingDemo]="isGeneratingDemo"
+      [demoDataExists]="demoDataExists"
+      [demoDataStats]="demoDataStats"
       (exportData)="exportData()"
       (fileSelected)="onFileSelected($event)"
-      (resetDatabase)="resetDatabase()">
+      (resetDatabase)="resetDatabase()"
+      (generateDemoData)="onGenerateDemoData()">
     </app-data-management-tab>
   </div>
 </div>
