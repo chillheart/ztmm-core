@@ -480,6 +480,7 @@ export class AdminComponent implements OnInit {
       // Reload all data and statistics to reflect the reset
       await this.loadAll();
       await this.loadDataStatistics();
+      await this.loadDemoDataInfo(); // This will reactivate the demo data button
 
       alert('Database has been completely reset and reinitialized with fresh ZTMM framework!');
     } catch (error) {
@@ -569,13 +570,32 @@ export class AdminComponent implements OnInit {
   }
 
   async onGenerateDemoData() {
-    if (this.isGeneratingDemo || this.demoDataExists) {
+    if (this.isGeneratingDemo) {
       return;
+    }
+
+    // Show confirmation if data exists
+    if (this.demoDataExists || this.dataStatistics.technologiesProcesses > 0) {
+      const confirmation = confirm(
+        'Generating demo data will first reset the database and remove all existing data.\n\n' +
+        'This will:\n' +
+        '• Delete ALL existing technologies/processes\n' +
+        '• Delete ALL assessment responses\n' +
+        '• Reset to default framework structure\n' +
+        '• Generate comprehensive Azure-focused demo data\n\n' +
+        'Do you want to continue?'
+      );
+
+      if (!confirmation) return;
     }
 
     this.isGeneratingDemo = true;
 
     try {
+      // First reset the database to ensure clean state
+      await this.data.resetDatabase();
+
+      // Then generate demo data
       await this.demoDataGenerator.generateDemoData();
 
       // Reload all data to reflect the new demo data
@@ -585,8 +605,8 @@ export class AdminComponent implements OnInit {
 
       console.log('Demo data generation completed successfully!');
 
-      // Show success message - you could add a toast notification here
-      alert('Demo data has been successfully generated! The application now includes comprehensive examples of technologies and processes for each function and capability.');
+      // Show success message
+      alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies and processes for each function and capability.');
 
     } catch (error) {
       console.error('Error generating demo data:', error);

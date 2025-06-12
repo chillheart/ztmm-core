@@ -93,7 +93,7 @@
               Generate Demo Data
             </h6>
             <p class="card-text text-muted small">
-              Add comprehensive demo technologies and processes to all functions and capabilities.
+              Reset the database and populate with comprehensive demo technologies and processes for all functions and capabilities.
             </p>
 
             <!-- Demo Data Statistics -->
@@ -120,22 +120,21 @@
 
             <button
               class="btn btn-outline-success"
-              [disabled]="isGeneratingDemo || demoDataExists"
+              [disabled]="isGeneratingDemo"
               (click)="onGenerateDemoData()">
               <span *ngIf="isGeneratingDemo" class="spinner-border spinner-border-sm me-2"></span>
-              <i *ngIf="!isGeneratingDemo && !demoDataExists" class="bi bi-magic me-2"></i>
-              <i *ngIf="!isGeneratingDemo && demoDataExists" class="bi bi-check-circle-fill me-2"></i>
-              {{ isGeneratingDemo ? 'Generating Demo Data...' : (demoDataExists ? 'Demo Data Already Generated' : 'Generate Demo Data') }}
+              <i *ngIf="!isGeneratingDemo" class="bi bi-magic me-2"></i>
+              {{ isGeneratingDemo ? 'Resetting & Generating Demo Data...' : 'Reset & Generate Demo Data' }}
             </button>
 
             <div class="alert alert-info mt-3" role="alert">
               <i class="bi bi-info-circle me-2"></i>
-              <strong>Demo Data Includes:</strong> This will add at least 2 technologies and 2 processes for each function and capability across all five Zero Trust pillars (Identity, Devices, Networks, Applications & Workloads, and Data). The demo data emulates an Azure environment with realistic examples including Azure services, Microsoft security tools, and industry-standard practices. <em>Note: This is demonstration data designed to showcase the assessment tool's capabilities and is not intended to be an all-encompassing list of security technologies and processes.</em>
+              <strong>Demo Data Includes:</strong> This will first reset the database, then add at least 2 technologies and 2 processes for each function and capability across all five Zero Trust pillars (Identity, Devices, Networks, Applications & Workloads, and Data). The demo data emulates an Azure environment with realistic examples including Azure services, Microsoft security tools, and industry-standard practices. <em>Note: This is demonstration data designed to showcase the assessment tool's capabilities and is not intended to be an all-encompassing list of security technologies and processes.</em>
             </div>
 
-            <div *ngIf="demoDataExists" class="alert alert-success mt-3" role="alert">
-              <i class="bi bi-check-circle-fill me-2"></i>
-              <strong>Demo Data Detected:</strong> It appears demo data has already been generated. To generate fresh demo data, reset the database first.
+            <div *ngIf="demoDataExists" class="alert alert-warning mt-3" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Note:</strong> Demo data already exists. Clicking the button above will reset the database first and then generate fresh demo data.
             </div>
           </div>
         </div>
