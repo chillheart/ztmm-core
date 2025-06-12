@@ -1,6 +1,6 @@
 # ZTMM Assessment Tool
 
-A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular and Electron. This desktop application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies.
+A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
 
 ## 🚀 Features
 
@@ -8,35 +8,50 @@ A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built wi
 - **📊 Assessment Management**: Conduct maturity assessments against the Zero Trust framework
 - **🏗️ Configuration Management**: Define and manage Zero Trust pillars, functions/capabilities, and technologies/processes
 - **📈 Progress Tracking**: Visual progress indicators and completion tracking
-- **📋 Results Dashboard (WIP)** : View and analyze assessment results with detailed reporting
+- **📋 Results Dashboard**: View and analyze assessment results with detailed reporting and PDF export
+- **📁 Data Management**: Import/export functionality for backup and data migration
+
+### Privacy & Security
+- **🔒 Local Data Storage**: All data stored locally in your browser using IndexedDB
+- **🚫 No External Servers**: Complete privacy - no data is sent to external servers
+- **🔐 Client-Side Only**: Everything runs in your browser for maximum security
 
 ### User Interface
 - **🎨 Modern Bootstrap UI**: Clean, responsive design with Bootstrap 5
 - **🔧 Configuration Section**: Intuitive admin interface with tabbed navigation
 - **📱 Responsive Design**: Works seamlessly across different screen sizes
 - **🖱️ Interactive Features**: Drag-and-drop reordering, inline editing, and form validation
+- **📖 Getting Started Guide**: Step-by-step instructions for new users
 
 ### Technical Features
-- **💾 SQLite Database**: Local data persistence with relational data structure
-- **🔄 Real-time Updates**: Live data synchronization between UI and database
+- **💾 IndexedDB Storage**: Local browser database with relational data structure
+- **🔄 Real-time Updates**: Live data synchronization between UI and storage
 - **✅ Data Validation**: Comprehensive form validation and error handling
 - **🗑️ Cascading Deletes**: Safe data management with relationship integrity
+- **📄 PDF Export**: Generate professional assessment reports
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: Angular 19.2 with TypeScript
-- **Desktop Framework**: Electron 36.3
 - **UI Framework**: Bootstrap 5.3 with Bootstrap Icons
-- **Database**: SQLite with better-sqlite3
+- **Database**: IndexedDB (browser-native database)
 - **Styling**: SCSS with responsive design
+- **Export**: jsPDF for report generation
+- **Storage**: Local browser storage (no external dependencies)
 
 ## 📖 Usage Guide
 
-### 1. Configuration Setup
-Navigate to the Configuration section (gear icon) to set up your ZTMM framework:
+### Getting Started
+1. **Visit the Application**: Open the web application in your browser
+2. **Read the Privacy Notice**: All your data stays local - nothing is sent to external servers
+3. **Follow the Getting Started Guide**: The home page provides step-by-step instructions
 
-- **Pillars**: Define Zero Trust pillars (e.g., Identity, Device, Network)
-- **Functions/Capabilities**: Add functions and capabilities for each pillar
+### 1. Configuration Setup
+Navigate to the Configuration section to set up your ZTMM framework:
+
+- **Pillars**: Define Zero Trust pillars (e.g., Identity, Device, Network, Data, Applications, Infrastructure)
+- **Functions/Capabilities**: Add specific functions and capabilities for each pillar
+- **Maturity Stages**: Define maturity levels (typically Initial, Advanced, Optimal)
 - **Technologies/Processes**: Define specific technologies and processes for assessment
 
 ### 2. Conducting Assessments
@@ -45,13 +60,14 @@ Navigate to the Configuration section (gear icon) to set up your ZTMM framework:
 3. Review the progress summary table
 4. Click "Assess" for each function/capability
 5. Rate each technology/process implementation status
-6. Add optional notes for context
+6. Add optional notes for context and future reference
 
 ### 3. Viewing Results
 Access the Results section to:
-- View completed assessments
-- Analyze maturity scores
-- Export assessment data
+- View completed assessments with visual indicators
+- Analyze maturity scores across pillars
+- Export assessment reports to PDF
+- Track progress over time
 
 ## 🔧 Development
 
@@ -62,7 +78,7 @@ Access the Results section to:
 ### Setup
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/chillheart/ztmm-assessment.git
    cd ztmm-assessment
    ```
 
@@ -71,10 +87,12 @@ Access the Results section to:
    npm install
    ```
 
-3. Rebuild native dependencies for Electron:
+3. Start the development server:
    ```bash
-   npm run electron:rebuild
+   npm start
    ```
+
+4. Open your browser and navigate to `http://localhost:4200`
 
 ### Code Scaffolding
 Generate new components:
@@ -83,16 +101,37 @@ ng generate component component-name
 ```
 ## 🚀 Running the Application
 
-### Development Mode with Hot Reload
-For active development with automatic rebuilding and reloading:
+### Development Mode
+For active development with automatic rebuilding and hot reload:
 ```bash
-npm run electron:dev
+npm start
 ```
-This command will:
-- Start the Angular development server with hot reload
-- Launch Electron app that loads from the dev server
-- Automatically reload when you make changes to Angular code
-- Open DevTools for debugging
+This will start the Angular development server on `http://localhost:4200`
+
+### Production Build
+To build the application for production:
+```bash
+npm run build:prod
+```
+
+### Preview Production Build
+To preview the production build locally:
+```bash
+npm run preview
+```
+
+## 🌐 Deployment
+
+### GitHub Pages
+Deploy to GitHub Pages using:
+```bash
+npm run deploy:gh-pages
+```
+
+### Self-Hosting
+1. Build the production version: `npm run build:prod`
+2. Copy the contents of the `dist/` folder to your web server
+3. Configure your web server to serve the `index.html` file for all routes
 
 ## 🏗️ Project Structure
 
@@ -104,29 +143,77 @@ src/
 │   │   ├── assessment.component.*   # Assessment interface
 │   │   ├── results.component.*      # Results dashboard
 │   │   ├── navbar.component.*       # Navigation
-│   │   └── home.component.*         # Landing page
+│   │   └── home.component.*         # Landing page with instructions
+│   ├── admin/               # Admin/Configuration sub-components
+│   │   ├── pillars-tab.component.*     # Pillar management
+│   │   ├── functions-tab.component.*   # Function/capability management
+│   │   ├── technologies-tab.component.* # Technology/process management
+│   │   └── data-management-tab.component.* # Import/export functionality
 │   ├── models/              # TypeScript interfaces
-│   │   └── ztmm.models.ts          # Data models
+│   │   └── ztmm.models.ts          # Data models and interfaces
 │   ├── services/            # Angular services
-│   │   └── ztmm-data.service.ts    # Data access layer
+│   │   ├── indexeddb.service.ts        # IndexedDB database service
+│   │   ├── ztmm-data-web.service.ts    # Main data access layer
+│   │   └── pdf-export.service.ts       # PDF report generation
 │   └── styles.scss          # Global styles
-├── main.js                  # Electron main process
-├── preload.js              # Electron preload script
-└── ztmm.db                 # SQLite database
+└── assets/                  # Static assets (icons, images)
 ```
 
-## 🗄️ Database Schema
+## 🗄️ Data Storage
 
-The application uses SQLite with the following tables:
-- `pillars` - Zero Trust pillars
-- `function_capabilities` - Functions and capabilities
-- `maturity_stages` - Maturity level definitions
-- `technologies_processes` - Technologies and processes
-- `assessment_responses` - Assessment results
+The application uses **IndexedDB** (browser-native database) with the following object stores:
+- `pillars` - Zero Trust pillars with ordering
+- `functionCapabilities` - Functions and capabilities linked to pillars
+- `maturityStages` - Maturity level definitions (Initial, Advanced, Optimal)
+- `technologiesProcesses` - Technologies and processes for assessment
+- `assessmentResponses` - Assessment results and user responses
+
+### Data Privacy
+- **Local Storage Only**: All data is stored in your browser's IndexedDB
+- **No External Servers**: No data is transmitted to external servers
+- **Complete Privacy**: Your assessment data never leaves your device
+- **Backup/Restore**: Export your data as JSON for backup or migration
 
 ### Building for Production
 
-TODO: Create Production deployment process
+Build the application for production deployment:
+```bash
+npm run build:prod
+```
+
+The built application will be available in the `dist/` directory and can be deployed to any static web hosting service.
+
+## 🔗 Demo & Live Version
+
+You can try the application online at: [GitHub Pages Demo](https://chillheart.github.io/ztmm-assessment/)
+
+## 🏠 Self-Hosting
+
+Want to host this tool for your organization? 
+1. Fork this repository
+2. Customize the configuration as needed
+3. Deploy to your preferred hosting platform:
+   - **GitHub Pages**: Use `npm run deploy:gh-pages`
+   - **Netlify**: Connect your repository for automatic deployments
+   - **Vercel**: Import your repository for instant deployment
+   - **Static Web Hosting**: Upload the `dist/` folder contents
+
+## 🧪 Testing
+
+Run the test suite:
+```bash
+npm test
+```
+
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
+
+Run security tests:
+```bash
+npm run security:test
+```
 
 
 ## 📝 Contributing
@@ -147,6 +234,12 @@ For questions, issues, or feature requests, please create an issue in the reposi
 
 ## 🔄 Version History
 
-- **v0.0.1**: Initial commit with core ZTMM assessment functionality
-- Configuration management with drag-and-drop reordering
-- Pillar-based assessment workflow with progress tracking
+- **v1.1.0**: Web-based application with IndexedDB storage
+  - Complete privacy with local browser storage
+  - Enhanced UI with getting started guide
+  - PDF export functionality
+  - Import/export for data management
+  - Comprehensive test coverage
+- **v1.0.0**: Initial release with core ZTMM assessment functionality
+  - Configuration management with drag-and-drop reordering
+  - Pillar-based assessment workflow with progress tracking

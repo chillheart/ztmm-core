@@ -1,11 +1,103 @@
-<div class="container py-5 text-center">
-  <h1 class="mb-4">Zero Trust Maturity Model Assessment Tool</h1>
-  <p class="lead mb-4">
-    This tool helps you assess your organization's maturity against the Zero Trust Maturity Model (ZTMM) framework. Define and manage your pillars, functions/capabilities, and technologies/processes, then conduct assessments and view results.
-  </p>
-  <div class="d-flex justify-content-center gap-3 flex-wrap">
-    <a routerLink="/configuration" class="btn btn-outline-primary btn-lg">Configuration</a>
-    <a routerLink="/assessment" class="btn btn-outline-success btn-lg">Assessment</a>
-    <a routerLink="/results" class="btn btn-outline-info btn-lg">Results</a>
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <h1 class="mb-4">Zero Trust Maturity Model Assessment Tool</h1>
+    <p class="lead mb-4">
+      This tool helps you assess your organization's maturity against the Zero Trust Maturity Model (ZTMM) framework. Define and manage your pillars, functions/capabilities, and technologies/processes, then conduct assessments and view results.
+    </p>
+  </div>
+
+  <!-- Privacy & Data Storage Notice -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+      <div class="alert alert-info">
+        <h5 class="alert-heading">
+          <i class="bi bi-shield-check"></i> Your Data Stays Private
+        </h5>
+        <p class="mb-0">
+          <strong>All your assessment data is stored locally in your browser using IndexedDB.</strong>
+          No data is sent to external servers - everything remains on your device for complete privacy and security.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Getting Started Guide -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+      <h3 class="text-center mb-4">Getting Started</h3>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <div class="text-primary mb-3">
+                <i class="bi bi-gear-fill" style="font-size: 2rem;"></i>
+              </div>
+              <h5 class="card-title">1. Configuration</h5>
+              <p class="card-text">Start by setting up your Zero Trust framework. Define pillars, functions/capabilities, maturity stages, and technologies/processes that align with your organization.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <div class="text-success mb-3">
+                <i class="bi bi-clipboard-check-fill" style="font-size: 2rem;"></i>
+              </div>
+              <h5 class="card-title">2. Assessment</h5>
+              <p class="card-text">Conduct maturity assessments by evaluating your current state against each technology/process. Track progress with visual indicators.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body text-center">
+              <div class="text-info mb-3">
+                <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+              </div>
+              <h5 class="card-title">3. Results</h5>
+              <p class="card-text">View comprehensive results and analytics. Export reports to PDF and track your Zero Trust maturity progression over time.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="text-center mb-5">
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a routerLink="/configuration" class="btn btn-outline-primary btn-lg">
+        <i class="bi bi-gear"></i> Configuration
+      </a>
+      <a routerLink="/assessment" class="btn btn-outline-success btn-lg">
+        <i class="bi bi-clipboard-check"></i> Assessment
+      </a>
+      <a routerLink="/results" class="btn btn-outline-info btn-lg">
+        <i class="bi bi-graph-up"></i> Results
+      </a>
+    </div>
+  </div>
+
+  <!-- Self-Hosting Information -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">
+            <i class="bi bi-cloud-download"></i> Host It Yourself
+          </h5>
+          <p class="card-text">
+            Want to host this tool for your organization? The source code is available on GitHub.
+            Clone the repository and deploy it to your own infrastructure for full control.
+          </p>
+          <a href="https://github.com/chillheart/ztmm-assessment"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="btn btn-outline-dark">
+            <i class="bi bi-github"></i> View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

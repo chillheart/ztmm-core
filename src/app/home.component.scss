@@ -1,6 +1,41 @@
 .container {
-  max-width: 700px;
+  max-width: 1200px;
 }
+
 .btn-lg {
   min-width: 160px;
+}
+
+.card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alert-info {
+  border-left: 4px solid #0dcaf0;
+}
+
+.bi {
+  margin-right: 0.5rem;
+}
+
+.card-title {
+  color: #495057;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .btn-lg {
+    min-width: 140px;
+    margin-bottom: 10px;
+  }
 }
