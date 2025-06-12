@@ -234,6 +234,8 @@ For questions, issues, or feature requests, please create an issue in the reposi
 
 ## 🔄 Version History
 
+- **v1.2.0**: Switched to using native IndexedDB APIs
+  - Updated home page to include instructions and privacy statement
 - **v1.1.0**: Web-based application with IndexedDB storage
   - Complete privacy with local browser storage
   - Enhanced UI with getting started guide
