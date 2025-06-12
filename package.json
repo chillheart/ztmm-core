@@ -26,6 +26,7 @@
     "security:retire": "retire --path .",
     "preview": "npm run build:prod && npx http-server dist -p 4200 -c-1",
     "deploy:prepare": "npm run build:prod",
+    "deploy:gh-pages": "ng build --configuration production --base-href /ztmm-assessment/ && npx angular-cli-ghpages --dir=dist",
     "prerelease": "npm run security:test && npm run security:audit",
     "ci:full": "npm ci && npm run lint:all && npm run test:ci && npm run security:test"
   },
@@ -53,6 +54,7 @@
     "@angular/cli": "^19.2.14",
     "@angular/compiler-cli": "^19.2.0",
     "@types/jasmine": "~5.1.0",
+    "angular-cli-ghpages": "^2.0.3",
     "angular-eslint": "19.7.1",
     "eslint": "^9.28.0",
     "eslint-plugin-import": "^2.31.0",
