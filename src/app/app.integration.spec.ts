@@ -117,8 +117,8 @@ describe('Application Integration Tests', () => {
       fixture.detectChanges();
 
       const compiled = fixture.nativeElement as HTMLElement;
-      const buttons = compiled.querySelectorAll('.btn');
-      expect(buttons.length).toBe(3);
+      const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
+      expect(navigationButtons.length).toBe(3);
     });
 
     it('should load Assessment component with proper initialization', () => {

@@ -44,9 +44,9 @@ describe('HomeComponent', () => {
 
   it('should display navigation buttons', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const buttonElements = compiled.querySelectorAll('a.btn');
+    const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(buttonElements.length).toBe(3); // Configuration, Assessment, Results
+    expect(navigationButtons.length).toBe(3); // Configuration, Assessment, Results
   });
 
   it('should have proper button text', () => {
@@ -71,10 +71,10 @@ describe('HomeComponent', () => {
     expect(routes).toContain('/results');
   });  it('should have proper button classes and styling', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const buttonElements = compiled.querySelectorAll('.btn');
+    const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(buttonElements.length).toBe(3);
-    buttonElements.forEach(button => {
+    expect(navigationButtons.length).toBe(3);
+    navigationButtons.forEach(button => {
       expect(button.classList.contains('btn-outline-primary') ||
              button.classList.contains('btn-outline-success') ||
              button.classList.contains('btn-outline-info')).toBeTruthy();
@@ -129,10 +129,10 @@ describe('HomeComponent', () => {
 
     // Check for proper heading hierarchy
     const h1Elements = compiled.querySelectorAll('h1');
-    const buttonElements = compiled.querySelectorAll('a.btn');
+    const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
     expect(h1Elements.length).toBeGreaterThanOrEqual(1);
-    expect(buttonElements.length).toBe(3); // Navigation buttons
+    expect(navigationButtons.length).toBe(3); // Navigation buttons
   });
 
   it('should have accessible navigation elements', () => {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { DataExportService } from './utilities/data-export.service';
+import { DemoDataGeneratorService } from './services/demo-data-generator.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
 import { PillarsTabComponent } from './admin/pillars-tab.component';
 import { FunctionsTabComponent } from './admin/functions-tab.component';
@@ -44,6 +45,14 @@ export class AdminComponent implements OnInit {
   isImporting = false;
   isExporting = false;
   isResetting = false;
+  isGeneratingDemo = false;
+  demoDataExists = false;
+  demoDataStats: {
+    functionsWithData: number;
+    totalTechnologies: number;
+    totalProcesses: number;
+    totalItems: number;
+  } | null = null;
 
   // For drag-and-drop
   dragPillarIndex: number | null = null;
@@ -56,13 +65,18 @@ export class AdminComponent implements OnInit {
   editingTechProcessId: number | null = null;
   editingTechProcess: Partial<TechnologyProcess> = {};
 
-  constructor(private data: ZtmmDataWebService, private exportService: DataExportService) {
+  constructor(
+    private data: ZtmmDataWebService,
+    private exportService: DataExportService,
+    private demoDataGenerator: DemoDataGeneratorService
+  ) {
     // Constructor should only set up dependencies, not call async methods
   }
 
   ngOnInit() {
     this.loadAll();
     this.loadDataStatistics();
+    this.loadDemoDataInfo();
   }
 
   async loadAll() {
@@ -466,6 +480,7 @@ export class AdminComponent implements OnInit {
       // Reload all data and statistics to reflect the reset
       await this.loadAll();
       await this.loadDataStatistics();
+      await this.loadDemoDataInfo(); // This will reactivate the demo data button
 
       alert('Database has been completely reset and reinitialized with fresh ZTMM framework!');
     } catch (error) {
@@ -540,6 +555,65 @@ export class AdminComponent implements OnInit {
 
   onLoadTechnologiesProcesses() {
     this.loadTechnologiesProcesses();
+  }
+
+  // Demo Data Generation Methods
+  async loadDemoDataInfo() {
+    try {
+      this.demoDataExists = await this.demoDataGenerator.isDemoDataAlreadyGenerated();
+      this.demoDataStats = await this.demoDataGenerator.getDemoDataStatistics();
+    } catch (error) {
+      console.error('Error loading demo data info:', error);
+      this.demoDataExists = false;
+      this.demoDataStats = null;
+    }
+  }
+
+  async onGenerateDemoData() {
+    if (this.isGeneratingDemo) {
+      return;
+    }
+
+    // Show confirmation if data exists
+    if (this.demoDataExists || this.dataStatistics.technologiesProcesses > 0) {
+      const confirmation = confirm(
+        'Generating demo data will first reset the database and remove all existing data.\n\n' +
+        'This will:\n' +
+        '• Delete ALL existing technologies/processes\n' +
+        '• Delete ALL assessment responses\n' +
+        '• Reset to default framework structure\n' +
+        '• Generate comprehensive Azure-focused demo data\n\n' +
+        'Do you want to continue?'
+      );
+
+      if (!confirmation) return;
+    }
+
+    this.isGeneratingDemo = true;
+
+    try {
+      // First reset the database to ensure clean state
+      await this.data.resetDatabase();
+
+      // Then generate demo data
+      await this.demoDataGenerator.generateDemoData();
+
+      // Reload all data to reflect the new demo data
+      await this.loadAll();
+      await this.loadDataStatistics();
+      await this.loadDemoDataInfo();
+
+      console.log('Demo data generation completed successfully!');
+
+      // Show success message
+      alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies and processes for each function and capability.');
+
+    } catch (error) {
+      console.error('Error generating demo data:', error);
+      alert('Failed to generate demo data. Please check the console for details.');
+    } finally {
+      this.isGeneratingDemo = false;
+    }
   }
 
 }

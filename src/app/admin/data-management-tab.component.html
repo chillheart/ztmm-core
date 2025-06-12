@@ -85,6 +85,60 @@
           </div>
         </div>
 
+        <!-- Generate Demo Data -->
+        <div class="card mb-3 border-success">
+          <div class="card-body">
+            <h6 class="card-title text-success">
+              <i class="bi bi-magic me-2"></i>
+              Generate Demo Data
+            </h6>
+            <p class="card-text text-muted small">
+              Reset the database and populate with comprehensive demo technologies and processes for all functions and capabilities.
+            </p>
+
+            <!-- Demo Data Statistics -->
+            <div *ngIf="demoDataStats" class="mb-3">
+              <div class="row text-center">
+                <div class="col-3">
+                  <div class="text-success fw-bold fs-5">{{ demoDataStats.functionsWithData }}</div>
+                  <small class="text-muted">Functions</small>
+                </div>
+                <div class="col-3">
+                  <div class="text-primary fw-bold fs-5">{{ demoDataStats.totalTechnologies }}</div>
+                  <small class="text-muted">Technologies</small>
+                </div>
+                <div class="col-3">
+                  <div class="text-info fw-bold fs-5">{{ demoDataStats.totalProcesses }}</div>
+                  <small class="text-muted">Processes</small>
+                </div>
+                <div class="col-3">
+                  <div class="text-warning fw-bold fs-5">{{ demoDataStats.totalItems }}</div>
+                  <small class="text-muted">Total Items</small>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="btn btn-outline-success"
+              [disabled]="isGeneratingDemo"
+              (click)="onGenerateDemoData()">
+              <span *ngIf="isGeneratingDemo" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!isGeneratingDemo" class="bi bi-magic me-2"></i>
+              {{ isGeneratingDemo ? 'Resetting & Generating Demo Data...' : 'Reset & Generate Demo Data' }}
+            </button>
+
+            <div class="alert alert-info mt-3" role="alert">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>Demo Data Includes:</strong> This will first reset the database, then add at least 2 technologies and 2 processes for each function and capability across all five Zero Trust pillars (Identity, Devices, Networks, Applications & Workloads, and Data). The demo data emulates an Azure environment with realistic examples including Azure services, Microsoft security tools, and industry-standard practices. <em>Note: This is demonstration data designed to showcase the assessment tool's capabilities and is not intended to be an all-encompassing list of security technologies and processes.</em>
+            </div>
+
+            <div *ngIf="demoDataExists" class="alert alert-warning mt-3" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <strong>Note:</strong> Demo data already exists. Clicking the button above will reset the database first and then generate fresh demo data.
+            </div>
+          </div>
+        </div>
+
         <!-- Reset Database -->
         <div class="card border-danger">
           <div class="card-body">
