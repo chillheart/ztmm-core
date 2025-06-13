@@ -43,7 +43,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   paginatedTechnologiesProcesses: TechnologyProcess[] = [];
 
   // Auto-save properties
-  private autoSaveTimeout: NodeJS.Timeout | null = null;
+  private autoSaveTimeout: number | null = null;
   private readonly autoSaveDelay = 1000; // 1 second delay
   isAutoSaving = false;
 
@@ -358,13 +358,13 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
     // Clear existing timeout
     if (this.autoSaveTimeout) {
-      clearTimeout(this.autoSaveTimeout);
+      window.clearTimeout(this.autoSaveTimeout);
     }
 
     // Set new timeout for auto-save
-    this.autoSaveTimeout = setTimeout(() => {
+    this.autoSaveTimeout = window.setTimeout(() => {
       this.autoSaveCurrentItem(globalIndex);
-    }, this.autoSaveDelay);
+    }, this.autoSaveDelay) as number;
   }
 
   private async autoSaveCurrentItem(globalIndex: number) {
@@ -395,7 +395,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     // Clean up timeout on component destruction
     if (this.autoSaveTimeout) {
-      clearTimeout(this.autoSaveTimeout);
+      window.clearTimeout(this.autoSaveTimeout);
     }
   }
 

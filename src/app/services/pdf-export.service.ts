@@ -1,7 +1,18 @@
 import { Injectable } from '@angular/core';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { AssessmentResponse } from '../models/ztmm.models';
+
+// Define the expected assessment data interface for PDF export
+interface AssessmentReportItem {
+  pillarName: string;
+  functionCapabilityName: string;
+  functionCapabilityType: string;
+  description: string;
+  type: string;
+  maturityStageName: string;
+  status: string;
+  notes: string;
+}
 
 export interface PDFExportOptions {
   filename?: string;
@@ -125,7 +136,7 @@ export class PdfExportService {
    * @param assessmentData - The assessment data to include in the PDF
    * @param options - Configuration options
    */
-  async exportAssessmentReport(assessmentData: AssessmentResponse[], options: PDFExportOptions = {}): Promise<void> {
+  async exportAssessmentReport(assessmentData: AssessmentReportItem[], options: PDFExportOptions = {}): Promise<void> {
     const {
       filename = 'ztmm-assessment-report.pdf'
     } = options;
@@ -154,11 +165,11 @@ export class PdfExportService {
       yPosition += 10;
       pdf.setFontSize(10);        // Add assessment data (this would need to be customized based on your data structure)
         if (assessmentData && assessmentData.length > 0) {
-          assessmentData.forEach((item: AssessmentResponse, index: number) => {
+          assessmentData.forEach((item: AssessmentReportItem, index: number) => {
             if (yPosition > 280) { // Check if we need a new page
               pdf.addPage();
               yPosition = 30;
-          }
+            }
 
           const text = `${index + 1}. ${item.pillarName} - ${item.functionCapabilityName}: ${item.status}`;
           pdf.text(text, 20, yPosition);
