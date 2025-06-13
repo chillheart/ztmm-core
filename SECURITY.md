@@ -6,8 +6,10 @@ We actively support the following versions of ZTMM Assessment with security upda
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.2.x   | :white_check_mark: |
-| 0.1.x   | :x:                |
+| 1.3.x   | :white_check_mark: |
+| 1.2.x   | :x:                |
+| 1.1.x   | :x:                |
+| 1.0.x   | :x:                |
 
 ## Reporting a Vulnerability
 
