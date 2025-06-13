@@ -43,7 +43,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   paginatedTechnologiesProcesses: TechnologyProcess[] = [];
 
   // Auto-save properties
-  private autoSaveTimeout: any;
+  private autoSaveTimeout: NodeJS.Timeout | null = null;
   private readonly autoSaveDelay = 1000; // 1 second delay
   isAutoSaving = false;
 
@@ -58,7 +58,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     this.loadAll();
   }
 
-  async loadAll(resetUIState: boolean = true) {
+  async loadAll(resetUIState = true) {
     // Reset UI arrays only if requested (default behavior for normal app usage)
     if (resetUIState) {
       this.technologiesProcesses = [];
@@ -347,13 +347,13 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   }
 
   // Auto-save functionality
-  onAssessmentChange(index: number, field: 'status' | 'notes', value: any) {
+  onAssessmentChange(index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string) {
     const globalIndex = this.getGlobalItemIndex(index);
 
     if (field === 'status') {
-      this.assessmentStatuses[globalIndex] = value;
+      this.assessmentStatuses[globalIndex] = value as AssessmentStatus | null;
     } else {
-      this.assessmentNotes[globalIndex] = value;
+      this.assessmentNotes[globalIndex] = value as string;
     }
 
     // Clear existing timeout

@@ -3,25 +3,33 @@
 import 'zone.js/testing';
 
 // Manual setup of fake-indexeddb to avoid read-only property errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let FDBFactory: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let FDBKeyRange: any;
 
 try {
   // Import fake-indexeddb components manually
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   FDBFactory = require('fake-indexeddb/lib/FDBFactory').default;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   FDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange').default;
 } catch (error) {
   console.warn('Could not import fake-indexeddb components, using native IndexedDB:', error);
 }
 
 // Setup global IndexedDB mock for all tests
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const global: any;
 
 // Store original indexedDB for cleanup
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let originalIndexedDB: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let originalIDBKeyRange: any;
 
 // Function to reset IndexedDB between tests
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).resetIndexedDB = () => {
   if (FDBFactory && FDBKeyRange) {
     try {
@@ -49,8 +57,10 @@ let originalIDBKeyRange: any;
 if (FDBFactory && FDBKeyRange) {
   try {
     if (typeof window !== 'undefined') {
-      // Store original values
+      // Store original values (keeping for potential future use)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       originalIndexedDB = window.indexedDB;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       originalIDBKeyRange = window.IDBKeyRange;
 
       // Use defineProperty to avoid the read-only error

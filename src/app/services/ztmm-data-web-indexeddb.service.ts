@@ -181,6 +181,7 @@ export class ZtmmDataWebService {
   }
 
   // Migration support for Electron data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async migrateFromElectronData(electronData: any): Promise<void> {
     try {
       console.log('Starting migration from Electron data format...');
@@ -221,6 +222,7 @@ export class ZtmmDataWebService {
   }
 
   // Import data with preserved IDs from JSON export (complete database replacement)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async importDataWithPreservedIds(data: any): Promise<void> {
     await this.ensureInitialized();
     return this.handleApiCall(() => this.indexedDB.importDataWithPreservedIds(data), 'importDataWithPreservedIds');

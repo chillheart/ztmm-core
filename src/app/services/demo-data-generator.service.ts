@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { ZtmmDataWebService } from './ztmm-data-web.service';
-import { FunctionCapability, MaturityStage, TechnologyProcess } from '../models/ztmm.models';
 
 interface DemoTechnologyProcess {
   description: string;
