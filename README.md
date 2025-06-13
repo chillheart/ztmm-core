@@ -1,5 +1,9 @@
 # ZTMM Assessment Tool
 
+[![CI Pipeline](https://github.com/chillheart/ztmm-assessment/workflows/CI%20Pipeline/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/ci.yml)
+[![Security Tests](https://github.com/chillheart/ztmm-assessment/workflows/Pull%20Request%20Validation/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
+[![Deploy to GitHub Pages](https://github.com/chillheart/ztmm-assessment/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/deploy-github-pages.yml)
+
 A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
 
 ## 🚀 Features
@@ -264,3 +268,43 @@ For questions, issues, or feature requests, please create an issue in the reposi
 - **v1.0.0**: Initial release with core ZTMM assessment functionality
   - Configuration management with drag-and-drop reordering
   - Pillar-based assessment workflow with progress tracking
+
+## 🔄 Continuous Integration
+
+This project includes comprehensive CI/CD pipelines that automatically run on pull requests and pushes:
+
+### What Gets Tested
+- **Code Quality**: ESLint linting and TypeScript type checking
+- **Unit Tests**: Full test suite with coverage reporting
+- **Security**: OWASP Top 10 tests, penetration tests, and dependency audits
+- **Build Verification**: Production build validation
+- **Static Analysis**: CodeQL security scanning
+- **Vulnerability Scanning**: Trivy filesystem scanning
+
+### Workflows
+- **CI Pipeline**: Runs on all pushes and pull requests to `main`/`develop` 
+- **PR Validation**: Enhanced checks with automated PR comments
+- **Security Scanning**: CodeQL and Trivy vulnerability detection
+- **Auto Deployment**: GitHub Pages deployment on releases
+
+### Running Tests Locally
+```bash
+# Run the full CI suite (same as pipeline)
+npm run ci:full
+
+# The ci:full script includes:
+npm run lint                 # ESLint linting
+npm run test:ci             # Unit tests with coverage
+npm run security:test       # All security tests (OWASP + Penetration)
+
+# Additional commands available:
+npm run security:audit      # Dependency security audit
+npm run security:codeql     # CodeQL static analysis (requires CodeQL CLI)
+npm run security:validate   # Validate CodeQL configuration
+npm run security:owasp      # OWASP tests only
+npm run security:penetration # Penetration tests only
+npm run build:prod         # Production build
+npm run ci:validate        # Run local validation script
+```
+
+For detailed pipeline documentation, see [`.github/PIPELINE.md`](.github/PIPELINE.md).

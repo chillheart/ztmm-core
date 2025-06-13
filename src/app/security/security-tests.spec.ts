@@ -48,6 +48,11 @@ describe('OWASP Top 10 Security Tests', () => {
   let mockIndexedDBService: jasmine.SpyObj<IndexedDBService>;
 
   beforeEach(async () => {
+    // Ensure confirm dialogs are properly mocked to prevent hanging
+    spyOn(window, 'confirm').and.returnValue(true);
+    spyOn(window, 'alert').and.stub();
+    spyOn(window, 'prompt').and.returnValue('');
+
     mockDataService = TestUtilsIndexedDB.createMockZtmmDataWebService() as any;
     mockIndexedDBService = TestUtilsIndexedDB.createMockIndexedDBService() as any;
 
@@ -185,7 +190,9 @@ describe('OWASP Top 10 Security Tests', () => {
       const adminComponent = TestBed.createComponent(AdminComponent).componentInstance;
 
       // Test that data export/import maintains integrity
-      spyOn(window, 'alert');
+      // Use the existing alert spy instead of creating a new one
+      const alertSpy = window.alert as jasmine.Spy;
+      alertSpy.calls.reset(); // Reset any previous calls
 
       // Mock the exportData method to track if it's called
       const exportSpy = spyOn(adminComponent, 'exportData').and.callThrough();

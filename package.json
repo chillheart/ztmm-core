@@ -22,8 +22,11 @@
     "security:penetration": "ng test --include='**/security/penetration-tests.spec.ts' --watch=false --browsers=ChromeHeadless",
     "security:owasp": "ng test --include='**/security/security-tests.spec.ts' --watch=false --browsers=ChromeHeadless",
     "security:audit": "npm audit --audit-level moderate",
+    "security:codeql": "scripts/codeql-local.sh",
+    "security:validate": "scripts/validate-codeql.sh",
     "security:full": "npm run security:audit && npm run security:test",
-    "ci:full": "npm ci && npm run lint && npm run test:ci && npm run security:test"
+    "ci:full": "npm ci && npm run lint && npm run test:ci && npm run security:test",
+    "ci:validate": "scripts/validate-ci.sh"
   },
   "private": true,
   "dependencies": {

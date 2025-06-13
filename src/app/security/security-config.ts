@@ -92,17 +92,41 @@ export class SecurityRules {
       return input;
     }
 
-    // Remove potentially dangerous characters
-    return input
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    // Remove potentially dangerous characters with improved security
+    // First pass: Remove dangerous URL schemes (including data: scheme)
+    let sanitized = input
       .replace(/javascript:/gi, '')
       .replace(/vbscript:/gi, '')
-      .replace(/onload=/gi, '')
-      .replace(/onerror=/gi, '')
-      .replace(/onclick=/gi, '')
-      .replace(/onmouseover=/gi, '')
-      .trim();
+      .replace(/data:/gi, '')  // Fix: Add data: scheme check
+      .replace(/file:/gi, '')
+      .replace(/ftp:/gi, '');
+
+    // Second pass: Remove HTML tags with improved regex patterns
+    // Fix: Use more robust regex patterns that handle spaces and variations
+    sanitized = sanitized
+      .replace(/<\s*script\b[^<]*(?:(?!<\s*\/\s*script\s*>)<[^<]*)*<\s*\/\s*script\s*>/gi, '')
+      .replace(/<\s*iframe\b[^<]*(?:(?!<\s*\/\s*iframe\s*>)<[^<]*)*<\s*\/\s*iframe\s*>/gi, '')
+      .replace(/<\s*object\b[^>]*>/gi, '')
+      .replace(/<\s*embed\b[^>]*>/gi, '')
+      .replace(/<\s*form\b[^>]*>/gi, '')
+      .replace(/<\s*input\b[^>]*>/gi, '')
+      .replace(/<\s*textarea\b[^>]*>/gi, '');
+
+    // Third pass: Remove event handlers with comprehensive pattern
+    sanitized = sanitized
+      .replace(/on\w+\s*=/gi, '')  // Fix: Catches all event handlers
+      .replace(/style\s*=/gi, '');  // Remove style attribute
+
+    // Fourth pass: Iterative cleaning to prevent nested tag exploits
+    let previousLength;
+    do {
+      previousLength = sanitized.length;
+      sanitized = sanitized
+        .replace(/<\s*script\b[^<]*(?:(?!<\s*\/\s*script\s*>)<[^<]*)*<\s*\/\s*script\s*>/gi, '')
+        .replace(/<\s*iframe\b[^<]*(?:(?!<\s*\/\s*iframe\s*>)<[^<]*)*<\s*\/\s*iframe\s*>/gi, '');
+    } while (sanitized.length !== previousLength);  // Fix: Prevent nested tag bypasses
+
+    return sanitized.trim();
   }
 
   /**
@@ -142,20 +166,42 @@ export class SecurityRules {
   }
 
   /**
-   * Checks for XSS patterns
+   * Checks for XSS patterns with improved detection
    */
   static containsXSS(input: string): boolean {
     const xssPatterns = [
-      /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-      /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+      // Script tags with space variations
+      /<\s*script\b[^<]*(?:(?!<\s*\/\s*script\s*>)<[^<]*)*<\s*\/\s*script\s*>/gi,
+      /<\s*iframe\b[^<]*(?:(?!<\s*\/\s*iframe\s*>)<[^<]*)*<\s*\/\s*iframe\s*>/gi,
+
+      // Dangerous URL schemes
       /javascript:/gi,
       /vbscript:/gi,
-      /on\w+\s*=/gi,
+      /data:/gi,  // Fix: Add data: scheme detection
+      /file:/gi,
+      /ftp:/gi,
+
+      // Event handlers (comprehensive)
+      /on\w+\s*=/gi,  // Fix: Catches all event handlers
+
+      // Other dangerous tags
       /<\s*img[^>]+src[^>]*>/gi,
       /<\s*object[^>]*>/gi,
       /<\s*embed[^>]*>/gi,
       /<\s*link[^>]*>/gi,
-      /<\s*meta[^>]*>/gi
+      /<\s*meta[^>]*>/gi,
+      /<\s*form[^>]*>/gi,
+      /<\s*input[^>]*>/gi,
+      /<\s*textarea[^>]*>/gi,
+
+      // Style injection
+      /style\s*=/gi,
+      /<\s*style[^>]*>/gi,
+
+      // Expression and import patterns
+      /expression\s*\(/gi,
+      /@import/gi,
+      /url\s*\(/gi
     ];
 
     return xssPatterns.some(pattern => pattern.test(input));
