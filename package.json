@@ -17,6 +17,12 @@
     "lint:check": "eslint --print-config eslint.config.cjs",
     "type-check": "tsc --noEmit",
     "deploy:gh-pages": "ng build --configuration production --base-href /ztmm-assessment/ && npx angular-cli-ghpages --dir=dist",
+    "security:test": "ng test --include='**/security/**/*.spec.ts' --watch=false --browsers=ChromeHeadless",
+    "security:test:watch": "ng test --include='**/security/**/*.spec.ts'",
+    "security:penetration": "ng test --include='**/security/penetration-tests.spec.ts' --watch=false --browsers=ChromeHeadless",
+    "security:owasp": "ng test --include='**/security/security-tests.spec.ts' --watch=false --browsers=ChromeHeadless",
+    "security:audit": "npm audit --audit-level moderate",
+    "security:full": "npm run security:audit && npm run security:test",
     "ci:full": "npm ci && npm run lint && npm run test:ci && npm run security:test"
   },
   "private": true,
