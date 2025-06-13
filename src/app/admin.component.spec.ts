@@ -52,7 +52,8 @@ describe('AdminComponent', () => {
       'getTechnologiesProcessesByFunction',
       'addTechnologyProcess',
       'removeTechnologyProcess',
-      'editTechnologyProcess'
+      'editTechnologyProcess',
+      'resetDatabase'
     ]);
 
     const exportSpy = jasmine.createSpyObj('DataExportService', [
@@ -95,6 +96,7 @@ describe('AdminComponent', () => {
     spy.addTechnologyProcess.and.returnValue(Promise.resolve());
     spy.removeTechnologyProcess.and.returnValue(Promise.resolve());
     spy.editTechnologyProcess.and.returnValue(Promise.resolve());
+    spy.resetDatabase.and.returnValue(Promise.resolve());
 
     // Setup export service spies
     exportSpy.getDataStatistics.and.returnValue(Promise.resolve({
@@ -632,6 +634,10 @@ describe('AdminComponent', () => {
     describe('Demo Data Generation', () => {
       it('should generate demo data successfully', async () => {
         spyOn(window, 'alert'); // Suppress alert messages
+        spyOn(window, 'confirm').and.returnValue(true); // Mock confirmation dialog
+
+        // Set up component state to trigger confirmation dialog
+        component.demoDataExists = true;
 
         await component.onGenerateDemoData();
 
@@ -641,6 +647,7 @@ describe('AdminComponent', () => {
       });
 
       it('should not generate demo data if already exists', async () => {
+        spyOn(window, 'confirm').and.returnValue(false); // Mock user cancellation
         component.demoDataExists = true;
 
         await component.onGenerateDemoData();
@@ -648,10 +655,26 @@ describe('AdminComponent', () => {
         expect(mockDemoDataService.generateDemoData).not.toHaveBeenCalled();
       });
 
+      it('should generate demo data if user confirms when data already exists', async () => {
+        spyOn(window, 'alert'); // Suppress alert messages
+        component.demoDataExists = true;
+        spyOn(window, 'confirm').and.returnValue(true); // User confirms the generation
+
+        await component.onGenerateDemoData();
+
+        expect(mockDemoDataService.generateDemoData).toHaveBeenCalled();
+        expect(component.isGeneratingDemo).toBe(false);
+        expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Demo data has been successfully generated'));
+      });
+
       it('should handle demo data generation errors', async () => {
         spyOn(window, 'alert'); // Suppress alert messages
+        spyOn(window, 'confirm').and.returnValue(true); // Mock confirmation dialog
         spyOn(console, 'error'); // Suppress error messages
         mockDemoDataService.generateDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
+
+        // Set up component state to trigger confirmation dialog
+        component.demoDataExists = true;
 
         await component.onGenerateDemoData();
 

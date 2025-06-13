@@ -46,7 +46,7 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(navigationButtons.length).toBe(3); // Configuration, Assessment, Results
+    expect(navigationButtons.length).toBe(4); // Configuration, Assessment, Results, and demo data configuration link
   });
 
   it('should have proper button text', () => {
@@ -63,7 +63,7 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const linkElements = compiled.querySelectorAll('a[routerLink]');
 
-    expect(linkElements.length).toBe(3);
+    expect(linkElements.length).toBe(4); // 3 main nav + 1 demo data link
 
     const routes = Array.from(linkElements).map(el => el.getAttribute('routerLink'));
     expect(routes).toContain('/configuration');
@@ -73,12 +73,16 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(navigationButtons.length).toBe(3);
-    navigationButtons.forEach(button => {
+    expect(navigationButtons.length).toBe(4);
+    // Test the main 3 navigation buttons (first 3)
+    for (let i = 0; i < 3; i++) {
+      const button = navigationButtons[i];
       expect(button.classList.contains('btn-outline-primary') ||
              button.classList.contains('btn-outline-success') ||
              button.classList.contains('btn-outline-info')).toBeTruthy();
-    });
+    }
+    // The 4th button is the demo data button with 'btn-success' class
+    expect(navigationButtons[3].classList.contains('btn-success')).toBeTruthy();
   });
 
   it('should display description section', () => {
@@ -132,7 +136,7 @@ describe('HomeComponent', () => {
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
     expect(h1Elements.length).toBeGreaterThanOrEqual(1);
-    expect(navigationButtons.length).toBe(3); // Navigation buttons
+    expect(navigationButtons.length).toBe(4); // Navigation buttons (3 main + 1 demo data)
   });
 
   it('should have accessible navigation elements', () => {

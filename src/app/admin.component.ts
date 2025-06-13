@@ -574,24 +574,28 @@ export class AdminComponent implements OnInit {
       return;
     }
 
-    // Show confirmation if data exists
-    if (this.demoDataExists || this.dataStatistics.technologiesProcesses > 0) {
-      const confirmation = confirm(
-        'Generating demo data will first reset the database and remove all existing data.\n\n' +
-        'This will:\n' +
-        '• Delete ALL existing technologies/processes\n' +
-        '• Delete ALL assessment responses\n' +
-        '• Reset to default framework structure\n' +
-        '• Generate comprehensive Azure-focused demo data\n\n' +
-        'Do you want to continue?'
-      );
-
-      if (!confirmation) return;
-    }
-
+    // Set flag early to prevent multiple simultaneous calls
     this.isGeneratingDemo = true;
 
     try {
+      // Show confirmation if data exists
+      if (this.demoDataExists || this.dataStatistics.technologiesProcesses > 0) {
+        const confirmation = confirm(
+          'Generating demo data will first reset the database and remove all existing data.\n\n' +
+          'This will:\n' +
+          '• Delete ALL existing technologies/processes\n' +
+          '• Delete ALL assessment responses\n' +
+          '• Reset to default framework structure\n' +
+          '• Generate comprehensive Azure-focused demo data\n\n' +
+          'Do you want to continue?'
+        );
+
+        if (!confirmation) {
+          this.isGeneratingDemo = false;
+          return;
+        }
+      }
+
       // First reset the database to ensure clean state
       await this.data.resetDatabase();
 

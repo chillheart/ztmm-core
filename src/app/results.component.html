@@ -132,7 +132,8 @@
                   <i class="bi me-2"
                      [class]="item.status === 'Fully Implemented' ? 'bi-check-circle-fill text-success' :
                               item.status === 'Partially Implemented' ? 'bi-exclamation-triangle-fill text-warning' :
-                              item.status === 'Not Implemented' ? 'bi-x-circle-fill text-danger' : 'bi-question-circle-fill text-secondary'"></i>
+                              item.status === 'Not Implemented' ? 'bi-x-circle-fill text-danger' :
+                              item.status === 'Superseded' ? 'bi-arrow-up-circle-fill text-info' : 'bi-question-circle-fill text-secondary'"></i>
                   <span class="small">{{ item.status }}</span>
                 </span>
               </td>

@@ -328,7 +328,8 @@ describe('AssessmentComponent', () => {
     expect(component.statusOptions).toEqual([
       'Not Implemented',
       'Partially Implemented',
-      'Fully Implemented'
+      'Fully Implemented',
+      'Superseded'
     ]);
   });
 });

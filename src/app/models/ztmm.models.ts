@@ -23,7 +23,7 @@ export interface TechnologyProcess {
   maturity_stage_id: number;
 }
 
-export type AssessmentStatus = 'Not Implemented' | 'Partially Implemented' | 'Fully Implemented';
+export type AssessmentStatus = 'Not Implemented' | 'Partially Implemented' | 'Fully Implemented' | 'Superseded';
 
 export interface AssessmentResponse {
   id: number;
