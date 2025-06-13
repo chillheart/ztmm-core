@@ -622,7 +622,7 @@ export class IndexedDBService {
     if (!Number.isInteger(techProcessId) || techProcessId < 1) {
       throw new Error('Invalid technology process ID');
     }
-    const validStatuses: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented'];
+    const validStatuses: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented', 'Superseded'];
     if (!validStatuses.includes(status)) {
       throw new Error('Invalid assessment status');
     }

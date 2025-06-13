@@ -46,7 +46,7 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(navigationButtons.length).toBe(3); // Configuration, Assessment, Results
+    expect(navigationButtons.length).toBe(4); // Configuration, Assessment, Results, Generate Demo Data
   });
 
   it('should have proper button text', () => {
@@ -63,7 +63,7 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const linkElements = compiled.querySelectorAll('a[routerLink]');
 
-    expect(linkElements.length).toBe(3);
+    expect(linkElements.length).toBe(4);
 
     const routes = Array.from(linkElements).map(el => el.getAttribute('routerLink'));
     expect(routes).toContain('/configuration');
@@ -73,12 +73,10 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(navigationButtons.length).toBe(3);
-    navigationButtons.forEach(button => {
-      expect(button.classList.contains('btn-outline-primary') ||
-             button.classList.contains('btn-outline-success') ||
-             button.classList.contains('btn-outline-info')).toBeTruthy();
-    });
+    expect(navigationButtons.length).toBe(4);
+    // Check that at least the main navigation buttons have proper styling
+    const mainNavButtons = compiled.querySelectorAll('a.btn.btn-outline-primary, a.btn.btn-outline-success, a.btn.btn-outline-info');
+    expect(mainNavButtons.length).toBeGreaterThanOrEqual(3);
   });
 
   it('should display description section', () => {
@@ -132,7 +130,7 @@ describe('HomeComponent', () => {
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
     expect(h1Elements.length).toBeGreaterThanOrEqual(1);
-    expect(navigationButtons.length).toBe(3); // Navigation buttons
+    expect(navigationButtons.length).toBe(4); // Navigation buttons
   });
 
   it('should have accessible navigation elements', () => {

@@ -1,123 +1,327 @@
-<div class="container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="mb-1">Assessment</h2>
-      <p class="mb-0">Assess the implementation status of each technology or process for your organization.</p>
+<div class="container py-5">
+  <!-- Hero Section -->
+  <div class="hero-section" [class.hero-collapsed]="selectedPillarId">
+    <h1 class="hero-title" [class.hero-title-small]="selectedPillarId">Zero Trust Assessment</h1>
+    <p class="hero-subtitle" [class.hero-subtitle-hidden]="selectedPillarId">
+      Evaluate your organization's current implementation status against the Zero Trust Maturity Model. 
+      Use our streamlined assessment process with guided steps and visual progress tracking.
+    </p>
+  </div>
+
+  <!-- Pillar Selection Card -->
+  <div class="pillar-selection-wrapper" [class.pillar-compact]="selectedPillarId">
+    <div class="row justify-content-center">
+      <div class="col-lg-12">
+        <div class="pillar-selection-card" [class.card-compact]="selectedPillarId">
+          <div class="card-body" [class.py-1]="selectedPillarId">
+            <div class="pillar-content" [class.compact-layout]="selectedPillarId">
+              <!-- Large Layout (Initial State) -->
+              <div class="large-layout" [class.d-none]="selectedPillarId">
+                <div class="text-center">
+                  <div class="text-primary mb-3">
+                    <i class="bi bi-bullseye" style="font-size: 2rem;"></i>
+                  </div>
+                  <h5 class="card-title text-primary mb-3">Select Assessment Pillar</h5>
+                  <p class="card-text mb-4">Choose a Zero Trust pillar to begin your assessment</p>
+                  <select id="pillarSelect" 
+                          class="form-select form-select-lg mx-auto" 
+                          style="max-width: 400px;"
+                          [(ngModel)]="selectedPillarId" 
+                          (change)="onPillarChange()" 
+                          name="pillarSelect">
+                    <option [ngValue]="null">Choose a pillar to assess...</option>
+                    <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Compact Layout (After Selection) -->
+              <div class="compact-layout" [class.d-none]="!selectedPillarId">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="pillar-info">
+                    <span class="text-muted small d-block">Assessment Pillar</span>
+                    <h6 class="mb-0 fw-bold">{{ getSelectedPillarName() }}</h6>
+                  </div>
+                  <div class="pillar-actions">
+                    <select class="form-select form-select-sm" 
+                            style="min-width: 200px;"
+                            [(ngModel)]="selectedPillarId" 
+                            (change)="onPillarChange()" 
+                            name="pillarSelectCompact">
+                      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Pillar Selection -->
-  <div class="mb-4">
-    <label for="pillarSelect" class="form-label">Select a Pillar to assess:</label>
-    <select id="pillarSelect" class="form-select w-auto d-inline-block" [(ngModel)]="selectedPillarId" (change)="onPillarChange()" name="pillarSelect">
-      <option [ngValue]="null">Choose a pillar...</option>
-      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
-    </select>
-  </div>
-
   <!-- Pillar Summary (only show when pillar is selected) -->
-  <div *ngIf="selectedPillarId && pillarSummary.length > 0" class="mb-4 assessment-summary">
-    <h4 class="mb-3">Assessment Progress Summary</h4>
-    <div class="row">
-      <div class="col-12">
-        <div class="table-responsive">
-          <table class="table table-bordered table-hover">
-            <thead class="table-light">
-              <tr>
-                <th>Function/Capability</th>
-                <th>Type</th>
-                <th class="text-center">Technologies/Processes</th>
-                <th class="text-center">Completed</th>
-                <th>Progress</th>
-                <th class="text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let summary of pillarSummary"
-                  [class.table-active]="selectedFunctionCapabilityId === summary.functionCapability.id"
-                  [class.selected-function]="selectedFunctionCapabilityId === summary.functionCapability.id">
-                <td><strong>{{ summary.functionCapability.name }}</strong></td>
-                <td><span class="badge bg-primary">{{ summary.functionCapability.type }}</span></td>
-                <td class="text-center">{{ summary.totalCount }}</td>
-                <td class="text-center">{{ summary.completedCount }}</td>
-                <td>
-                  <div class="progress" style="height: 20px;">
-                    <div class="progress-bar"
-                         [style.width.%]="summary.completionPercentage"
-                         [class]="summary.completionPercentage === 100 ? 'bg-success' : summary.completionPercentage >= 50 ? 'bg-warning' : 'bg-danger'"
-                         role="progressbar">
-                      {{ summary.completionPercentage }}%
-                    </div>
-                  </div>
-                </td>
-                <td class="text-center">
-                  <button [class]="getButtonClass(summary)"
-                          [disabled]="summary.totalCount === 0"
-                          (click)="onAssessButtonClick(summary)"
-                          [title]="summary.totalCount === 0 ? 'No technologies or processes defined for this function/capability' : ''">
-                    {{ getButtonText(summary) }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+  <div *ngIf="selectedPillarId && pillarSummary.length > 0" class="mb-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <h3 class="text-center mb-4">Assessment Progress Overview</h3>
+        <p class="text-center text-muted mb-4">Track your progress across all functions and capabilities</p>
+
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Function/Capability</th>
+                    <th>Type</th>
+                    <th class="text-center">Items</th>
+                    <th class="text-center">Completed</th>
+                    <th>Progress</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let summary of pillarSummary"
+                      [class.table-active]="selectedFunctionCapabilityId === summary.functionCapability.id"
+                      [class.selected-function]="selectedFunctionCapabilityId === summary.functionCapability.id">
+                    <td><strong>{{ summary.functionCapability.name }}</strong></td>
+                    <td><span class="badge bg-primary">{{ summary.functionCapability.type }}</span></td>
+                    <td class="text-center"><strong>{{ summary.totalCount }}</strong></td>
+                    <td class="text-center"><strong>{{ summary.completedCount }}</strong></td>
+                    <td>
+                      <div class="progress" style="height: 24px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated"
+                             [style.width.%]="summary.completionPercentage"
+                             [class]="summary.completionPercentage === 100 ? 'bg-success' : summary.completionPercentage >= 50 ? 'bg-warning' : 'bg-danger'"
+                             role="progressbar">
+                          <strong>{{ summary.completionPercentage }}%</strong>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <button [class]="getButtonClass(summary)"
+                              [disabled]="summary.totalCount === 0"
+                              (click)="onAssessButtonClick(summary)"
+                              [title]="summary.totalCount === 0 ? 'No technologies or processes defined for this function/capability' : ''">
+                        <i class="bi" [class]="summary.totalCount === 0 ? 'bi-x-circle' : selectedFunctionCapabilityId === summary.functionCapability.id ? 'bi-clipboard-check-fill' : 'bi-clipboard-check'"></i>
+                        {{ getButtonText(summary) }}
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Message when pillar is selected but no function capabilities exist -->
-  <div *ngIf="selectedPillarId && pillarSummary.length === 0" class="alert alert-info">
-    <i class="bi bi-info-circle"></i> No function capabilities have been defined for this pillar yet. Please add them in the Configuration section first.
+  <div *ngIf="selectedPillarId && pillarSummary.length === 0" class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="alert alert-info text-center">
+        <i class="bi bi-info-circle fs-2 mb-3"></i>
+        <h5>No Function Capabilities Found</h5>
+        <p class="mb-3">No function capabilities have been defined for this pillar yet.</p>
+        <a routerLink="/configuration" class="btn btn-outline-primary">
+          <i class="bi bi-gear"></i> Configure Framework
+        </a>
+      </div>
+    </div>
   </div>
 
   <!-- Assessment Form (only show when both pillar and function/capability are selected) -->
   <div *ngIf="selectedPillarId && selectedFunctionCapabilityId && technologiesProcesses.length > 0">
     <!-- Currently Assessing Header -->
-    <div class="alert alert-primary d-flex align-items-center mb-4 current-assessment-header">
-      <i class="bi bi-clipboard-check-fill me-3 fs-4"></i>
-      <div>
-        <h5 class="mb-1">Currently Assessing:</h5>
-        <strong>{{ getSelectedFunctionCapabilityName() }}</strong>
-        <span class="badge bg-white text-primary ms-2">{{ getSelectedFunctionCapabilityType() }}</span>
-      </div>
-    </div>
-
-    <form (ngSubmit)="saveAll()">
-      <div *ngFor="let tp of technologiesProcesses; let i = index" class="card mb-3 assessment-card">
-        <div class="card-body">
-          <h5 class="card-title mb-2">
-            <span class="badge bg-secondary me-2">{{ tp.type }}</span>
-            {{ tp.description }}
-          </h5>
-          <div class="mb-2">
-            <span class="badge bg-info">{{ getFunctionCapabilityName(tp.function_capability_id) }}</span>
-            <span class="badge bg-warning text-dark">{{ getMaturityStageName(tp.maturity_stage_id) }}</span>
-          </div>
-          <div class="row align-items-center mb-2">
-            <div class="col-md-4">
-              <select class="form-select" [(ngModel)]="assessmentStatuses[i]" [name]="'status_' + tp.id">
-                <option [ngValue]="null">Select Status</option>
-                <option *ngFor="let status of statusOptions" [ngValue]="status">{{ status }}</option>
-              </select>
-            </div>
-            <div class="col-md-8">
-              <input class="form-control" [(ngModel)]="assessmentNotes[i]" [name]="'notes_' + tp.id" placeholder="Notes (optional)" />
+    <div class="row justify-content-center mb-4">
+      <div class="col-lg-10">
+        <div class="card border-success shadow-sm current-assessment-header">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                  <div class="text-success me-3">
+                    <i class="bi bi-clipboard-check-fill" style="font-size: 2rem;"></i>
+                  </div>
+                  <div>
+                    <h5 class="mb-1 text-success">Currently Assessing</h5>
+                    <h4 class="mb-1 text-dark">{{ getSelectedFunctionCapabilityName() }}</h4>
+                    <span class="badge bg-success">{{ getSelectedFunctionCapabilityType() }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 text-end">
+                <div class="assessment-progress">
+                  <div class="text-muted small mb-1">Overall Progress</div>
+                  <div class="progress mb-2" style="height: 24px;">
+                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                         [style.width.%]="getCurrentProgress()"
+                         role="progressbar">
+                      <strong>{{ getCurrentProgress() }}%</strong>
+                    </div>
+                  </div>
+                  <small class="text-muted">{{ technologiesProcesses.length }} items to assess</small>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <button class="btn btn-success" type="submit">Save All Assessments</button>
-    </form>
+    </div>
+
+    <!-- Pagination Header -->
+    <div class="row justify-content-center mb-4" *ngIf="totalPages > 1">
+      <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="page-info">
+            <h6 class="mb-0">
+              Page {{ currentPage }} of {{ totalPages }}
+              <small class="text-muted">
+                ({{ (currentPage - 1) * itemsPerPage + 1 }}-{{ Math.min(currentPage * itemsPerPage, technologiesProcesses.length) }} of {{ technologiesProcesses.length }} items)
+              </small>
+            </h6>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-outline-secondary btn-sm me-2"
+                    (click)="saveCurrentPage()"
+                    [disabled]="paginatedTechnologiesProcesses.length === 0">
+              <i class="bi bi-floppy"></i> Save Current Page
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assessment Cards -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <form (ngSubmit)="saveAll()">
+          <div *ngFor="let tp of paginatedTechnologiesProcesses; let i = index" class="card mb-2 assessment-card shadow-sm">
+            <div class="card-body py-3">
+              <!-- Header Row: Item info -->
+              <div class="d-flex align-items-center mb-3">
+                <div class="item-number me-3">
+                  <div class="badge bg-secondary rounded-pill">{{ getGlobalItemIndex(i) + 1 }}</div>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                    <span class="badge" [class]="tp.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+                      <i [class]="tp.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-2'"></i>
+                      {{ tp.type }}
+                    </span>
+                    <h6 class="mb-0 text-dark fw-bold">{{ tp.description }}</h6>
+                  </div>
+                  <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="badge bg-info small">
+                      <i class="bi bi-bookmark"></i>
+                      {{ getFunctionCapabilityName(tp.function_capability_id) }}
+                    </span>
+                    <span class="badge bg-warning text-dark small">
+                      <i class="bi bi-ladder"></i>
+                      {{ getMaturityStageName(tp.maturity_stage_id) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="auto-save-indicator" *ngIf="isAutoSaving">
+                  <small class="text-muted">
+                    <i class="bi bi-arrow-clockwise spin"></i> Auto-saving...
+                  </small>
+                </div>
+              </div>
+
+              <!-- Assessment Questions Row -->
+              <div class="assessment-questions">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small text-muted">Implementation Status</label>
+                    <select class="form-select"
+                            [value]="assessmentStatuses[getGlobalItemIndex(i)]"
+                            (change)="onStatusChange($event, i)"
+                            [name]="'status_' + tp.id">
+                      <option [value]="null">Select Status</option>
+                      <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold small text-muted">Assessment Notes</label>
+                    <textarea class="form-control"
+                              rows="2"
+                              [value]="assessmentNotes[getGlobalItemIndex(i)] || ''"
+                              (input)="onNotesChange($event, i)"
+                              [name]="'notes_' + tp.id"
+                              placeholder="Add notes about implementation..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination Navigation -->
+          <div class="d-flex justify-content-between align-items-center mb-4" *ngIf="totalPages > 1">
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    (click)="previousPage()"
+                    [disabled]="currentPage === 1">
+              <i class="bi bi-chevron-left"></i> Previous
+            </button>
+
+            <nav aria-label="Assessment pagination">
+              <ul class="pagination mb-0">
+                <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+                  <button type="button" class="page-link" (click)="goToPage(page)">{{ page }}</button>
+                </li>
+              </ul>
+            </nav>
+
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    (click)="nextPage()"
+                    [disabled]="currentPage === totalPages">
+              Next <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+
+          <!-- Auto-save Status -->
+          <div class="text-center mt-4" *ngIf="technologiesProcesses.length > 0">
+            <div class="auto-save-status">
+              <small class="text-muted">
+                <i class="bi bi-shield-check text-success"></i>
+                Auto-save enabled - Your progress is automatically saved as you work
+              </small>
+              <div *ngIf="isAutoSaving" class="mt-2">
+                <small class="text-info">
+                  <i class="bi bi-arrow-clockwise spin"></i> Saving...
+                </small>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <!-- Message when function/capability is selected but no technologies/processes exist -->
-  <div *ngIf="selectedPillarId && selectedFunctionCapabilityId && technologiesProcesses.length === 0" class="alert alert-info">
-    <i class="bi bi-info-circle"></i> No technologies or processes have been defined for this function/capability yet. Please add them in the Configuration section first.
+  <div *ngIf="selectedPillarId && selectedFunctionCapabilityId && technologiesProcesses.length === 0" class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="alert alert-info text-center">
+        <i class="bi bi-info-circle fs-2 mb-3"></i>
+        <h5>No Technologies or Processes Found</h5>
+        <p class="mb-3">No technologies or processes have been defined for this function/capability yet.</p>
+        <a routerLink="/configuration" class="btn btn-outline-primary">
+          <i class="bi bi-gear"></i> Configure Technologies & Processes
+        </a>
+      </div>
+    </div>
   </div>
 
-  <!-- Success message -->
-  <div *ngIf="showSuccess" class="alert alert-success mt-3">
-    <i class="bi bi-check-circle"></i> Assessments saved successfully!
+  <!-- Auto-save success message (brief) -->
+  <div *ngIf="showSuccess" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+    <div class="toast show" role="alert">
+      <div class="toast-body bg-success text-white rounded">
+        <i class="bi bi-check-circle me-2"></i> Assessment auto-saved successfully!
+      </div>
+    </div>
   </div>
 </div>

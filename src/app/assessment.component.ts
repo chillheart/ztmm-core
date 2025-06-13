@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from './models/ztmm.models';
 import { AssessmentStatus } from './models/ztmm.models';
@@ -17,9 +18,9 @@ interface PillarSummary {
   templateUrl: './assessment.component.html',
   styleUrls: ['./assessment.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, RouterModule]
 })
-export class AssessmentComponent implements OnInit {
+export class AssessmentComponent implements OnInit, OnDestroy {
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
@@ -32,8 +33,22 @@ export class AssessmentComponent implements OnInit {
 
   assessmentStatuses: (AssessmentStatus | null)[] = [];
   assessmentNotes: string[] = [];
-  statusOptions: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented'];
+  statusOptions: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented', 'Superseded'];
   showSuccess = false;
+
+  // Pagination properties
+  currentPage = 1;
+  itemsPerPage = 5;
+  totalPages = 0;
+  paginatedTechnologiesProcesses: TechnologyProcess[] = [];
+
+  // Auto-save properties
+  private autoSaveTimeout: any;
+  private readonly autoSaveDelay = 1000; // 1 second delay
+  isAutoSaving = false;
+
+  // Make Math available to template
+  Math = Math;
 
   constructor(private data: ZtmmDataWebService) {
     // Constructor should only set up dependencies, not call async methods
@@ -114,10 +129,17 @@ export class AssessmentComponent implements OnInit {
           this.assessmentNotes[i] = existingAssessment.notes || '';
         }
       }
+
+      // Reset pagination to first page and update pagination
+      this.currentPage = 1;
+      this.updatePagination();
     } else {
       this.technologiesProcesses = [];
       this.assessmentStatuses = [];
       this.assessmentNotes = [];
+      this.paginatedTechnologiesProcesses = [];
+      this.totalPages = 0;
+      this.currentPage = 1;
     }
   }
 
@@ -244,4 +266,153 @@ export class AssessmentComponent implements OnInit {
     setTimeout(() => (this.showSuccess = false), 3000);
   }
 
+  async saveCurrentPage() {
+    // Save only the current page assessments
+    for (let i = 0; i < this.paginatedTechnologiesProcesses.length; i++) {
+      const globalIndex = this.getGlobalItemIndex(i);
+      const tp = this.paginatedTechnologiesProcesses[i];
+      const status = this.assessmentStatuses[globalIndex];
+      const notes = this.assessmentNotes[globalIndex];
+      if (status) {
+        await this.data.saveAssessment(tp.id, status, notes);
+      }
+    }
+
+    // Reload assessment responses and rebuild summary
+    this.assessmentResponses = await this.data.getAssessmentResponses();
+    await this.buildPillarSummary();
+
+    // Show success message
+    this.showSuccess = true;
+    setTimeout(() => (this.showSuccess = false), 2000);
+  }
+
+  // Pagination methods
+  updatePagination() {
+    this.totalPages = Math.ceil(this.technologiesProcesses.length / this.itemsPerPage);
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedTechnologiesProcesses = this.technologiesProcesses.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePagination();
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePagination();
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePagination();
+    }
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+
+    if (this.totalPages <= maxVisible) {
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+      const end = Math.min(this.totalPages, start + maxVisible - 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
+  }
+
+  getCurrentProgress(): number {
+    if (this.technologiesProcesses.length === 0) return 0;
+    const completedCount = this.assessmentStatuses.filter(status => status !== null).length;
+    return Math.round((completedCount / this.technologiesProcesses.length) * 100);
+  }
+
+  getGlobalItemIndex(localIndex: number): number {
+    return (this.currentPage - 1) * this.itemsPerPage + localIndex;
+  }
+
+  // Auto-save functionality
+  onAssessmentChange(index: number, field: 'status' | 'notes', value: any) {
+    const globalIndex = this.getGlobalItemIndex(index);
+
+    if (field === 'status') {
+      this.assessmentStatuses[globalIndex] = value;
+    } else {
+      this.assessmentNotes[globalIndex] = value;
+    }
+
+    // Clear existing timeout
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout);
+    }
+
+    // Set new timeout for auto-save
+    this.autoSaveTimeout = setTimeout(() => {
+      this.autoSaveCurrentItem(globalIndex);
+    }, this.autoSaveDelay);
+  }
+
+  private async autoSaveCurrentItem(globalIndex: number) {
+    const tp = this.technologiesProcesses[globalIndex];
+    const status = this.assessmentStatuses[globalIndex];
+
+    if (tp && status) {
+      try {
+        this.isAutoSaving = true;
+        await this.data.saveAssessment(
+          tp.id,
+          status,
+          this.assessmentNotes[globalIndex] || ''
+        );
+
+        // Reload assessment responses and rebuild summary
+        this.assessmentResponses = await this.data.getAssessmentResponses();
+        await this.buildPillarSummary();
+
+        this.isAutoSaving = false;
+      } catch (error) {
+        console.error('Error auto-saving assessment:', error);
+        this.isAutoSaving = false;
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    // Clean up timeout on component destruction
+    if (this.autoSaveTimeout) {
+      clearTimeout(this.autoSaveTimeout);
+    }
+  }
+
+  // Helper methods for event handling
+  onStatusChange(event: Event, index: number) {
+    const target = event.target as HTMLSelectElement;
+    this.onAssessmentChange(index, 'status', target.value);
+  }
+
+  onNotesChange(event: Event, index: number) {
+    const target = event.target as HTMLTextAreaElement;
+    this.onAssessmentChange(index, 'notes', target.value);
+  }
+
+  // Helper method for getting selected pillar name
+  getSelectedPillarName(): string {
+    if (!this.selectedPillarId) return 'Selected Pillar';
+    return this.pillars.find(p => p.id === this.selectedPillarId)?.name || 'Selected Pillar';
+  }
 }

@@ -224,13 +224,15 @@ export class ResultsComponent {
       const fullyImplementedCount = stageItems.filter(item => item.status === 'Fully Implemented').length;
       const partiallyImplementedCount = stageItems.filter(item => item.status === 'Partially Implemented').length;
       const notImplementedCount = stageItems.filter(item => item.status === 'Not Implemented').length;
-      const assessedCount = fullyImplementedCount + partiallyImplementedCount + notImplementedCount;
+      const supersededCount = stageItems.filter(item => item.status === 'Superseded').length;
+      const assessedCount = fullyImplementedCount + partiallyImplementedCount + notImplementedCount + supersededCount;
 
       let status: 'green' | 'yellow' | 'red' | 'not-assessed';
 
       if (assessedCount === 0) {
         status = 'not-assessed';
-      } else if (fullyImplementedCount === stageItems.length) {
+      } else if ((fullyImplementedCount + supersededCount) === stageItems.length) {
+        // All items are either fully implemented or superseded (both are positive outcomes)
         status = 'green';
       } else if (assessedCount === stageItems.length && notImplementedCount === stageItems.length) {
         status = 'red';

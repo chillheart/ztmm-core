@@ -118,7 +118,7 @@ describe('Application Integration Tests', () => {
 
       const compiled = fixture.nativeElement as HTMLElement;
       const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
-      expect(navigationButtons.length).toBe(3);
+      expect(navigationButtons.length).toBe(4);
     });
 
     it('should load Assessment component with proper initialization', () => {
@@ -130,7 +130,8 @@ describe('Application Integration Tests', () => {
       expect(component.statusOptions).toEqual([
         'Not Implemented',
         'Partially Implemented',
-        'Fully Implemented'
+        'Fully Implemented',
+        'Superseded'
       ]);
     });
 
