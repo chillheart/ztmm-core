@@ -178,7 +178,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -194,7 +194,7 @@
     );
     transition: left 0.6s ease;
   }
-  
+
   &:hover::before {
     left: 100%;
   }
@@ -310,7 +310,7 @@
   margin-bottom: 2rem;
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center top;
-  
+
   &.hero-collapsed {
     margin-bottom: 1rem;
     transform: scale(0.85);
@@ -323,7 +323,7 @@
   color: #052c65;
   margin-bottom: 1rem;
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &.hero-title-small {
     font-size: 2rem;
     margin-bottom: 0.5rem;
@@ -338,7 +338,7 @@
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 1;
   transform: translateY(0);
-  
+
   &.hero-subtitle-hidden {
     opacity: 0;
     transform: translateY(-20px);
@@ -352,10 +352,10 @@
 .pillar-selection-wrapper {
   margin-bottom: 3rem;
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &.pillar-compact {
     margin-bottom: 2rem;
-    
+
     .col-lg-12 {
       max-width: 100%;
     }
@@ -369,7 +369,7 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 200px;
-  
+
   &.card-compact {
     min-height: auto;
     background: linear-gradient(135deg, #e7f9e7 0%, #f0f9f0 100%);
@@ -377,11 +377,11 @@
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
     transform: translateY(-10px);
   }
-  
+
   .card-body {
     padding: 2rem;
     transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     &.py-1 {
       padding: 1rem 2rem;
     }
@@ -398,7 +398,7 @@
   opacity: 1;
   transform: translateY(0);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &.d-none {
     opacity: 0;
     transform: translateY(-30px);
@@ -410,7 +410,7 @@
   opacity: 1;
   transform: translateY(0);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &.d-none {
     opacity: 0;
     transform: translateY(30px);
@@ -425,12 +425,12 @@
 // Pillar Info Animation
 .pillar-info {
   transition: all 0.3s ease-in-out;
-  
+
   h6 {
     color: #155724;
     transition: color 0.3s ease;
   }
-  
+
   .text-muted {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -444,7 +444,7 @@
   .form-select {
     transition: all 0.3s ease;
     border-color: #28a745;
-    
+
     &:focus {
       border-color: #1e7e34;
       box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
@@ -452,10 +452,129 @@
   }
 }
 
-// Staggered animation for assessment cards (when they appear)
-@for $i from 1 through 10 {
-  .assessment-card:nth-child(#{$i}) {
-    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) #{($i - 1) * 0.1}s both;
+// Overall Progress Summary Styles
+.overall-progress-summary {
+  &.fade-in-animation {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  .pillar-progress-card {
+    border: none;
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      border: 2px solid #007bff;
+    }
+
+    &:focus {
+      outline: 2px solid #007bff;
+      outline-offset: 2px;
+    }
+
+    .pillar-icon {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover .pillar-icon {
+      transform: scale(1.1);
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #495057;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+
+    &.stagger-animation {
+      animation: slideInUp 0.6s ease-out both;
+    }
+
+    // Add keyboard navigation visual feedback
+    &:focus-visible {
+      outline: 3px solid #007bff;
+      outline-offset: 3px;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+  }
+
+  .overall-stats {
+    .stat-item {
+      padding: 1rem;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-description {
+      font-size: 0.875rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// Back to Overview Animation
+.back-to-overview {
+  &.slide-in-animation {
+    animation: slideInFromLeft 0.4s ease-out;
+  }
+}
+
+// Additional slide in animation
+.slide-in-animation {
+  animation: slideInUp 0.5s ease-out;
+}
+
+// Animation Keyframes
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Update existing slideInUp keyframe for consistency
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -495,12 +614,12 @@
 
   .hero-title {
     font-size: 2.5rem;
-    
+
     &.hero-title-small {
       font-size: 1.75rem;
     }
   }
-  
+
   .hero-subtitle {
     font-size: 1.1rem;
   }
@@ -508,13 +627,13 @@
   .pillar-selection-card {
     .card-body {
       padding: 1.5rem;
-      
+
       &.py-1 {
         padding: 0.75rem 1.5rem;
       }
     }
   }
-  
+
   .compact-layout {
     .d-flex {
       flex-direction: column;
@@ -536,7 +655,7 @@
     .col-md-4 {
       margin-top: 1rem;
     }
-    
+
     &:hover {
       transform: translateY(-2px) scale(1.01);
     }
@@ -552,7 +671,7 @@
       margin-top: 1rem;
     }
   }
-  
+
   // Disable staggered animations on mobile for better performance
   @for $i from 1 through 10 {
     .assessment-card:nth-child(#{$i}) {

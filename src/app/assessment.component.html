@@ -3,54 +3,123 @@
   <div class="hero-section" [class.hero-collapsed]="selectedPillarId">
     <h1 class="hero-title" [class.hero-title-small]="selectedPillarId">Zero Trust Assessment</h1>
     <p class="hero-subtitle" [class.hero-subtitle-hidden]="selectedPillarId">
-      Evaluate your organization's current implementation status against the Zero Trust Maturity Model. 
+      Evaluate your organization's current implementation status against the Zero Trust Maturity Model.
       Use our streamlined assessment process with guided steps and visual progress tracking.
     </p>
   </div>
 
-  <!-- Pillar Selection Card -->
-  <div class="pillar-selection-wrapper" [class.pillar-compact]="selectedPillarId">
+
+  <!-- Overall Progress Summary (show when no pillar is selected) -->
+  <div *ngIf="showOverallSummary && overallPillarProgress.length > 0"
+       class="overall-progress-summary mb-5 fade-in-animation">
     <div class="row justify-content-center">
-      <div class="col-lg-12">
-        <div class="pillar-selection-card" [class.card-compact]="selectedPillarId">
-          <div class="card-body" [class.py-1]="selectedPillarId">
-            <div class="pillar-content" [class.compact-layout]="selectedPillarId">
-              <!-- Large Layout (Initial State) -->
-              <div class="large-layout" [class.d-none]="selectedPillarId">
-                <div class="text-center">
-                  <div class="text-primary mb-3">
-                    <i class="bi bi-bullseye" style="font-size: 2rem;"></i>
+      <div class="col-lg-10">
+        <div class="text-center mb-5">
+          <h2 class="mb-3">Choose Your Assessment Pillar</h2>
+          <p class="text-muted lead">Click on any pillar below to view and assess its functions and capabilities</p>
+        </div>
+
+        <div class="row g-4">
+          <div *ngFor="let progress of overallPillarProgress; let i = index"
+               class="col-md-6 col-lg-4">
+            <div class="card h-100 pillar-progress-card stagger-animation"
+                 [style.animation-delay.ms]="i * 100"
+                 (click)="selectedPillarId = progress.pillar.id; onPillarChange()"
+                 role="button"
+                 tabindex="0"
+                 (keydown.enter)="selectedPillarId = progress.pillar.id; onPillarChange()"
+                 (keydown.space)="selectedPillarId = progress.pillar.id; onPillarChange()">
+              <div class="card-body text-center">
+                <div class="pillar-icon mb-3">
+                  <i class="bi bi-diagram-3-fill text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="card-title mb-3">{{ progress.pillar.name }}</h5>
+
+                <!-- Progress Bar -->
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <small class="text-muted">Progress</small>
+                    <small class="text-muted fw-bold">{{ progress.progressPercentage }}%</small>
                   </div>
-                  <h5 class="card-title text-primary mb-3">Select Assessment Pillar</h5>
-                  <p class="card-text mb-4">Choose a Zero Trust pillar to begin your assessment</p>
-                  <select id="pillarSelect" 
-                          class="form-select form-select-lg mx-auto" 
-                          style="max-width: 400px;"
-                          [(ngModel)]="selectedPillarId" 
-                          (change)="onPillarChange()" 
-                          name="pillarSelect">
-                    <option [ngValue]="null">Choose a pillar to assess...</option>
-                    <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
-                  </select>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar"
+                         [style.width.%]="progress.progressPercentage"
+                         [class]="progress.progressPercentage === 100 ? 'bg-success' : progress.progressPercentage >= 50 ? 'bg-warning' : 'bg-danger'"
+                         role="progressbar"></div>
+                  </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="pillar-stats">
+                  <div class="row text-center">
+                    <div class="col-4">
+                      <div class="stat-value">{{ progress.functionCount }}</div>
+                      <div class="stat-label">Functions</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="stat-value">{{ progress.completedItems }}</div>
+                      <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="col-4">
+                      <div class="stat-value">{{ progress.totalItems }}</div>
+                      <div class="stat-label">Total</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Hint -->
+                <div class="mt-3">
+                  <small class="text-muted">
+                    <i class="bi bi-cursor"></i> Click to assess
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall Statistics -->
+        <div class="overall-stats mt-5">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="text-center mb-4 text-muted">Assessment Overview</h6>
+              <div class="row text-center">
+                <div class="col-md-3">
+                  <div class="stat-item">
+                    <div class="stat-number text-primary">{{ overallPillarProgress.length }}</div>
+                    <div class="stat-description">Total Pillars</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="stat-item">
+                    <div class="stat-number text-info">{{ getTotalFunctions() }}</div>
+                    <div class="stat-description">Functions & Capabilities</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="stat-item">
+                    <div class="stat-number text-success">{{ getTotalCompletedItems() }}</div>
+                    <div class="stat-description">Items Assessed</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="stat-item">
+                    <div class="stat-number text-warning">{{ getTotalItems() }}</div>
+                    <div class="stat-description">Total Items</div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Compact Layout (After Selection) -->
-              <div class="compact-layout" [class.d-none]="!selectedPillarId">
-                <div class="d-flex align-items-center justify-content-between">
-                  <div class="pillar-info">
-                    <span class="text-muted small d-block">Assessment Pillar</span>
-                    <h6 class="mb-0 fw-bold">{{ getSelectedPillarName() }}</h6>
-                  </div>
-                  <div class="pillar-actions">
-                    <select class="form-select form-select-sm" 
-                            style="min-width: 200px;"
-                            [(ngModel)]="selectedPillarId" 
-                            (change)="onPillarChange()" 
-                            name="pillarSelectCompact">
-                      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
-                    </select>
-                  </div>
+              <!-- Overall Progress Bar -->
+              <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-muted">Overall Progress</span>
+                  <span class="text-muted fw-bold">{{ getOverallProgress() }}%</span>
+                </div>
+                <div class="progress" style="height: 12px;">
+                  <div class="progress-bar bg-primary"
+                       [style.width.%]="getOverallProgress()"
+                       role="progressbar"></div>
                 </div>
               </div>
             </div>
@@ -60,8 +129,21 @@
     </div>
   </div>
 
+  <!-- Back Button (show when pillar is selected) -->
+  <div *ngIf="selectedPillarId" class="back-to-overview mb-4 slide-in-animation">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <button class="btn btn-outline-secondary btn-sm"
+                (click)="goBackToOverallSummary()">
+          <i class="bi bi-arrow-left"></i> Back to Overview
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Pillar Summary (only show when pillar is selected) -->
-  <div *ngIf="selectedPillarId && pillarSummary.length > 0" class="mb-5">
+  <div *ngIf="selectedPillarId && pillarSummary.length > 0"
+       class="mb-5 slide-in-animation">
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <h3 class="text-center mb-4">Assessment Progress Overview</h3>

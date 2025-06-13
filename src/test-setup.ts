@@ -2,6 +2,13 @@
 
 import 'zone.js/testing';
 
+// Interface for extended window object to store original functions
+interface ExtendedWindow extends Window {
+  originalConfirm?: typeof window.confirm;
+  originalAlert?: typeof window.alert;
+  originalPrompt?: typeof window.prompt;
+}
+
 // Manual setup of fake-indexeddb to avoid read-only property errors
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let FDBFactory: any;
@@ -153,9 +160,9 @@ if (typeof window !== 'undefined') {
   };
 
   // Store originals for tests that need to restore them
-  (window as any).originalConfirm = originalConfirm;
-  (window as any).originalAlert = originalAlert;
-  (window as any).originalPrompt = originalPrompt;
+  (window as ExtendedWindow).originalConfirm = originalConfirm;
+  (window as ExtendedWindow).originalAlert = originalAlert;
+  (window as ExtendedWindow).originalPrompt = originalPrompt;
 }
 
 // First, initialize the Angular testing environment.
