@@ -1,0 +1,59 @@
+name: "ZTMM Assessment CodeQL Config"
+
+# Disable the default JavaScript extractor and enable the TypeScript extractor
+disable-default-language-config: false
+
+# Specify paths to analyze and paths to ignore
+paths:
+# Include only source code directories we want to analyze
+- src/app/
+- src/main.ts
+- scripts/
+
+# Exclude paths that shouldn't be analyzed
+paths-ignore:
+# Build and dependency directories
+- node_modules/**
+- dist/**
+- coverage/**
+- .angular/**
+- .vscode/**
+# Test files
+- "**/*.spec.ts"
+- "**/*.test.ts"
+- "src/test-setup.ts"
+- "src/app/testing/**"
+# Minified and generated files
+- "**/*.min.js"
+- "**/*.d.ts"
+- "**/*.map"
+# Security test directory (contains intentional vulnerable patterns for testing)
+- "src/app/security/**"
+
+# Specify queries to run
+queries:
+- uses: security-and-quality
+- uses: security-extended
+
+# Configure JavaScript/TypeScript analysis
+javascript:
+  # Include TypeScript files
+  extractor:
+    typescript: true
+
+  # Configure build command
+  build-command: |
+    npm ci
+    npm run build:prod
+
+# Custom configuration for Angular projects
+extraction:
+  javascript:
+    # Angular-specific extraction settings
+    index-files: true
+    externs:
+    - "src/**/*.ts"
+    - "src/**/*.js"
+    typescript:
+      # Enable strict type checking for better analysis
+      strict: true

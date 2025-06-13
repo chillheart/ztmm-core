@@ -15,6 +15,11 @@ describe('Basic Security Tests', () => {
   let mockDataService: any;
 
   beforeEach(async () => {
+    // Ensure confirm dialogs are properly mocked to prevent hanging
+    spyOn(window, 'confirm').and.returnValue(true);
+    spyOn(window, 'alert').and.stub();
+    spyOn(window, 'prompt').and.returnValue('');
+
     mockDataService = TestUtilsIndexedDB.createMockZtmmDataWebService();
 
     await TestBed.configureTestingModule({

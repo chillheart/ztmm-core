@@ -60,6 +60,11 @@ module.exports = function (config) {
     browsers: ['Chrome'],
     restartOnFileChange: true,
     singleRun: false,
+    // Increase timeouts for security tests that might take longer
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 1,
+    browserNoActivityTimeout: 60000,
+    captureTimeout: 60000,
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',

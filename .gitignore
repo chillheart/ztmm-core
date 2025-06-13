@@ -49,6 +49,10 @@ Thumbs.db
 security-test-results.log
 integration-test-results.log
 npm-audit-report.json
+
+# CodeQL local analysis
+codeql-database/
+codeql-results/
 retire-report.json
 
 # Environment and sensitive files

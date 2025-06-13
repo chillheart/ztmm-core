@@ -2,6 +2,7 @@
 const eslint = require("@eslint/js");
 const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
+const security = require("eslint-plugin-security");
 
 module.exports = tseslint.config(
   {
@@ -11,6 +12,7 @@ module.exports = tseslint.config(
       ...tseslint.configs.recommended,
       ...tseslint.configs.stylistic,
       ...angular.configs.tsRecommended,
+      security.configs.recommended,
     ],
     processor: angular.processInlineTemplates,
     languageOptions: {
@@ -82,6 +84,7 @@ module.exports = tseslint.config(
       "*.min.js",
       "build/**",
       ".angular/**",
+      "src/app/security/**", // Ignore security test directory (intentionally contains vulnerable patterns)
     ],
   }
 );
