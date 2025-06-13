@@ -84,7 +84,7 @@ export class PillarsTabComponent {
     this.dragPillarIndex = null;
   }
 
-  isInvalid(form: NgForm, name: string, submitted: boolean = false): boolean {
+  isInvalid(form: NgForm, name: string, submitted = false): boolean {
     const control = form.controls[name];
     return control && control.invalid && (control.dirty || control.touched || submitted);
   }

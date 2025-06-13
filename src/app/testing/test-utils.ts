@@ -2,7 +2,6 @@ import { ComponentFixture } from '@angular/core/testing';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../models/ztmm.models';
-import { of, BehaviorSubject } from 'rxjs';
 
 /**
  * Test utilities for ZTMM Assessment application

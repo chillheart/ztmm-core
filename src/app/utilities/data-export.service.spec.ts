@@ -45,23 +45,6 @@ describe('DataExportService', () => {
   };
 
   beforeEach(() => {
-    const dataServiceSpy = jasmine.createSpyObj('ZtmmDataWebService', [
-      'getPillars',
-      'addPillar',
-      'getFunctionCapabilities',
-      'addFunctionCapability',
-      'getMaturityStages',
-      'getTechnologiesProcesses',
-      'getAllTechnologiesProcesses',
-      'getTechnologiesProcessesByFunction',
-      'addTechnologyProcess',
-      'getAssessmentResponses',
-      'saveAssessment',
-      'clearAllData',
-      'resetDatabase',
-      'importDataWithPreservedIds'
-    ]);
-
     // Create mock services for testing
     const mockZtmmDataWebService = TestUtilsIndexedDB.createMockZtmmDataWebService();
 

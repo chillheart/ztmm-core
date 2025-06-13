@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { IndexedDBService } from './indexeddb.service';
-import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 
 // IndexedDB mock is already set up in test-setup.ts
 // No need to import fake-indexeddb/auto here to avoid conflicts
@@ -40,7 +39,7 @@ describe('IndexedDBService', () => {
 
       // Wait for database deletion to complete
       if (testDbName && window.indexedDB && window.indexedDB.deleteDatabase) {
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((resolve, _reject) => {
           const deleteRequest = window.indexedDB.deleteDatabase(testDbName);
           deleteRequest.onsuccess = () => {
             console.log(`Deleted test database: ${testDbName}`);
@@ -401,7 +400,7 @@ describe('IndexedDBService', () => {
       const afterBackupPillarName = `After Backup Pillar ${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${performance.now()}-${Math.floor(Math.random() * 1000000)}`;
 
       // Verify the pillars don't already exist before adding them
-      let existingPillars = await service.getPillars();
+      const existingPillars = await service.getPillars();
       expect(existingPillars.some(p => p.name === backupPillarName)).toBeFalse();
       expect(existingPillars.some(p => p.name === afterBackupPillarName)).toBeFalse();
 
@@ -455,7 +454,7 @@ describe('IndexedDBService', () => {
       const uniquePillarName = `User Pillar ${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${performance.now()}-${Math.floor(Math.random() * 1000000)}`;
 
       // Verify the pillar doesn't already exist before adding it
-      let existingPillars = await service.getPillars();
+      const existingPillars = await service.getPillars();
       expect(existingPillars.some(p => p.name === uniquePillarName)).toBeFalse();
 
       await service.addPillar(uniquePillarName);

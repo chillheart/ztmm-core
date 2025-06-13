@@ -33,7 +33,7 @@ interface ZtmmDB extends DBSchema {
     key: string;
     value: {
       name: string;
-      data: any;
+      data: unknown; // Using unknown instead of any for better type safety
       timestamp: number;
     };
   };
@@ -230,7 +230,7 @@ export class IndexedDBService {
   async getPillars(): Promise<Pillar[]> {
     await this.ensureInitialized();
     try {
-      const pillars = await this.db!.getAllFromIndex('pillars', 'by-order');
+      const pillars = await this.getDatabase().getAllFromIndex('pillars', 'by-order');
       return (pillars || []).map(p => ({ id: p.id, name: p.name }));
     } catch (error) {
       console.error('Error getting pillars:', error);
@@ -250,13 +250,13 @@ export class IndexedDBService {
 
     // Check for duplicates
     try {
-      const existing = await this.db!.getFromIndex('pillars', 'by-name', name.trim());
+      const existing = await this.getDatabase().getFromIndex('pillars', 'by-name', name.trim());
       if (existing) {
         throw new Error('Pillar with this name already exists');
       }
       // No duplicate found, proceed with creation
-    } catch (error: any) {
-      if (error.message.includes('already exists')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message.includes('already exists')) {
         throw error;
       }
       // Other errors (like database access issues) - log and continue
@@ -265,10 +265,10 @@ export class IndexedDBService {
 
     const newPillar: Omit<Pillar, 'id'> & { order_index: number } = {
       name: name.trim(),
-      order_index: (await this.db!.count('pillars')) + 1
+      order_index: (await this.getDatabase().count('pillars')) + 1
     };
 
-    await this.db!.add('pillars', newPillar as Pillar & { order_index: number });
+    await this.getDatabase().add('pillars', newPillar as Pillar & { order_index: number });
   }
 
   async removePillar(id: number): Promise<void> {
@@ -278,7 +278,7 @@ export class IndexedDBService {
       throw new Error('Invalid pillar ID');
     }
 
-    const tx = this.db!.transaction(['pillars', 'functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
+    const tx = this.getDatabase().transaction(['pillars', 'functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
 
     try {
       // Get all function capabilities for this pillar
@@ -325,13 +325,13 @@ export class IndexedDBService {
       throw new Error('Pillar name is required');
     }
 
-    const pillar = await this.db!.get('pillars', id);
+    const pillar = await this.getDatabase().get('pillars', id);
     if (!pillar) {
       throw new Error('Pillar not found');
     }
 
     pillar.name = name.trim();
-    await this.db!.put('pillars', pillar);
+    await this.getDatabase().put('pillars', pillar);
   }
 
   async savePillarOrder(order: number[]): Promise<void> {
@@ -341,7 +341,7 @@ export class IndexedDBService {
       throw new Error('Invalid order array');
     }
 
-    const tx = this.db!.transaction('pillars', 'readwrite');
+    const tx = this.getDatabase().transaction('pillars', 'readwrite');
 
     for (let i = 0; i < order.length; i++) {
       const pillar = await tx.store.get(order[i]);
@@ -358,7 +358,7 @@ export class IndexedDBService {
   async getFunctionCapabilities(): Promise<FunctionCapability[]> {
     await this.ensureInitialized();
     try {
-      const capabilities = await this.db!.getAllFromIndex('functionCapabilities', 'by-order');
+      const capabilities = await this.getDatabase().getAllFromIndex('functionCapabilities', 'by-order');
       return (capabilities || []).map(fc => ({
         id: fc.id,
         name: fc.name,
@@ -388,10 +388,10 @@ export class IndexedDBService {
       name: name.trim(),
       type,
       pillar_id: pillarId,
-      order_index: (await this.db!.count('functionCapabilities')) + 1
+      order_index: (await this.getDatabase().count('functionCapabilities')) + 1
     };
 
-    await this.db!.add('functionCapabilities', newFunctionCapability as FunctionCapability & { order_index: number });
+    await this.getDatabase().add('functionCapabilities', newFunctionCapability as FunctionCapability & { order_index: number });
   }
 
   async removeFunctionCapability(id: number): Promise<void> {
@@ -401,7 +401,7 @@ export class IndexedDBService {
       throw new Error('Invalid function capability ID');
     }
 
-    const tx = this.db!.transaction(['functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
+    const tx = this.getDatabase().transaction(['functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
 
     try {
       // Get all technologies/processes for this function capability
@@ -446,7 +446,7 @@ export class IndexedDBService {
       throw new Error('Invalid pillar ID');
     }
 
-    const functionCapability = await this.db!.get('functionCapabilities', id);
+    const functionCapability = await this.getDatabase().get('functionCapabilities', id);
     if (!functionCapability) {
       throw new Error('Function capability not found');
     }
@@ -455,7 +455,7 @@ export class IndexedDBService {
     functionCapability.type = type;
     functionCapability.pillar_id = pillarId;
 
-    await this.db!.put('functionCapabilities', functionCapability);
+    await this.getDatabase().put('functionCapabilities', functionCapability);
   }
 
   async saveFunctionOrder(order: number[]): Promise<void> {
@@ -465,7 +465,7 @@ export class IndexedDBService {
       throw new Error('Invalid order array');
     }
 
-    const tx = this.db!.transaction('functionCapabilities', 'readwrite');
+    const tx = this.getDatabase().transaction('functionCapabilities', 'readwrite');
 
     for (let i = 0; i < order.length; i++) {
       const fc = await tx.store.get(order[i]);
@@ -482,7 +482,7 @@ export class IndexedDBService {
   async getMaturityStages(): Promise<MaturityStage[]> {
     await this.ensureInitialized();
     try {
-      const result = await this.db!.getAll('maturityStages');
+      const result = await this.getDatabase().getAll('maturityStages');
       return result || [];
     } catch (error) {
       console.error('Error getting maturity stages:', error);
@@ -495,16 +495,16 @@ export class IndexedDBService {
     await this.ensureInitialized();
 
     if (functionCapabilityId !== undefined) {
-      return await this.db!.getAllFromIndex('technologiesProcesses', 'by-function-capability', functionCapabilityId);
+      return await this.getDatabase().getAllFromIndex('technologiesProcesses', 'by-function-capability', functionCapabilityId);
     } else {
-      return await this.db!.getAll('technologiesProcesses');
+      return await this.getDatabase().getAll('technologiesProcesses');
     }
   }
 
   async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
     try {
-      const result = await this.db!.getAll('technologiesProcesses');
+      const result = await this.getDatabase().getAll('technologiesProcesses');
       return result || [];
     } catch (error) {
       console.error('Error getting all technologies/processes:', error);
@@ -520,7 +520,7 @@ export class IndexedDBService {
     }
 
     try {
-      const result = await this.db!.getAllFromIndex('technologiesProcesses', 'by-function-capability', functionCapabilityId);
+      const result = await this.getDatabase().getAllFromIndex('technologiesProcesses', 'by-function-capability', functionCapabilityId);
       return result || [];
     } catch (error) {
       console.error('Error getting technologies/processes by function:', error);
@@ -554,7 +554,7 @@ export class IndexedDBService {
       maturity_stage_id: maturityStageId
     };
 
-    await this.db!.add('technologiesProcesses', newTechnologyProcess as TechnologyProcess);
+    await this.getDatabase().add('technologiesProcesses', newTechnologyProcess as TechnologyProcess);
   }
 
   async removeTechnologyProcess(id: number): Promise<void> {
@@ -564,7 +564,7 @@ export class IndexedDBService {
       throw new Error('Invalid technology process ID');
     }
 
-    const tx = this.db!.transaction(['technologiesProcesses', 'assessmentResponses'], 'readwrite');
+    const tx = this.getDatabase().transaction(['technologiesProcesses', 'assessmentResponses'], 'readwrite');
 
     try {
       // Remove assessment response for this technology process
@@ -602,7 +602,7 @@ export class IndexedDBService {
       throw new Error('Invalid maturity stage ID');
     }
 
-    const techProcess = await this.db!.get('technologiesProcesses', id);
+    const techProcess = await this.getDatabase().get('technologiesProcesses', id);
     if (!techProcess) {
       throw new Error('Technology process not found');
     }
@@ -612,7 +612,7 @@ export class IndexedDBService {
     techProcess.function_capability_id = functionCapabilityId;
     techProcess.maturity_stage_id = maturityStageId;
 
-    await this.db!.put('technologiesProcesses', techProcess);
+    await this.getDatabase().put('technologiesProcesses', techProcess);
   }
 
   // Assessment operations
@@ -630,7 +630,7 @@ export class IndexedDBService {
       throw new Error('Notes cannot exceed 2000 characters');
     }
 
-    const tx = this.db!.transaction('assessmentResponses', 'readwrite');
+    const tx = this.getDatabase().transaction('assessmentResponses', 'readwrite');
 
     try {
       // Check if assessment already exists
@@ -661,7 +661,7 @@ export class IndexedDBService {
   async getAssessmentResponses(): Promise<AssessmentResponse[]> {
     await this.ensureInitialized();
     try {
-      const result = await this.db!.getAll('assessmentResponses');
+      const result = await this.getDatabase().getAll('assessmentResponses');
       return result || [];
     } catch (error) {
       console.error('Error getting assessment responses:', error);
@@ -676,11 +676,11 @@ export class IndexedDBService {
     try {
       // Export all data as JSON
       const data = {
-        pillars: await this.db!.getAll('pillars'),
-        functionCapabilities: await this.db!.getAll('functionCapabilities'),
-        maturityStages: await this.db!.getAll('maturityStages'),
-        technologiesProcesses: await this.db!.getAll('technologiesProcesses'),
-        assessmentResponses: await this.db!.getAll('assessmentResponses')
+        pillars: await this.getDatabase().getAll('pillars'),
+        functionCapabilities: await this.getDatabase().getAll('functionCapabilities'),
+        maturityStages: await this.getDatabase().getAll('maturityStages'),
+        technologiesProcesses: await this.getDatabase().getAll('technologiesProcesses'),
+        assessmentResponses: await this.getDatabase().getAll('assessmentResponses')
       };
 
       // Convert to string and then to Uint8Array
@@ -729,7 +729,7 @@ export class IndexedDBService {
         timestamp
       };
 
-      await this.db!.put('backups', backup);
+      await this.getDatabase().put('backups', backup);
       console.log('Database backup created');
     } catch (error) {
       console.error('Failed to create backup:', error);
@@ -740,7 +740,7 @@ export class IndexedDBService {
   async getBackups(): Promise<{ name: string; timestamp: number }[]> {
     await this.ensureInitialized();
 
-    const backups = await this.db!.getAll('backups');
+    const backups = await this.getDatabase().getAll('backups');
     return backups.map(backup => ({
       name: backup.name,
       timestamp: backup.timestamp
@@ -750,9 +750,13 @@ export class IndexedDBService {
   async restoreBackup(backupName: string): Promise<void> {
     await this.ensureInitialized();
 
-    const backup = await this.db!.get('backups', backupName);
+    const backup = await this.getDatabase().get('backups', backupName);
     if (!backup) {
       throw new Error('Backup not found');
+    }
+
+    if (!(backup.data instanceof Uint8Array)) {
+      throw new Error('Invalid backup data format');
     }
 
     await this.importDatabase(backup.data);
@@ -762,7 +766,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
 
     try {
-      const tx = this.db!.transaction(['assessmentResponses', 'technologiesProcesses', 'functionCapabilities', 'pillars'], 'readwrite');
+      const tx = this.getDatabase().transaction(['assessmentResponses', 'technologiesProcesses', 'functionCapabilities', 'pillars'], 'readwrite');
 
       // Clear all data in proper order due to foreign key relationships
       await tx.objectStore('assessmentResponses').clear();
@@ -799,7 +803,7 @@ export class IndexedDBService {
       console.log('Starting complete database reset...');
 
       // Clear all object stores
-      const tx = this.db!.transaction(['assessmentResponses', 'technologiesProcesses', 'functionCapabilities', 'pillars', 'maturityStages'], 'readwrite');
+      const tx = this.getDatabase().transaction(['assessmentResponses', 'technologiesProcesses', 'functionCapabilities', 'pillars', 'maturityStages'], 'readwrite');
 
       await tx.objectStore('assessmentResponses').clear();
       await tx.objectStore('technologiesProcesses').clear();
@@ -819,6 +823,7 @@ export class IndexedDBService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async importDataWithPreservedIds(data: any): Promise<void> {
     await this.ensureInitialized();
 
@@ -826,7 +831,7 @@ export class IndexedDBService {
       console.log('Starting import with preserved IDs...');
 
       // Import in dependency order with preserved IDs
-      const tx = this.db!.transaction(['maturityStages', 'pillars', 'functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
+      const tx = this.getDatabase().transaction(['maturityStages', 'pillars', 'functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
 
       // 1. Maturity Stages (independent)
       if (data.maturityStages && Array.isArray(data.maturityStages)) {
@@ -876,6 +881,14 @@ export class IndexedDBService {
     if (!this.isInitialized) {
       await this.initialize();
     }
+  }
+
+  // Helper method to safely get the database instance
+  private getDatabase(): IDBPDatabase<ZtmmDB> {
+    if (!this.db) {
+      throw new Error('Database is not initialized. Call ensureInitialized() first.');
+    }
+    return this.db;
   }
 
   // Check if service is initialized

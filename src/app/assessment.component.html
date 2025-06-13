@@ -235,21 +235,23 @@
               <div class="assessment-questions">
                 <div class="row g-3">
                   <div class="col-md-6">
-                    <label class="form-label fw-semibold small text-muted">Implementation Status</label>
+                    <label class="form-label fw-semibold small text-muted" [for]="'status_' + tp.id">Implementation Status</label>
                     <select class="form-select"
                             [value]="assessmentStatuses[getGlobalItemIndex(i)]"
                             (change)="onStatusChange($event, i)"
+                            [id]="'status_' + tp.id"
                             [name]="'status_' + tp.id">
                       <option [value]="null">Select Status</option>
                       <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
                     </select>
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label fw-semibold small text-muted">Assessment Notes</label>
+                    <label class="form-label fw-semibold small text-muted" [for]="'notes_' + tp.id">Assessment Notes</label>
                     <textarea class="form-control"
                               rows="2"
                               [value]="assessmentNotes[getGlobalItemIndex(i)] || ''"
                               (input)="onNotesChange($event, i)"
+                              [id]="'notes_' + tp.id"
                               [name]="'notes_' + tp.id"
                               placeholder="Add notes about implementation..."></textarea>
                   </div>

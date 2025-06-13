@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { AssessmentResponse } from '../models/ztmm.models';
 
 export interface PDFExportOptions {
   filename?: string;
@@ -14,6 +15,8 @@ export interface PDFExportOptions {
 })
 export class PdfExportService {
 
+  // Empty constructor is necessary for dependency injection
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() { }
 
   /**
@@ -122,7 +125,7 @@ export class PdfExportService {
    * @param assessmentData - The assessment data to include in the PDF
    * @param options - Configuration options
    */
-  async exportAssessmentReport(assessmentData: any, options: PDFExportOptions = {}): Promise<void> {
+  async exportAssessmentReport(assessmentData: AssessmentResponse[], options: PDFExportOptions = {}): Promise<void> {
     const {
       filename = 'ztmm-assessment-report.pdf'
     } = options;
@@ -149,14 +152,12 @@ export class PdfExportService {
       pdf.text('Assessment Summary', 20, yPosition);
 
       yPosition += 10;
-      pdf.setFontSize(10);
-
-      // Add assessment data (this would need to be customized based on your data structure)
-      if (assessmentData && assessmentData.length > 0) {
-        assessmentData.forEach((item: any, index: number) => {
-          if (yPosition > 280) { // Check if we need a new page
-            pdf.addPage();
-            yPosition = 30;
+      pdf.setFontSize(10);        // Add assessment data (this would need to be customized based on your data structure)
+        if (assessmentData && assessmentData.length > 0) {
+          assessmentData.forEach((item: AssessmentResponse, index: number) => {
+            if (yPosition > 280) { // Check if we need a new page
+              pdf.addPage();
+              yPosition = 30;
           }
 
           const text = `${index + 1}. ${item.pillarName} - ${item.functionCapabilityName}: ${item.status}`;

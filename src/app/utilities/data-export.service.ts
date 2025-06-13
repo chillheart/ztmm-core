@@ -127,6 +127,7 @@ export class DataExportService {
   /**
    * Validate the structure of imported data
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private validateImportData(data: any): data is ExportedData {
     return !!(data &&
            Array.isArray(data.pillars) &&
