@@ -122,11 +122,30 @@ npm run preview
 
 ## 🌐 Deployment
 
-### GitHub Pages
-Deploy to GitHub Pages using:
+### GitHub Pages (Automated)
+The project includes a GitHub Actions workflow that automatically deploys to GitHub Pages when a new release is created:
+
+1. **Create a Release**: Go to your repository's "Releases" section and create a new release
+2. **Automatic Deployment**: The workflow will automatically:
+   - Run tests and linting
+   - Build the application with the correct base href
+   - Deploy to GitHub Pages
+
+#### Manual GitHub Pages Deployment
+For manual deployment to GitHub Pages:
+```bash
+npm run build:github-pages
+```
+Or using the legacy script:
 ```bash
 npm run deploy:gh-pages
 ```
+
+#### GitHub Pages Setup
+To enable GitHub Pages deployment:
+1. Go to your repository Settings → Pages
+2. Set Source to "GitHub Actions"
+3. The workflow will handle the rest automatically
 
 ### Self-Hosting
 1. Build the production version: `npm run build:prod`
