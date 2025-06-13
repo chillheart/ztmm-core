@@ -634,7 +634,10 @@ describe('AdminComponent', () => {
     describe('Demo Data Generation', () => {
       it('should generate demo data successfully', async () => {
         spyOn(window, 'alert'); // Suppress alert messages
-        spyOn(window, 'confirm').and.returnValue(true); // User confirms the generation
+        spyOn(window, 'confirm').and.returnValue(true); // Mock confirmation dialog
+
+        // Set up component state to trigger confirmation dialog
+        component.demoDataExists = true;
 
         await component.onGenerateDemoData();
 
@@ -644,8 +647,8 @@ describe('AdminComponent', () => {
       });
 
       it('should not generate demo data if already exists', async () => {
+        spyOn(window, 'confirm').and.returnValue(false); // Mock user cancellation
         component.demoDataExists = true;
-        spyOn(window, 'confirm').and.returnValue(false); // User cancels the confirmation
 
         await component.onGenerateDemoData();
 
@@ -666,9 +669,12 @@ describe('AdminComponent', () => {
 
       it('should handle demo data generation errors', async () => {
         spyOn(window, 'alert'); // Suppress alert messages
-        spyOn(window, 'confirm').and.returnValue(true); // User confirms the generation
+        spyOn(window, 'confirm').and.returnValue(true); // Mock confirmation dialog
         spyOn(console, 'error'); // Suppress error messages
         mockDemoDataService.generateDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
+
+        // Set up component state to trigger confirmation dialog
+        component.demoDataExists = true;
 
         await component.onGenerateDemoData();
 

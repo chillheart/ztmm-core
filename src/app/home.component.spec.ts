@@ -46,7 +46,7 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
-    expect(navigationButtons.length).toBe(4); // Configuration, Assessment, Results, Generate Demo Data
+    expect(navigationButtons.length).toBe(4); // Configuration, Assessment, Results, and demo data configuration link
   });
 
   it('should have proper button text', () => {
@@ -63,7 +63,7 @@ describe('HomeComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const linkElements = compiled.querySelectorAll('a[routerLink]');
 
-    expect(linkElements.length).toBe(4);
+    expect(linkElements.length).toBe(4); // 3 main nav + 1 demo data link
 
     const routes = Array.from(linkElements).map(el => el.getAttribute('routerLink'));
     expect(routes).toContain('/configuration');
@@ -74,9 +74,15 @@ describe('HomeComponent', () => {
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
     expect(navigationButtons.length).toBe(4);
-    // Check that at least the main navigation buttons have proper styling
-    const mainNavButtons = compiled.querySelectorAll('a.btn.btn-outline-primary, a.btn.btn-outline-success, a.btn.btn-outline-info');
-    expect(mainNavButtons.length).toBeGreaterThanOrEqual(3);
+    // Test the main 3 navigation buttons (first 3)
+    for (let i = 0; i < 3; i++) {
+      const button = navigationButtons[i];
+      expect(button.classList.contains('btn-outline-primary') ||
+             button.classList.contains('btn-outline-success') ||
+             button.classList.contains('btn-outline-info')).toBeTruthy();
+    }
+    // The 4th button is the demo data button with 'btn-success' class
+    expect(navigationButtons[3].classList.contains('btn-success')).toBeTruthy();
   });
 
   it('should display description section', () => {
@@ -130,7 +136,7 @@ describe('HomeComponent', () => {
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
 
     expect(h1Elements.length).toBeGreaterThanOrEqual(1);
-    expect(navigationButtons.length).toBe(4); // Navigation buttons
+    expect(navigationButtons.length).toBe(4); // Navigation buttons (3 main + 1 demo data)
   });
 
   it('should have accessible navigation elements', () => {
