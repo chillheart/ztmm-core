@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { trigger, style, transition, animate, query, stagger } from '@angular/animations';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from './models/ztmm.models';
 import { AssessmentStatus } from './models/ztmm.models';
@@ -13,12 +14,48 @@ interface PillarSummary {
   completionPercentage: number;
 }
 
+interface OverallPillarProgress {
+  pillar: Pillar;
+  totalItems: number;
+  completedItems: number;
+  progressPercentage: number;
+  functionCount: number;
+}
+
 @Component({
   selector: 'app-assessment',
   templateUrl: './assessment.component.html',
   styleUrls: ['./assessment.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule]
+  imports: [CommonModule, FormsModule, RouterModule],
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('300ms', style({ opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms', style({ opacity: 0 }))
+      ])
+    ]),
+    trigger('slideInOut', [
+      transition(':enter', [
+        style({ transform: 'translateY(-10px)', opacity: 0 }),
+        animate('300ms', style({ transform: 'translateY(0)', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms', style({ transform: 'translateY(-10px)', opacity: 0 }))
+      ])
+    ]),
+    trigger('listAnimation', [
+      transition(':enter', [
+        query('@*', stagger(100, query(':enter', [style({ opacity: 0 }), animate('300ms', style({ opacity: 1 }))])), { optional: true })
+      ]),
+      transition(':leave', [
+        query('@*', stagger(100, query(':leave', [animate('300ms', style({ opacity: 0 }))])), { optional: true })
+      ])
+    ])
+  ]
 })
 export class AssessmentComponent implements OnInit, OnDestroy {
   pillars: Pillar[] = [];
@@ -27,9 +64,11 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   technologiesProcesses: TechnologyProcess[] = [];
   assessmentResponses: AssessmentResponse[] = [];
   pillarSummary: PillarSummary[] = [];
+  overallPillarProgress: OverallPillarProgress[] = [];
 
   selectedPillarId: number | null = null;
   selectedFunctionCapabilityId: number | null = null;
+  showOverallSummary = true; // Controls visibility of overall summary
 
   assessmentStatuses: (AssessmentStatus | null)[] = [];
   assessmentNotes: string[] = [];
@@ -65,8 +104,10 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.assessmentStatuses = [];
       this.assessmentNotes = [];
       this.pillarSummary = [];
+      this.overallPillarProgress = [];
       this.selectedPillarId = null;
       this.selectedFunctionCapabilityId = null;
+      this.showOverallSummary = true;
     }
 
     // Load each data source independently with error handling
@@ -97,13 +138,22 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       console.error('❌ Error loading assessment responses:', error);
       this.assessmentResponses = [];
     }
+
+    // Build overall progress summary after loading all data
+    if (this.pillars.length > 0 && this.functionCapabilities.length > 0) {
+      await this.buildOverallPillarProgress();
+    }
   }
 
   async onPillarChange() {
     if (this.selectedPillarId) {
+      // Hide overall summary when a pillar is selected
+      this.showOverallSummary = false;
       // Build summary for this pillar
       await this.buildPillarSummary();
     } else {
+      // Show overall summary when no pillar is selected
+      this.showOverallSummary = true;
       this.pillarSummary = [];
     }
     // Reset function capability selection and clear technologies/processes
@@ -111,6 +161,58 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     this.technologiesProcesses = [];
     this.assessmentStatuses = [];
     this.assessmentNotes = [];
+  }
+
+  // Method to go back to overall summary
+  goBackToOverallSummary(): void {
+    this.selectedPillarId = null;
+    this.selectedFunctionCapabilityId = null;
+    this.showOverallSummary = true;
+    this.pillarSummary = [];
+    this.technologiesProcesses = [];
+    this.assessmentStatuses = [];
+    this.assessmentNotes = [];
+  }
+
+  // Build overall progress summary for all pillars
+  async buildOverallPillarProgress(): Promise<void> {
+    this.overallPillarProgress = [];
+
+    try {
+      for (const pillar of this.pillars) {
+        const pillarFunctions = this.functionCapabilities.filter(fc => fc.pillar_id === pillar.id);
+        let totalItems = 0;
+        let completedItems = 0;
+
+        for (const func of pillarFunctions) {
+          try {
+            const techProcesses = await this.data.getTechnologiesProcessesByFunction(func.id);
+            totalItems += techProcesses.length;
+
+            // Count completed assessments for this function
+            const functionCompletedCount = techProcesses.filter(tp =>
+              this.assessmentResponses.some(ar => ar.tech_process_id === tp.id)
+            ).length;
+
+            completedItems += functionCompletedCount;
+          } catch (error) {
+            console.error('Error loading tech processes for function', func.id, ':', error);
+          }
+        }
+
+        const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+        this.overallPillarProgress.push({
+          pillar,
+          totalItems,
+          completedItems,
+          progressPercentage,
+          functionCount: pillarFunctions.length
+        });
+      }
+    } catch (error) {
+      console.error('Error building overall pillar progress:', error);
+    }
   }
 
   async onFunctionCapabilityChange() {
@@ -414,5 +516,24 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   getSelectedPillarName(): string {
     if (!this.selectedPillarId) return 'Selected Pillar';
     return this.pillars.find(p => p.id === this.selectedPillarId)?.name || 'Selected Pillar';
+  }
+
+  // Helper methods for overall statistics
+  getTotalFunctions(): number {
+    return this.overallPillarProgress.reduce((total, progress) => total + progress.functionCount, 0);
+  }
+
+  getTotalCompletedItems(): number {
+    return this.overallPillarProgress.reduce((total, progress) => total + progress.completedItems, 0);
+  }
+
+  getTotalItems(): number {
+    return this.overallPillarProgress.reduce((total, progress) => total + progress.totalItems, 0);
+  }
+
+  getOverallProgress(): number {
+    const total = this.getTotalItems();
+    const completed = this.getTotalCompletedItems();
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
   }
 }

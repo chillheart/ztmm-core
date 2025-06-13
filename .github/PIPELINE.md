@@ -4,25 +4,7 @@ This document describes the GitHub Actions workflows configured for the ZTMM Ass
 
 ## Workflows Overview
 
-### 1. CI Pipeline (`ci.yml`)
-**Triggered on:** Push to `main`/`develop` branches and pull requests to these branches
-
-**Jobs:**
-- **Main CI Job**: Runs your comprehensive test suite
-  - Uses your existing `npm run ci:full` script (includes linting, type checking, unit tests, and ALL security tests)
-  - Runs additional dependency security audit
-  - Builds production version
-  - Uploads coverage reports to Codecov (if configured)
-
-- **Security Analysis** (PR only): 
-  - CodeQL static analysis for security vulnerabilities
-  - Dependency review to check for vulnerable packages
-
-- **Vulnerability Scanning** (PR only):
-  - Trivy scanner for file system vulnerabilities
-  - Results uploaded to GitHub Security tab
-
-### 2. PR Validation (`pr-validation.yml`)
+### 1. PR Validation (`pr-validation.yml`)
 **Triggered on:** Pull request events (opened, updated, ready for review) to `main`/`develop` branches
 
 **Features:**
@@ -31,7 +13,7 @@ This document describes the GitHub Actions workflows configured for the ZTMM Ass
 - Uploads coverage reports as artifacts
 - Only runs on non-draft PRs
 
-### 3. GitHub Pages Deployment (`deploy-github-pages.yml`)
+### 2. GitHub Pages Deployment (`deploy-github-pages.yml`)
 **Triggered on:** Release creation
 
 **Features:**
