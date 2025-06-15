@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '../models/ztmm.models';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '../../models/ztmm.models';
 
 @Component({
   selector: 'app-technologies-tab',

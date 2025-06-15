@@ -1,0 +1,61 @@
+<div class="card mb-2 assessment-card shadow-sm">
+  <div class="card-body py-3">
+    <!-- Header Row: Item info -->
+    <div class="d-flex align-items-center mb-3">
+      <div class="item-number me-3">
+        <div class="badge bg-secondary rounded-pill">{{ itemNumber }}</div>
+      </div>
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+          <span class="badge" [class]="technologyProcess.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+            <i [class]="technologyProcess.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-2'"></i>
+            {{ technologyProcess.type }}
+          </span>
+          <h6 class="mb-0 text-dark fw-bold">{{ technologyProcess.description }}</h6>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <span class="badge bg-info small">
+            <i class="bi bi-bookmark"></i>
+            {{ getFunctionCapabilityName(technologyProcess.function_capability_id) }}
+          </span>
+          <span class="badge bg-warning text-dark small">
+            <i class="bi bi-ladder"></i>
+            {{ getMaturityStageName(technologyProcess.maturity_stage_id) }}
+          </span>
+        </div>
+      </div>
+      <div class="auto-save-indicator" *ngIf="isAutoSaving">
+        <small class="text-muted">
+          <i class="bi bi-arrow-clockwise spin"></i> Auto-saving...
+        </small>
+      </div>
+    </div>
+
+    <!-- Assessment Questions Row -->
+    <div class="assessment-questions">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small text-muted" [for]="'status_' + technologyProcess.id">Implementation Status</label>
+          <select class="form-select"
+                  [value]="status"
+                  (change)="onStatusChange($event)"
+                  [id]="'status_' + technologyProcess.id"
+                  [name]="'status_' + technologyProcess.id">
+            <option [value]="null">Select Status</option>
+            <option *ngFor="let statusOption of statusOptions" [value]="statusOption">{{ statusOption }}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold small text-muted" [for]="'notes_' + technologyProcess.id">Assessment Notes</label>
+          <textarea class="form-control"
+                    rows="2"
+                    [value]="notes"
+                    (input)="onNotesChange($event)"
+                    [id]="'notes_' + technologyProcess.id"
+                    [name]="'notes_' + technologyProcess.id"
+                    placeholder="Add notes about implementation..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

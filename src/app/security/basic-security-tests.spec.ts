@@ -5,7 +5,7 @@
 
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { AdminComponent } from '../admin.component';
+import { AdminComponent } from '../features/configuration/admin.component';
 import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 

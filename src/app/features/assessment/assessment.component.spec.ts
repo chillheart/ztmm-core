@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AssessmentComponent } from './assessment.component';
-import { ZtmmDataWebService } from './services/ztmm-data-web.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from './models/ztmm.models';
+import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../../models/ztmm.models';
 
 describe('AssessmentComponent', () => {
   let component: AssessmentComponent;

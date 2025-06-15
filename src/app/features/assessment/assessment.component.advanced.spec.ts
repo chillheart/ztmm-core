@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AssessmentComponent } from './assessment.component';
-import { ZtmmDataWebService } from './services/ztmm-data-web.service';
-import { TestUtilsIndexedDB } from './testing/test-utils-indexeddb';
+import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { TestUtilsIndexedDB } from '../../testing/test-utils-indexeddb';
 
 describe('AssessmentComponent - Advanced Tests', () => {
   let component: AssessmentComponent;

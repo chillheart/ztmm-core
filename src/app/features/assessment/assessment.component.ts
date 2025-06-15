@@ -3,31 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { trigger, style, transition, animate, query, stagger } from '@angular/animations';
-import { ZtmmDataWebService } from './services/ztmm-data-web.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from './models/ztmm.models';
-import { AssessmentStatus } from './models/ztmm.models';
-
-interface PillarSummary {
-  functionCapability: FunctionCapability;
-  totalCount: number;
-  completedCount: number;
-  completionPercentage: number;
-}
-
-interface OverallPillarProgress {
-  pillar: Pillar;
-  totalItems: number;
-  completedItems: number;
-  progressPercentage: number;
-  functionCount: number;
-}
+import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../../models/ztmm.models';
+import { AssessmentStatus } from '../../models/ztmm.models';
+import { OverallProgressSummaryComponent, OverallPillarProgress } from './overall-progress-summary.component';
+import { PillarSummaryComponent, PillarSummary } from './pillar-summary.component';
+import { AssessmentOverviewComponent } from './assessment-overview.component';
 
 @Component({
   selector: 'app-assessment',
   templateUrl: './assessment.component.html',
   styleUrls: ['./assessment.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, OverallProgressSummaryComponent, PillarSummaryComponent, AssessmentOverviewComponent],
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -516,6 +504,21 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   getSelectedPillarName(): string {
     if (!this.selectedPillarId) return 'Selected Pillar';
     return this.pillars.find(p => p.id === this.selectedPillarId)?.name || 'Selected Pillar';
+  }
+
+  // Event handlers for child components
+  onPillarSelected(pillarId: number): void {
+    this.selectedPillarId = pillarId;
+    this.onPillarChange();
+  }
+
+  onFunctionCapabilitySelected(functionCapabilityId: number): void {
+    this.selectedFunctionCapabilityId = functionCapabilityId;
+    this.onFunctionCapabilityChange();
+  }
+
+  onAssessmentChangeFromChild(event: {index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string}): void {
+    this.onAssessmentChange(event.index, event.field, event.value);
   }
 
   // Helper methods for overall statistics

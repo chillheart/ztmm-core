@@ -1,0 +1,60 @@
+// Assessment Overview specific styles
+.current-assessment-header {
+  background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
+  border: 2px solid rgba(25, 135, 84, 0.2);
+
+  .card-body {
+    padding: 1.5rem;
+  }
+}
+
+.assessment-progress {
+  .progress {
+    border-radius: 12px;
+    overflow: hidden;
+
+    .progress-bar {
+      border-radius: 12px;
+      transition: width 0.6s ease;
+    }
+  }
+}
+
+.auto-save-status {
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Toast styling
+.toast {
+  border: none;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+
+  .toast-body {
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .current-assessment-header {
+    .row {
+      text-align: center;
+    }
+
+    .col-md-4 {
+      margin-top: 1rem;
+    }
+  }
+}

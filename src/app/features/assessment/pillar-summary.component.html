@@ -1,0 +1,83 @@
+<!-- Back Button -->
+<div class="back-to-overview mb-4 slide-in-animation">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <button class="btn btn-outline-secondary btn-sm"
+              (click)="onBackClick()">
+        <i class="bi bi-arrow-left"></i> Back to Overview
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Pillar Summary -->
+<div *ngIf="pillarSummary.length > 0" class="mb-5 slide-in-animation">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <h3 class="text-center mb-4">Assessment Progress Overview</h3>
+      <p class="text-center text-muted mb-4">Track your progress across all functions and capabilities</p>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Function/Capability</th>
+                  <th>Type</th>
+                  <th class="text-center">Items</th>
+                  <th class="text-center">Completed</th>
+                  <th>Progress</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let summary of pillarSummary"
+                    [class.table-active]="selectedFunctionCapabilityId === summary.functionCapability.id"
+                    [class.selected-function]="selectedFunctionCapabilityId === summary.functionCapability.id">
+                  <td><strong>{{ summary.functionCapability.name }}</strong></td>
+                  <td><span class="badge bg-primary">{{ summary.functionCapability.type }}</span></td>
+                  <td class="text-center"><strong>{{ summary.totalCount }}</strong></td>
+                  <td class="text-center"><strong>{{ summary.completedCount }}</strong></td>
+                  <td>
+                    <div class="progress" style="height: 24px;">
+                      <div class="progress-bar progress-bar-striped progress-bar-animated"
+                           [style.width.%]="summary.completionPercentage"
+                           [class]="summary.completionPercentage === 100 ? 'bg-success' : summary.completionPercentage >= 50 ? 'bg-warning' : 'bg-danger'"
+                           role="progressbar">
+                        <strong>{{ summary.completionPercentage }}%</strong>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <button [class]="getButtonClass(summary)"
+                            [disabled]="summary.totalCount === 0"
+                            (click)="onAssessButtonClick(summary)"
+                            [title]="summary.totalCount === 0 ? 'No technologies or processes defined for this function/capability' : ''">
+                      <i class="bi" [class]="summary.totalCount === 0 ? 'bi-x-circle' : selectedFunctionCapabilityId === summary.functionCapability.id ? 'bi-clipboard-check-fill' : 'bi-clipboard-check'"></i>
+                      {{ getButtonText(summary) }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Message when no function capabilities exist -->
+<div *ngIf="pillarSummary.length === 0" class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="alert alert-info text-center">
+      <i class="bi bi-info-circle fs-2 mb-3"></i>
+      <h5>No Function Capabilities Found</h5>
+      <p class="mb-3">No function capabilities have been defined for this pillar yet.</p>
+      <a routerLink="/configuration" class="btn btn-outline-primary">
+        <i class="bi bi-gear"></i> Configure Framework
+      </a>
+    </div>
+  </div>
+</div>
