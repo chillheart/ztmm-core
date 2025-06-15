@@ -29,7 +29,7 @@ export interface PillarSummary {
 export class PillarSummaryComponent {
   @Input() pillarSummary: PillarSummary[] = [];
   @Input() selectedFunctionCapabilityId: number | null = null;
-  @Input() selectedPillarName: string = '';
+  @Input() selectedPillarName = '';
   @Output() backToOverview = new EventEmitter<void>();
   @Output() functionCapabilitySelected = new EventEmitter<number>();
 

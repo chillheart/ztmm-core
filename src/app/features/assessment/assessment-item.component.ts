@@ -14,11 +14,11 @@ export class AssessmentItemComponent {
   @Input() technologyProcess!: TechnologyProcess;
   @Input() itemNumber!: number;
   @Input() status: AssessmentStatus | null = null;
-  @Input() notes: string = '';
+  @Input() notes = '';
   @Input() statusOptions: AssessmentStatus[] = [];
   @Input() functionCapabilities: FunctionCapability[] = [];
   @Input() maturityStages: MaturityStage[] = [];
-  @Input() isAutoSaving: boolean = false;
+  @Input() isAutoSaving = false;
 
   @Output() statusChange = new EventEmitter<AssessmentStatus | null>();
   @Output() notesChange = new EventEmitter<string>();

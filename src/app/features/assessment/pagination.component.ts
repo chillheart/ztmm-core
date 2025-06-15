@@ -9,11 +9,11 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule]
 })
 export class PaginationComponent {
-  @Input() currentPage: number = 1;
-  @Input() totalPages: number = 1;
-  @Input() itemsPerPage: number = 5;
-  @Input() totalItems: number = 0;
-  @Input() showSaveButton: boolean = true;
+  @Input() currentPage = 1;
+  @Input() totalPages = 1;
+  @Input() itemsPerPage = 5;
+  @Input() totalItems = 0;
+  @Input() showSaveButton = true;
 
   @Output() pageChange = new EventEmitter<number>();
   @Output() previousPage = new EventEmitter<void>();

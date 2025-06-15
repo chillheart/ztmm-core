@@ -21,15 +21,15 @@ export class AssessmentOverviewComponent {
   @Input() statusOptions: AssessmentStatus[] = [];
   @Input() functionCapabilities: FunctionCapability[] = [];
   @Input() maturityStages: MaturityStage[] = [];
-  @Input() selectedFunctionCapabilityName: string = '';
-  @Input() selectedFunctionCapabilityType: string = '';
-  @Input() isAutoSaving: boolean = false;
-  @Input() showSuccess: boolean = false;
+  @Input() selectedFunctionCapabilityName = '';
+  @Input() selectedFunctionCapabilityType = '';
+  @Input() isAutoSaving = false;
+  @Input() showSuccess = false;
 
   // Pagination inputs
-  @Input() currentPage: number = 1;
-  @Input() totalPages: number = 1;
-  @Input() itemsPerPage: number = 5;
+  @Input() currentPage = 1;
+  @Input() totalPages = 1;
+  @Input() itemsPerPage = 5;
 
   @Output() assessmentChange = new EventEmitter<{index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string}>();
   @Output() pageChange = new EventEmitter<number>();
