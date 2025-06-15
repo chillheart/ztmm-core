@@ -1,6 +1,6 @@
 # ZTMM Assessment Tool
 
-[![PR Validation](https://github.com/chillheart/ztmm-assessment/workflows/PR%20Validation/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
+[![PR Checks](https://github.com/chillheart/ztmm-assessment/workflows/PR%20Checks/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
 [![Deploy to GitHub Pages](https://github.com/chillheart/ztmm-assessment/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/deploy-github-pages.yml)
 
 A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
