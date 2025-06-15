@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './core/components/navbar.component';
+import { FooterComponent } from './core/components/footer.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -9,7 +10,8 @@ describe('AppComponent', () => {
       imports: [
         AppComponent,
         RouterTestingModule,
-        NavbarComponent
+        NavbarComponent,
+        FooterComponent
       ],
     }).compileComponents();
   });
@@ -55,14 +57,34 @@ describe('AppComponent', () => {
 
     // Should have navbar at the top
     const navbar = compiled.querySelector('app-navbar');
+    const mainContent = compiled.querySelector('.main-content');
     const container = compiled.querySelector('.container');
     const routerOutlet = compiled.querySelector('router-outlet');
+    const footer = compiled.querySelector('app-footer');
 
     expect(navbar).toBeTruthy();
+    expect(mainContent).toBeTruthy();
     expect(container).toBeTruthy();
     expect(routerOutlet).toBeTruthy();
+    expect(footer).toBeTruthy();
 
-    // Router outlet should be inside container
+    // Router outlet should be inside container and main-content
+    expect(mainContent?.querySelector('.container')).toBeTruthy();
     expect(container?.querySelector('router-outlet')).toBeTruthy();
+  });
+
+  it('should render footer component', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-footer')).toBeTruthy();
+  });
+
+  it('should have main content with proper padding for sticky navbar', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const mainContent = compiled.querySelector('.main-content');
+    expect(mainContent).toBeTruthy();
   });
 });

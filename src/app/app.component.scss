@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 80px; /* Account for fixed navbar height */
+  padding-bottom: 2rem;
+}
+
+.container {
+  max-width: 1200px;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 70px; /* Slightly less padding on mobile */
+  }
+}

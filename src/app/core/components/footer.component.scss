@@ -1,0 +1,38 @@
+.footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  margin-top: auto;
+  background-color: #343a40 !important;
+  border-top: 1px solid #495057;
+}
+
+.footer a:hover {
+  color: #66b3ff !important;
+}
+
+.footer .text-light-muted {
+  color: #adb5bd !important;
+}
+
+.footer .text-info {
+  color: #6fc3ff !important;
+}
+
+.footer .text-info:hover {
+  color: #4fb3ff !important;
+}
+
+.copyright {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .footer .col-md-6 {
+    text-align: center !important;
+  }
+
+  .footer .text-md-end {
+    text-align: center !important;
+  }
+}
