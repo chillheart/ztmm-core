@@ -3,7 +3,7 @@
   "version": "1.3.3",
   "type": "module",
   "author": "Cameron McCormick",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "description": "A ZTMM assessment application built with Angular and IndexedDB",
   "scripts": {
     "start": "ng serve",
