@@ -45,6 +45,7 @@
   th:nth-child(6), // "Action" column
   td:nth-child(6) {
     min-width: 100px;
+    white-space: nowrap;
   }
 }
 
