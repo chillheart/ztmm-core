@@ -1,0 +1,161 @@
+<div class="container" id="results-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Assessment Results</h2>
+    <div class="btn-group" role="group" aria-label="Export options">
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        (click)="exportToPdf()"
+        [disabled]="isExportingPdf || groupedResults.length === 0"
+        title="Export current view as PDF">
+        <i class="bi bi-file-earmark-pdf me-2"></i>
+        <span *ngIf="!isExportingPdf">Export PDF</span>
+        <span *ngIf="isExportingPdf">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Generating...
+        </span>
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="exportDetailedReport()"
+        [disabled]="isExportingPdf || groupedResults.length === 0"
+        title="Export detailed assessment report">
+        <i class="bi bi-file-text me-2"></i>
+        <span *ngIf="!isExportingPdf">Detailed Report</span>
+        <span *ngIf="isExportingPdf">
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Generating...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="mb-3">
+    <h3 class="mb-3">Results by Pillar and Function</h3>
+    <label for="pillarFilter" class="form-label">Filter by Pillar:</label>
+    <select id="pillarFilter" class="form-select w-auto d-inline-block" [(ngModel)]="selectedPillarId" (change)="onPillarChange()">
+      <option [ngValue]="null">All Pillars</option>
+      <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+    </select>
+  </div>
+
+  <!-- Results grouped by Pillar, then by Function/Capability -->
+  <div *ngFor="let pillar of groupedResults" class="pillar-group">
+    <div class="pillar-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h3 class="mb-1">
+            <i class="bi bi-diagram-3-fill me-2"></i>
+            {{ pillar.pillarName }}
+          </h3>
+          <div class="pillar-summary">
+            {{ pillar.functions.length }} function{{ pillar.functions.length !== 1 ? 's' : '' }} •
+            {{ pillar.totalItems }} item{{ pillar.totalItems !== 1 ? 's' : '' }} •
+            {{ pillar.assessmentPercentage }}% assessed
+          </div>
+        </div>
+        <div class="text-end">
+          <span class="badge bg-light text-dark fs-6">
+            {{ pillar.assessedItems }}/{{ pillar.totalItems }} assessed
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Functions within this Pillar -->
+    <div *ngFor="let func of pillar.functions" class="function-capability-group">
+      <div class="function-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">
+              <i class="bi bi-gear-fill text-primary me-2"></i>
+              {{ func.functionCapabilityName }}
+            </h5>
+            <div class="function-summary">
+              <span class="badge bg-secondary me-2">{{ func.functionCapabilityType }}</span>
+              {{ func.items.length }} item{{ func.items.length !== 1 ? 's' : '' }}
+            </div>
+          </div>
+          <div class="text-end">
+            <!-- Maturity Stage Indicators for this Function -->
+            <div class="mb-2">
+              <div class="d-flex flex-wrap gap-1 justify-content-end">
+                <span *ngFor="let stageStatus of func.maturityStageStatus"
+                      class="badge maturity-badge"
+                      [class]="getMaturityStageStatusClass(stageStatus.status)"
+                      [title]="stageStatus.stage.name + ': ' + getMaturityStageStatusText(stageStatus.status) + ' (' + stageStatus.assessedCount + '/' + stageStatus.totalCount + ')'">
+                  <i [class]="'bi ' + getMaturityStageStatusIcon(stageStatus.status) + ' me-1'"></i>
+                  {{ stageStatus.stage.name.charAt(0) }}
+                </span>
+              </div>
+            </div>
+            <small class="text-muted">
+              {{ func.assessedCount }}/{{ func.totalItems }} assessed
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width: 40%">Technology/Process</th>
+              <th style="width: 20%">Maturity Stage</th>
+              <th style="width: 20%">Assessment Status</th>
+              <th style="width: 20%">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of func.items; let i = index">
+              <td>
+                <div class="d-flex align-items-center">
+                  <span class="badge me-2"
+                        [class]="item.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+                    <i [class]="item.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-2'"></i>
+                    {{ item.type }}
+                  </span>
+                  <span>{{ item.description }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-warning text-dark">
+                  <i class="bi bi-ladder me-1"></i>
+                  {{ item.maturityStageName }}
+                </span>
+              </td>
+              <td>
+                <span class="status-indicator d-flex align-items-center"
+                      [class]="'status-' + (item.status.toLowerCase().replace(' ', '-'))">
+                  <i class="bi me-2"
+                     [class]="item.status === 'Fully Implemented' ? 'bi-check-circle-fill text-success' :
+                              item.status === 'Partially Implemented' ? 'bi-exclamation-triangle-fill text-warning' :
+                              item.status === 'Not Implemented' ? 'bi-x-circle-fill text-danger' :
+                              item.status === 'Superseded' ? 'bi-arrow-up-circle-fill text-info' : 'bi-question-circle-fill text-secondary'"></i>
+                  <span class="small">{{ item.status }}</span>
+                </span>
+              </td>
+              <td>
+                <span class="small text-muted" [title]="item.notes">
+                  {{ item.notes || 'No notes' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Show message when no results -->
+  <div *ngIf="groupedResults.length === 0" class="text-center py-5">
+    <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+    <h5 class="text-muted mt-3">No assessment results found</h5>
+    <p class="text-muted">
+      <span *ngIf="selectedPillarId">Try selecting a different pillar or</span>
+      <span>complete some assessments to see results here.</span>
+    </p>
+  </div>
+</div>
