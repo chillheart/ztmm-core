@@ -31,12 +31,12 @@ describe('FooterComponent', () => {
     expect(copyrightText).toBeTruthy();
     expect(copyrightText?.textContent).toContain('Cameron McCormick');
     expect(copyrightText?.textContent).toContain(component.currentYear.toString());
-  });  it('should have GPL v3 license link', () => {
+  });  it('should have AGPL v3 license link', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    const licenseLink = compiled.querySelector('a[href="https://www.gnu.org/licenses/gpl-3.0.html"]');
+    const licenseLink = compiled.querySelector('a[href="https://www.gnu.org/licenses/agpl-3.0.html"]');
 
     expect(licenseLink).toBeTruthy();
-    expect(licenseLink?.textContent?.trim()).toBe('GNU GPL v3 License');
+    expect(licenseLink?.textContent?.trim()).toBe('GNU AGPL v3 License');
   });
 
   it('should display privacy notice', () => {
