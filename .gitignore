@@ -66,5 +66,5 @@ config.json
 secrets.json
 
 # OWASP Dependency Check reports
-reports/
+/reports/
 dependency-check-report.*
