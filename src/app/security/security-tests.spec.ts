@@ -25,10 +25,10 @@ import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { AppComponent } from '../app.component';
-import { AdminComponent } from '../admin.component';
-import { AssessmentComponent } from '../assessment.component';
-import { HomeComponent } from '../home.component';
-import { ResultsComponent } from '../results.component';
+import { AdminComponent } from '../features/configuration/admin.component';
+import { AssessmentComponent } from '../features/assessment/assessment.component';
+import { HomeComponent } from '../core/components/home.component';
+import { ResultsComponent } from '../features/reports/results.component';
 import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
 import { IndexedDBService } from '../services/indexeddb.service';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';

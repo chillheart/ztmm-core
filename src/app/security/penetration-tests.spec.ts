@@ -7,8 +7,8 @@
 
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { AdminComponent } from '../admin.component';
-import { AssessmentComponent } from '../assessment.component';
+import { AdminComponent } from '../features/configuration/admin.component';
+import { AssessmentComponent } from '../features/assessment/assessment.component';
 import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 import { SecurityTestUtils, SecurityTestResult, SecurityReport } from './security-test-utils';

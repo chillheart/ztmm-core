@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AdminComponent } from './admin.component';
-import { ZtmmDataWebService } from './services/ztmm-data-web.service';
-import { DataExportService } from './utilities/data-export.service';
-import { DemoDataGeneratorService } from './services/demo-data-generator.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
+import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { DataExportService } from '../../utilities/data-export.service';
+import { DemoDataGeneratorService } from '../../services/demo-data-generator.service';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '../../models/ztmm.models';
 
 describe('AdminComponent', () => {
   let component: AdminComponent;

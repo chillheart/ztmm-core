@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ZtmmDataWebService } from './services/ztmm-data-web.service';
-import { DataExportService } from './utilities/data-export.service';
-import { DemoDataGeneratorService } from './services/demo-data-generator.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from './models/ztmm.models';
-import { PillarsTabComponent } from './admin/pillars-tab.component';
-import { FunctionsTabComponent } from './admin/functions-tab.component';
-import { TechnologiesTabComponent } from './admin/technologies-tab.component';
-import { DataManagementTabComponent } from './admin/data-management-tab.component';
+import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { DataExportService } from '../../utilities/data-export.service';
+import { DemoDataGeneratorService } from '../../services/demo-data-generator.service';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '../../models/ztmm.models';
+import { PillarsTabComponent } from './pillars-tab.component';
+import { FunctionsTabComponent } from './functions-tab.component';
+import { TechnologiesTabComponent } from './technologies-tab.component';
+import { DataManagementTabComponent } from './data-management-tab.component';
 
 
 @Component({

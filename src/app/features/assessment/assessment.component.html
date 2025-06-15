@@ -1,0 +1,52 @@
+<div class="container py-5">
+  <!-- Hero Section -->
+  <div class="hero-section" [class.hero-collapsed]="selectedPillarId">
+    <h1 class="hero-title" [class.hero-title-small]="selectedPillarId">Zero Trust Assessment</h1>
+    <p class="hero-subtitle" [class.hero-subtitle-hidden]="selectedPillarId">
+      Evaluate your organization's current implementation status against the Zero Trust Maturity Model.
+      Use our streamlined assessment process with guided steps and visual progress tracking.
+    </p>
+  </div>
+
+  <!-- Overall Progress Summary (show when no pillar is selected) -->
+  <app-overall-progress-summary
+    *ngIf="showOverallSummary && overallPillarProgress.length > 0"
+    [overallPillarProgress]="overallPillarProgress"
+    (pillarSelected)="onPillarSelected($event)">
+  </app-overall-progress-summary>
+
+  <!-- Pillar Summary (only show when pillar is selected) -->
+  <app-pillar-summary
+    *ngIf="selectedPillarId"
+    [pillarSummary]="pillarSummary"
+    [selectedFunctionCapabilityId]="selectedFunctionCapabilityId"
+    [selectedPillarName]="getSelectedPillarName()"
+    (backToOverview)="goBackToOverallSummary()"
+    (functionCapabilitySelected)="onFunctionCapabilitySelected($event)">
+  </app-pillar-summary>
+
+  <!-- Assessment Overview (only show when both pillar and function/capability are selected) -->
+  <app-assessment-overview
+    *ngIf="selectedPillarId && selectedFunctionCapabilityId"
+    [technologiesProcesses]="technologiesProcesses"
+    [paginatedTechnologiesProcesses]="paginatedTechnologiesProcesses"
+    [assessmentStatuses]="assessmentStatuses"
+    [assessmentNotes]="assessmentNotes"
+    [statusOptions]="statusOptions"
+    [functionCapabilities]="functionCapabilities"
+    [maturityStages]="maturityStages"
+    [selectedFunctionCapabilityName]="getSelectedFunctionCapabilityName()"
+    [selectedFunctionCapabilityType]="getSelectedFunctionCapabilityType()"
+    [isAutoSaving]="isAutoSaving"
+    [showSuccess]="showSuccess"
+    [currentPage]="currentPage"
+    [totalPages]="totalPages"
+    [itemsPerPage]="itemsPerPage"
+    (assessmentChange)="onAssessmentChangeFromChild($event)"
+    (pageChange)="goToPage($event)"
+    (previousPage)="previousPage()"
+    (nextPage)="nextPage()"
+    (saveCurrentPage)="saveCurrentPage()"
+    (saveAll)="saveAll()">
+  </app-assessment-overview>
+</div>

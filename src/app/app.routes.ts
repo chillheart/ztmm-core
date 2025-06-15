@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { AdminComponent } from './admin.component';
-import { AssessmentComponent } from './assessment.component';
-import { ResultsComponent } from './results.component';
-import { HomeComponent } from './home.component';
+import { AdminComponent } from './features/configuration/admin.component';
+import { AssessmentComponent } from './features/assessment/assessment.component';
+import { ResultsComponent } from './features/reports/results.component';
+import { HomeComponent } from './core/components/home.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
