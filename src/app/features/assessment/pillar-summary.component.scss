@@ -18,6 +18,36 @@
   background-color: rgba(0, 0, 0, 0.03);
 }
 
+// Prevent table headers from wrapping
+.table {
+  th {
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  // Ensure specific columns have appropriate min-width
+  th:nth-child(4), // "Completed" column
+  td:nth-child(4) {
+    min-width: 90px;
+    white-space: nowrap;
+  }
+
+  th:nth-child(3), // "Items" column
+  td:nth-child(3) {
+    min-width: 70px;
+    white-space: nowrap;
+  }
+
+  th:nth-child(6), // "Action" column
+  td:nth-child(6) {
+    min-width: 100px;
+  }
+}
+
 .progress {
   border-radius: 12px;
   overflow: hidden;
@@ -60,5 +90,32 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// Responsive styles for mobile devices
+@media (max-width: 768px) {
+  .table {
+    font-size: 0.875rem;
+
+    th, td {
+      padding: 0.5rem 0.25rem;
+    }
+
+    // On mobile, ensure minimum column widths are respected
+    th:nth-child(4),
+    td:nth-child(4) {
+      min-width: 80px;
+    }
+
+    th:nth-child(3),
+    td:nth-child(3) {
+      min-width: 60px;
+    }
+  }
+
+  .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
   }
 }
