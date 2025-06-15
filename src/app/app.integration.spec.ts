@@ -146,7 +146,7 @@ describe('Application Integration Tests', () => {
 
     it('should load Results component with empty results initially', () => {
       const fixture = TestBed.createComponent(ResultsComponent);
-      const component = fixture.componentInstance;
+      const component = fixture.componentInstance as ResultsComponent;
 
       expect(component.results).toEqual([]);
     });
