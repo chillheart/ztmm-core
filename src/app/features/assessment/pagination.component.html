@@ -38,7 +38,7 @@
 
   <nav aria-label="Maturity stage navigation" *ngIf="availableStages.length > 0; else defaultPagination">
     <div class="d-flex gap-2 flex-wrap justify-content-center">
-      <button type="button" 
+      <button type="button"
               *ngFor="let stage of availableStages; let i = index"
               class="btn btn-sm"
               [ngClass]="(i + 1) === currentPage ? getStageColorClass(stage) : 'btn-outline-secondary'"

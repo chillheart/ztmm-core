@@ -14,7 +14,7 @@ export class PaginationComponent {
   @Input() itemsPerPage = 5;
   @Input() totalItems = 0;
   @Input() showSaveButton = true;
-  
+
   // Stage-based pagination inputs
   @Input() availableStages: string[] = [];
   @Input() currentStageName = '';

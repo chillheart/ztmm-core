@@ -268,7 +268,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
     // Set total pages to number of available stages (each stage is one page)
     this.totalPages = this.availableStages.length;
-    
+
     // Set current stage name based on current page
     this.updateCurrentStage();
   }
@@ -417,7 +417,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   updatePagination() {
     // Set current stage based on current page
     this.updateCurrentStage();
-    
+
     // Set paginated items to all items from current stage
     if (this.currentStageName && this.technologiesProcessesByStage[this.currentStageName]) {
       this.paginatedTechnologiesProcesses = [...this.technologiesProcessesByStage[this.currentStageName]];
