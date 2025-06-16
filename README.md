@@ -1,7 +1,6 @@
 # ZTMM Assessment Tool
 
 [![PR Checks](https://github.com/chillheart/ztmm-assessment/workflows/PR%20Checks/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
-[![Deploy to GitHub Pages](https://github.com/chillheart/ztmm-assessment/workflows/Deploy%20to%20GitHub%20Pages/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/deploy-github-pages.yml)
 
 A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
 
@@ -157,29 +156,75 @@ To enable GitHub Pages deployment:
 
 ## 🏗️ Project Structure
 
+The application follows Angular best practices with a feature-based architecture for maintainability and scalability:
+
 ```
 src/
 ├── app/
-│   ├── components/          # Angular components
-│   │   ├── admin.component.*        # Configuration management
-│   │   ├── assessment.component.*   # Assessment interface
-│   │   ├── results.component.*      # Results dashboard
-│   │   ├── navbar.component.*       # Navigation
-│   │   └── home.component.*         # Landing page with instructions
-│   ├── admin/               # Admin/Configuration sub-components
-│   │   ├── pillars-tab.component.*     # Pillar management
-│   │   ├── functions-tab.component.*   # Function/capability management
-│   │   ├── technologies-tab.component.* # Technology/process management
-│   │   └── data-management-tab.component.* # Import/export functionality
-│   ├── models/              # TypeScript interfaces
-│   │   └── ztmm.models.ts          # Data models and interfaces
-│   ├── services/            # Angular services
-│   │   ├── indexeddb.service.ts        # IndexedDB database service
-│   │   ├── ztmm-data-web.service.ts    # Main data access layer
-│   │   └── pdf-export.service.ts       # PDF report generation
-│   └── styles.scss          # Global styles
-└── assets/                  # Static assets (icons, images)
+│   ├── core/                    # Core application components
+│   │   └── components/              # Core UI components
+│   │       ├── home.component.*         # Landing page with instructions
+│   │       ├── navbar.component.*       # Navigation header
+│   │       └── footer.component.*       # Application footer
+│   ├── features/                # Feature modules (organized by domain)
+│   │   ├── assessment/              # Assessment functionality
+│   │   │   ├── assessment.component.*       # Main assessment interface
+│   │   │   ├── assessment-item.component.*  # Individual assessment items
+│   │   │   ├── assessment-overview.component.* # Assessment progress overview
+│   │   │   ├── pillar-summary.component.*   # Pillar-specific summaries
+│   │   │   ├── overall-progress-summary.component.* # Overall progress tracking
+│   │   │   └── pagination.component.*       # Assessment pagination
+│   │   ├── configuration/           # Admin/Configuration management
+│   │   │   ├── admin.component.*            # Main configuration interface
+│   │   │   ├── pillars-tab.component.*      # Pillar management
+│   │   │   ├── functions-tab.component.*    # Function/capability management
+│   │   │   ├── technologies-tab.component.* # Technology/process management
+│   │   │   └── data-management-tab.component.* # Import/export functionality
+│   │   └── reports/              # Results and reporting
+│   │       └── results.component.*         # Results dashboard and PDF export
+│   ├── models/                  # TypeScript interfaces and types
+│   │   └── ztmm.models.ts              # Core data models and interfaces
+│   ├── services/                # Application services
+│   │   ├── indexeddb.service.ts            # Low-level IndexedDB operations
+│   │   ├── ztmm-data-web.service.ts        # Main data access layer (interface)
+│   │   ├── ztmm-data-web-indexeddb.service.ts # IndexedDB implementation
+│   │   ├── pdf-export.service.ts           # PDF report generation
+│   │   └── demo-data-generator.service.ts  # Demo data for testing
+│   ├── security/                # Security testing and validation
+│   │   ├── security-tests.spec.ts          # OWASP Top 10 security tests
+│   │   ├── penetration-tests.spec.ts       # Penetration testing suite
+│   │   ├── basic-security-tests.spec.ts    # Basic security validations
+│   │   ├── simple-security-tests.spec.ts   # Simplified security checks
+│   │   ├── security-config.ts              # Security configuration
+│   │   └── security-test-utils.ts          # Security testing utilities
+│   ├── shared/                  # Shared components and utilities
+│   │   └── components/                 # Reusable UI components
+│   ├── testing/                 # Test utilities and setup
+│   │   ├── test-setup.ts                   # Global test configuration
+│   │   ├── test-utils.ts                   # General testing utilities
+│   │   └── test-utils-indexeddb.ts         # IndexedDB testing utilities
+│   ├── utilities/               # Helper functions and utilities
+│   ├── app.component.*          # Root application component
+│   ├── app.config.ts           # Application configuration
+│   └── app.routes.ts           # Application routing
+├── assets/                      # Static assets
+│   ├── icons/                      # Application icons
+│   ├── icon.ico                    # Favicon
+│   ├── icon.png                    # App icon (PNG)
+│   └── icon.icns                   # App icon (macOS)
+├── styles.scss                  # Global application styles
+├── main.ts                      # Application bootstrap
+└── index.html                   # Main HTML template
 ```
+
+### Architecture Highlights
+
+- **Feature-Based Organization**: Each major functionality (assessment, configuration, reports) is organized in its own feature module
+- **Core vs Features**: Core components are application-wide, while features are domain-specific
+- **Separation of Concerns**: Clear separation between data models, services, UI components, and utilities
+- **Security-First**: Dedicated security testing module with comprehensive test suites
+- **Testing Infrastructure**: Robust testing setup with utilities for different testing scenarios
+- **Scalable Structure**: Easy to extend with new features while maintaining clean architecture
 
 ## 🗄️ Data Storage
 
@@ -256,17 +301,67 @@ For questions, issues, or feature requests, please create an issue in the reposi
 
 ## 🔄 Version History
 
-- **v1.2.0**: Switched to using native IndexedDB APIs
-  - Updated home page to include instructions and privacy statement
-- **v1.1.0**: Web-based application with IndexedDB storage
-  - Complete privacy with local browser storage
-  - Enhanced UI with getting started guide
-  - PDF export functionality
-  - Import/export for data management
-  - Comprehensive test coverage
-- **v1.0.0**: Initial release with core ZTMM assessment functionality
-  - Configuration management with drag-and-drop reordering
-  - Pillar-based assessment workflow with progress tracking
+### **v1.3.3** (Current) - Feature-Based Architecture & Enhanced Security
+- **🏗️ Architecture Refactor**: Migrated to feature-based Angular architecture
+  - Organized code into `core/`, `features/`, and `shared/` modules
+  - Improved maintainability and scalability
+  - Better separation of concerns with domain-driven design
+- **🔒 Security Enhancement**: Comprehensive security testing framework
+  - OWASP Top 10 security tests integration
+  - Penetration testing suite with automated validation
+  - Security configuration and utilities for continuous monitoring
+- **🧪 Testing Infrastructure**: Robust testing ecosystem
+  - Enhanced test utilities for IndexedDB operations
+  - Comprehensive unit and integration test coverage
+  - Security-focused testing with automated CI/CD validation
+- **📱 UI/UX Improvements**: Enhanced user experience
+  - Assessment pagination for better navigation
+  - Improved progress tracking and overview components
+  - Enhanced footer and navigation components
+- **⚡ Performance**: Optimized data handling and component structure
+
+### **v1.3.0** - Major Feature Enhancements
+- **🔄 CI/CD Pipeline**: Comprehensive continuous integration setup
+  - GitHub Actions workflows for automated testing and deployment
+  - CodeQL security scanning and vulnerability detection
+  - Automated PR validation with enhanced checks
+- **🛡️ Security Hardening**: Advanced security measures
+  - Trivy filesystem scanning for vulnerabilities
+  - Enhanced dependency auditing and security validation
+  - Security configuration and monitoring tools
+
+### **v1.2.0** - Native IndexedDB Implementation
+- **💾 Database Migration**: Switched to using native IndexedDB APIs
+  - Direct browser database integration for better performance
+  - Improved data reliability and error handling
+- **📖 User Experience**: Updated home page with comprehensive instructions
+  - Privacy statement prominently displayed
+  - Step-by-step getting started guide
+  - Enhanced onboarding experience
+
+### **v1.1.0** - Web Application Foundation
+- **🌐 Web-Based Platform**: Complete transition to browser-based application
+  - IndexedDB storage for local data persistence
+  - Complete privacy with no external server dependencies
+- **📊 Enhanced Features**: Comprehensive assessment capabilities
+  - PDF export functionality for professional reporting
+  - Import/export for data management and backup
+  - Enhanced UI with Bootstrap 5 integration
+- **🧪 Quality Assurance**: Comprehensive test coverage
+  - Unit tests for all major components
+  - Integration tests for data flow validation
+  - Automated testing pipeline setup
+
+### **v1.0.0** - Initial Release
+- **⭐ Core Functionality**: Initial ZTMM assessment implementation
+  - Configuration management with intuitive interface
+  - Drag-and-drop reordering for user-friendly setup
+  - Pillar-based assessment workflow
+  - Progress tracking and basic reporting
+- **🛠️ Foundation**: Basic Angular application structure
+  - Component-based architecture
+  - Bootstrap UI framework integration
+  - Local storage implementation
 
 ## 🔄 Continuous Integration
 
@@ -277,14 +372,9 @@ This project includes comprehensive CI/CD pipelines that automatically run on pu
 - **Unit Tests**: Full test suite with coverage reporting
 - **Security**: OWASP Top 10 tests, penetration tests, and dependency audits
 - **Build Verification**: Production build validation
-- **Static Analysis**: CodeQL security scanning
-- **Vulnerability Scanning**: Trivy filesystem scanning
 
 ### Workflows
-- **CI Pipeline**: Runs on all pushes and pull requests to `main`/`develop` 
 - **PR Validation**: Enhanced checks with automated PR comments
-- **Security Scanning**: CodeQL and Trivy vulnerability detection
-- **Auto Deployment**: GitHub Pages deployment on releases
 
 ### Running Tests Locally
 ```bash

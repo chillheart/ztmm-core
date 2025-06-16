@@ -61,4 +61,11 @@ describe('FooterComponent', () => {
 
     expect(responsiveColumns.length).toBe(2);
   });
+
+  it('should display the application name consistently with navbar', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const appNameElement = compiled.querySelector('.fw-bold');
+
+    expect(appNameElement?.textContent).toContain('Zero Trust Maturity Assessment');
+  });
 });

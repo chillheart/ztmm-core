@@ -33,7 +33,7 @@ describe('NavbarComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const brandElement = compiled.querySelector('.navbar-brand');
 
-    expect(brandElement?.textContent).toContain('ZTMM Assessment');
+    expect(brandElement?.textContent).toContain('Zero Trust Maturity Assessment');
   });
 
   it('should have proper Bootstrap navbar structure', () => {
