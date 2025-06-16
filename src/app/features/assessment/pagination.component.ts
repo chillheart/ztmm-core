@@ -15,6 +15,11 @@ export class PaginationComponent {
   @Input() totalItems = 0;
   @Input() showSaveButton = true;
 
+  // Stage-based pagination inputs
+  @Input() availableStages: string[] = [];
+  @Input() currentStageName = '';
+  @Input() currentStageItemCount = 0;
+
   @Output() pageChange = new EventEmitter<number>();
   @Output() previousPage = new EventEmitter<void>();
   @Output() nextPage = new EventEmitter<void>();
@@ -57,6 +62,23 @@ export class PaginationComponent {
     }
 
     return pages;
+  }
+
+  getStageDisplayName(pageNumber: number): string {
+    if (this.availableStages.length > 0 && pageNumber >= 1 && pageNumber <= this.availableStages.length) {
+      return this.availableStages[pageNumber - 1];
+    }
+    return pageNumber.toString();
+  }
+
+  getStageColorClass(stageName: string): string {
+    switch (stageName) {
+      case 'Traditional': return 'btn-secondary';
+      case 'Initial': return 'btn-warning';
+      case 'Advanced': return 'btn-info';
+      case 'Optimal': return 'btn-success';
+      default: return 'btn-outline-primary';
+    }
   }
 
   getStartItem(): number {

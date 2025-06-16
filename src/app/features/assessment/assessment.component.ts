@@ -63,11 +63,17 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   statusOptions: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented', 'Superseded'];
   showSuccess = false;
 
-  // Pagination properties
-  currentPage = 1;
-  itemsPerPage = 5;
-  totalPages = 0;
+  // Pagination properties - now stage-based
+  currentPage = 1; // 1=Traditional, 2=Initial, 3=Advanced, 4=Optimal
+  itemsPerPage = 5; // Not used in stage-based pagination
+  totalPages = 0; // Will be set to number of available stages
   paginatedTechnologiesProcesses: TechnologyProcess[] = [];
+
+  // Maturity stage pagination properties
+  technologiesProcessesByStage: Record<string, TechnologyProcess[]> = {};
+  stageOrder: string[] = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+  availableStages: string[] = [];
+  currentStageName = '';
 
   // Auto-save properties
   private autoSaveTimeout: number | null = null;
@@ -220,6 +226,9 @@ export class AssessmentComponent implements OnInit, OnDestroy {
         }
       }
 
+      // Group technologies/processes by maturity stage
+      this.groupTechnologiesProcessesByStage();
+
       // Reset pagination to first page and update pagination
       this.currentPage = 1;
       this.updatePagination();
@@ -228,6 +237,8 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.assessmentStatuses = [];
       this.assessmentNotes = [];
       this.paginatedTechnologiesProcesses = [];
+      this.technologiesProcessesByStage = {};
+      this.availableStages = [];
       this.totalPages = 0;
       this.currentPage = 1;
     }
@@ -235,6 +246,31 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
   getMaturityStageName(id: number) {
     return this.maturityStages.find(ms => ms.id === id)?.name || 'Unknown';
+  }
+
+  groupTechnologiesProcessesByStage() {
+    this.technologiesProcessesByStage = {};
+    this.availableStages = [];
+
+    // Group technologies/processes by maturity stage
+    for (const tp of this.technologiesProcesses) {
+      const stageName = this.getMaturityStageName(tp.maturity_stage_id);
+      if (!this.technologiesProcessesByStage[stageName]) {
+        this.technologiesProcessesByStage[stageName] = [];
+      }
+      this.technologiesProcessesByStage[stageName].push(tp);
+    }
+
+    // Get available stages in the correct order
+    this.availableStages = this.stageOrder.filter(stage =>
+      this.technologiesProcessesByStage[stage] && this.technologiesProcessesByStage[stage].length > 0
+    );
+
+    // Set total pages to number of available stages (each stage is one page)
+    this.totalPages = this.availableStages.length;
+
+    // Set current stage name based on current page
+    this.updateCurrentStage();
   }
 
   getFunctionCapabilityName(id: number) {
@@ -377,12 +413,34 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     setTimeout(() => (this.showSuccess = false), 2000);
   }
 
-  // Pagination methods
+  // Pagination methods - now stage-based
   updatePagination() {
-    this.totalPages = Math.ceil(this.technologiesProcesses.length / this.itemsPerPage);
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.paginatedTechnologiesProcesses = this.technologiesProcesses.slice(startIndex, endIndex);
+    // Set current stage based on current page
+    this.updateCurrentStage();
+
+    // Set paginated items to all items from current stage
+    if (this.currentStageName && this.technologiesProcessesByStage[this.currentStageName]) {
+      this.paginatedTechnologiesProcesses = [...this.technologiesProcessesByStage[this.currentStageName]];
+    } else {
+      this.paginatedTechnologiesProcesses = [];
+    }
+  }
+
+  updateCurrentStage() {
+    // Map page number to stage (1-based)
+    if (this.currentPage >= 1 && this.currentPage <= this.availableStages.length) {
+      this.currentStageName = this.availableStages[this.currentPage - 1];
+    } else {
+      this.currentStageName = this.availableStages[0] || '';
+    }
+  }
+
+  getCurrentStageName(): string {
+    return this.currentStageName;
+  }
+
+  getCurrentStageItemCount(): number {
+    return this.currentStageName ? (this.technologiesProcessesByStage[this.currentStageName]?.length || 0) : 0;
   }
 
   goToPage(page: number) {

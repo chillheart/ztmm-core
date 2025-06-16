@@ -46,6 +46,9 @@
         [itemsPerPage]="itemsPerPage"
         [totalItems]="technologiesProcesses.length"
         [showSaveButton]="true"
+        [availableStages]="availableStages"
+        [currentStageName]="currentStageName"
+        [currentStageItemCount]="currentStageItemCount"
         (pageChange)="onPageChange($event)"
         (previousPage)="onPreviousPage()"
         (nextPage)="onNextPage()"
@@ -58,20 +61,57 @@
   <div class="row justify-content-center">
     <div class="col-lg-10">
       <form (ngSubmit)="onSaveAll()">
-        <div *ngFor="let tp of paginatedTechnologiesProcesses; let i = index">
-          <app-assessment-item
-            [technologyProcess]="tp"
-            [itemNumber]="getGlobalItemIndex(i) + 1"
-            [status]="assessmentStatuses[getGlobalItemIndex(i)]"
-            [notes]="assessmentNotes[getGlobalItemIndex(i)] || ''"
-            [statusOptions]="statusOptions"
-            [functionCapabilities]="functionCapabilities"
-            [maturityStages]="maturityStages"
-            [isAutoSaving]="isAutoSaving"
-            (statusChange)="onStatusChange(i, $event)"
-            (notesChange)="onNotesChange(i, $event)">
-          </app-assessment-item>
+        <!-- Show current stage only (stage-based pagination) -->
+        <div *ngIf="shouldShowCurrentStage(); else flatView">
+          <div class="maturity-stage-group mb-4">
+            <!-- Stage Header -->
+            <div class="card mb-3">
+              <div class="card-header d-flex align-items-center justify-content-between" [class]="getStageColorClass(currentStageName)">
+                <h5 class="mb-0 text-white">
+                  <i class="bi bi-ladder me-2"></i>
+                  {{ currentStageName }} Maturity Stage
+                </h5>
+                <span class="badge bg-light text-dark">
+                  {{ currentStageItemCount }} items
+                </span>
+              </div>
+            </div>
+
+            <!-- All Items for current stage -->
+            <div *ngFor="let tp of getCurrentStageItems(); let i = index">
+              <app-assessment-item
+                [technologyProcess]="tp"
+                [itemNumber]="getItemNumber(tp)"
+                [status]="getStatusForItem(tp)"
+                [notes]="getNotesForItem(tp)"
+                [statusOptions]="statusOptions"
+                [functionCapabilities]="functionCapabilities"
+                [maturityStages]="maturityStages"
+                [isAutoSaving]="isAutoSaving"
+                (statusChange)="onStatusChangeForItem(tp, $event)"
+                (notesChange)="onNotesChangeForItem(tp, $event)">
+              </app-assessment-item>
+            </div>
+          </div>
         </div>
+
+        <!-- Fallback flat view for traditional pagination -->
+        <ng-template #flatView>
+          <div *ngFor="let tp of paginatedTechnologiesProcesses; let i = index">
+            <app-assessment-item
+              [technologyProcess]="tp"
+              [itemNumber]="getGlobalItemIndex(i) + 1"
+              [status]="assessmentStatuses[getGlobalItemIndex(i)]"
+              [notes]="assessmentNotes[getGlobalItemIndex(i)] || ''"
+              [statusOptions]="statusOptions"
+              [functionCapabilities]="functionCapabilities"
+              [maturityStages]="maturityStages"
+              [isAutoSaving]="isAutoSaving"
+              (statusChange)="onStatusChange(i, $event)"
+              (notesChange)="onNotesChange(i, $event)">
+            </app-assessment-item>
+          </div>
+        </ng-template>
 
         <!-- Bottom Pagination Navigation -->
         <div *ngIf="totalPages > 1">
@@ -81,6 +121,9 @@
             [itemsPerPage]="itemsPerPage"
             [totalItems]="technologiesProcesses.length"
             [showSaveButton]="false"
+            [availableStages]="availableStages"
+            [currentStageName]="currentStageName"
+            [currentStageItemCount]="currentStageItemCount"
             (pageChange)="onPageChange($event)"
             (previousPage)="onPreviousPage()"
             (nextPage)="onNextPage()">
