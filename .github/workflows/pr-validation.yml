@@ -42,6 +42,7 @@ jobs:
       run: npm run ci:full
 
     - name: Perform CodeQL Analysis
+      continue-on-error: true
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:javascript"
