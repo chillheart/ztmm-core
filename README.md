@@ -2,7 +2,7 @@
 
 [![PR Checks](https://github.com/chillheart/ztmm-assessment/workflows/PR%20Checks/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
 
-A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
+A compre│   ├── app.routes.ts           # Application routing (includes /results redirect)ensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
 
 ## 🚀 Features
 
@@ -10,7 +10,7 @@ A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built wi
 - **📊 Assessment Management**: Conduct maturity assessments against the Zero Trust framework
 - **🏗️ Configuration Management**: Define and manage Zero Trust pillars, functions/capabilities, and technologies/processes
 - **📈 Progress Tracking**: Visual progress indicators and completion tracking
-- **📋 Results Dashboard**: View and analyze assessment results with detailed reporting and PDF export
+- **📋 Reports Dashboard**: View and analyze assessment results with detailed reporting and PDF export
 - **📁 Data Management**: Import/export functionality for backup and data migration
 
 ### Privacy & Security
@@ -38,7 +38,7 @@ A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built wi
 - **UI Framework**: Bootstrap 5.3 with Bootstrap Icons
 - **Database**: IndexedDB (browser-native database)
 - **Styling**: SCSS with responsive design
-- **Export**: jsPDF for report generation
+- **Export**: PDF-lib for clean, professional report generation
 - **Storage**: Local browser storage (no external dependencies)
 
 ## 📖 Usage Guide
@@ -64,12 +64,14 @@ Navigate to the Configuration section to set up your ZTMM framework:
 5. Rate each technology/process implementation status
 6. Add optional notes for context and future reference
 
-### 3. Viewing Results
-Access the Results section to:
+### 3. Viewing Reports
+Access the Reports section to:
 - View completed assessments with visual indicators
 - Analyze maturity scores across pillars
 - Export assessment reports to PDF
 - Track progress over time
+
+**Note**: The `/results` route automatically redirects to `/reports` for consistency and improved navigation.
 
 ## 🔧 Development
 
@@ -181,7 +183,7 @@ src/
 │   │   │   ├── technologies-tab.component.* # Technology/process management
 │   │   │   └── data-management-tab.component.* # Import/export functionality
 │   │   └── reports/              # Results and reporting
-│   │       └── results.component.*         # Results dashboard and PDF export
+│   │       └── reports.component.*         # Reports dashboard and PDF export
 │   ├── models/                  # TypeScript interfaces and types
 │   │   └── ztmm.models.ts              # Core data models and interfaces
 │   ├── services/                # Application services
@@ -206,7 +208,7 @@ src/
 │   ├── utilities/               # Helper functions and utilities
 │   ├── app.component.*          # Root application component
 │   ├── app.config.ts           # Application configuration
-│   └── app.routes.ts           # Application routing
+│   └── app.routes.ts           # Application routing (includes /results redirect)
 ├── assets/                      # Static assets
 │   ├── icons/                      # Application icons
 │   ├── icon.ico                    # Favicon
@@ -301,7 +303,17 @@ For questions, issues, or feature requests, please create an issue in the reposi
 
 ## 🔄 Version History
 
-### **v1.3.4** (Current) - Code Quality Enhancement
+### **v1.3.5** (Current) - Navigation Simplification
+- **🔄 Component Restructure**: Removed redundant Results component
+  - Streamlined navigation by removing duplicate Results component
+  - All `/results` routes now automatically redirect to `/reports` for consistency
+  - Updated navigation links and test expectations throughout the application
+  - Maintained backward compatibility with automatic redirection
+- **📋 Documentation**: Updated README and navigation references
+  - Corrected all documentation to reflect the simplified navigation structure
+  - Enhanced routing documentation with redirect behavior explanation
+
+### **v1.3.4** - Code Quality Enhancement
 - **🔧 Code Quality**: Comprehensive linting and code quality improvements
   - Fixed all ESLint linting errors across the codebase
   - Applied automated fixes for formatting and style consistency

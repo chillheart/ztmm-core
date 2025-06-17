@@ -68,7 +68,7 @@ describe('HomeComponent', () => {
     const routes = Array.from(linkElements).map(el => el.getAttribute('routerLink'));
     expect(routes).toContain('/configuration');
     expect(routes).toContain('/assessment');
-    expect(routes).toContain('/results');
+    expect(routes).toContain('/reports');
   });  it('should have proper button classes and styling', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navigationButtons = compiled.querySelectorAll('a.btn[routerLink]');
@@ -179,11 +179,11 @@ describe('HomeComponent', () => {
       expect(configLink).toBeTruthy();
     });
 
-    it('should navigate to results page', async () => {
+    it('should navigate to reports page', async () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      const resultsLink = compiled.querySelector('a[routerLink="/results"]') as HTMLElement;
+      const reportsLink = compiled.querySelector('a[routerLink="/reports"]') as HTMLElement;
 
-      expect(resultsLink).toBeTruthy();
+      expect(reportsLink).toBeTruthy();
     });
   });
 
