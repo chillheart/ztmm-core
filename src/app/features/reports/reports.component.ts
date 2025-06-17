@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
-import { PdfkitExportService } from '../../services/pdfkit-export.service';
 import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from '../../models/ztmm.models';
 
 interface MaturityStageBreakdown {
@@ -81,7 +80,7 @@ export class ReportsComponent implements OnInit {
   currentView: ViewLevel = 'pillar-overview';
   selectedPillarId: number | null = null;
   selectedFunctionId: number | null = null;
-  isExportingPdf = false;
+  isExportingDoc = false;
   dropdownOpen = false;
 
   // Computed Data
@@ -92,7 +91,6 @@ export class ReportsComponent implements OnInit {
 
   constructor(
     private data: ZtmmDataWebService,
-    private pdfkitExportService: PdfkitExportService
   ) {}
 
   async ngOnInit() {
@@ -368,91 +366,6 @@ export class ReportsComponent implements OnInit {
       case 'Not Assessed': return 'bg-secondary text-white';
       case 'Superseded': return 'bg-info text-white';
       default: return 'bg-secondary text-white';
-    }
-  }
-
-  // Export functionality
-
-  /**
-   * Export premium PDF report using PDFKit with complete reports recreation
-   */
-  async exportPDFKitReport(): Promise<void> {
-    if (this.isExportingPdf) return;
-
-    this.isExportingPdf = true;
-    try {
-      // Transform pillar summaries to AssessmentReportItem format
-      const allResults = this.pillarSummaries.map(ps => {
-        return {
-          category: ps.pillar.name,
-          score: ps.assessedItems,
-          maxScore: ps.totalItems,
-          percentage: ps.assessmentPercentage,
-          details: [] // Convert to array format expected by the interface
-        };
-      });
-
-      // Enhanced pillar data with complete function and assessment details
-      const enhancedPillarData = this.pillarSummaries.map(ps => {
-        // Get function summaries for this pillar
-        const functionSummaries = ps.functions.map(fs => {
-          // Get assessment details for this function
-          const functionTechProcesses = this.technologiesProcesses.filter(
-            tp => tp.function_capability_id === fs.functionCapability.id
-          );
-
-          const assessmentDetails = functionTechProcesses.map(tp => {
-            const maturityStage = this.maturityStages.find(ms => ms.id === tp.maturity_stage_id);
-            const assessment = this.assessmentResponses.find(ar => ar.tech_process_id === tp.id);
-
-            return {
-              description: tp.description,
-              type: tp.type,
-              maturityStageName: maturityStage?.name || '',
-              status: assessment?.status || 'Not Assessed',
-              notes: assessment?.notes || ''
-            };
-          });
-
-          return {
-            ...fs,
-            assessmentDetails
-          };
-        });
-
-        return {
-          name: ps.pillar.name,
-          score: ps.assessedItems,
-          maxScore: ps.totalItems,
-          percentage: ps.assessmentPercentage,
-          color: this.getPillarColor(ps.pillar.name),
-          recommendations: this.generateRecommendations(ps),
-          // Enhanced data for complete reports recreation
-          functions: functionSummaries,
-          maturityStageBreakdown: ps.maturityStageBreakdown,
-          overallMaturityStage: ps.overallMaturityStage
-        };
-      });
-
-      // Export using enhanced PDFKit service that recreates complete reports experience
-      await this.pdfkitExportService.exportEnhancedAssessmentReport(allResults, enhancedPillarData, {
-        includeDetailedResults: true,
-        includeRecommendations: true,
-        companyName: 'Assessment Report',
-        reportDate: new Date(),
-        assessorName: 'ZTMM Assessment Tool',
-        completeReportsData: {
-          pillarSummaries: this.pillarSummaries,
-          currentView: this.currentView,
-          selectedPillarSummary: this.selectedPillarSummary,
-          selectedFunctionSummary: this.selectedFunctionSummary
-        }
-      });
-    } catch (error) {
-      console.error('Error exporting enhanced PDF report:', error);
-      alert('Failed to export comprehensive PDF report. Please try again.');
-    } finally {
-      this.isExportingPdf = false;
     }
   }
 

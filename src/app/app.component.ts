@@ -11,5 +11,5 @@ import { FooterComponent } from './core/components/footer.component';
   standalone: true
 })
 export class AppComponent {
-  title = 'ztmm-assessment';
+  title = 'Zero Trust Maturity Assessment';
 }

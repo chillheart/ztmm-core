@@ -10,12 +10,12 @@
         type="button"
         class="btn btn-outline-primary dropdown-toggle"
         (click)="toggleDropdown()"
-        [disabled]="isExportingPdf || pillarSummaries.length === 0"
+        [disabled]="isExportingDoc || pillarSummaries.length === 0"
         [class.active]="dropdownOpen"
         title="Export assessment report">
         <i class="bi bi-file-earmark-pdf me-2"></i>
-        <span *ngIf="!isExportingPdf">Export Report</span>
-        <span *ngIf="isExportingPdf">
+        <span *ngIf="!isExportingDoc">Export Report</span>
+        <span *ngIf="isExportingDoc">
           <span class="spinner-border spinner-border-sm me-2" role="status"></span>
           Generating...
         </span>
@@ -23,11 +23,17 @@
       <ul class="dropdown-menu" [class.show]="dropdownOpen">
         <li>
           <button type="button" class="dropdown-item"
-                  (click)="exportPDFKitReport(); closeDropdown(); $event.stopPropagation()"
-                  (keyup.enter)="exportPDFKitReport(); closeDropdown(); $event.stopPropagation()">
-            <i class="bi bi-award me-2"></i>
-            <strong>Professional PDF Report</strong>
-            <small class="text-muted d-block">Vector graphics, professional charts & typography</small>
+                  (click)="closeDropdown(); $event.stopPropagation()"
+                  (keyup.enter)="closeDropdown(); $event.stopPropagation()">
+
+            <i class="bi bi-filetype-html"></i>
+            <span> HTML Export</span>
+          </button>
+          <button type="button" class="dropdown-item"
+                  (click)="closeDropdown(); $event.stopPropagation()"
+                  (keyup.enter)="closeDropdown(); $event.stopPropagation()">
+            <i class="bi bi-filetype-csv"></i>
+            <span> CSV Export</span>
           </button>
         </li>
       </ul>
