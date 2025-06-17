@@ -1,0 +1,334 @@
+<div class="container-fluid py-4" id="reports-container">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="mb-1">Assessment Reports</h1>
+      <p class="text-muted mb-0">Analyze your Zero Trust maturity assessment results</p>
+    </div>
+    <div class="btn-group position-relative" role="group">
+      <button
+        type="button"
+        class="btn btn-outline-primary dropdown-toggle"
+        (click)="toggleDropdown()"
+        [disabled]="isExportingPdf || pillarSummaries.length === 0"
+        [class.active]="dropdownOpen"
+        title="Export assessment report">
+        <i class="bi bi-file-earmark-pdf me-2"></i>
+        <span *ngIf="!isExportingPdf">Export Report</span>
+        <span *ngIf="isExportingPdf">
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Generating...
+        </span>
+      </button>
+      <ul class="dropdown-menu" [class.show]="dropdownOpen">
+        <li>
+          <button type="button" class="dropdown-item"
+                  (click)="exportPDFKitReport(); closeDropdown(); $event.stopPropagation()"
+                  (keyup.enter)="exportPDFKitReport(); closeDropdown(); $event.stopPropagation()">
+            <i class="bi bi-award me-2"></i>
+            <strong>Professional PDF Report</strong>
+            <small class="text-muted d-block">Vector graphics, professional charts & typography</small>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Breadcrumb Navigation -->
+  <nav aria-label="breadcrumb" class="mb-4" *ngIf="currentView !== 'pillar-overview'">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="#" (click)="goBackToPillarOverview(); $event.preventDefault()" class="text-decoration-none">
+          <i class="bi bi-house me-1"></i>Pillar Overview
+        </a>
+      </li>
+      <li class="breadcrumb-item" *ngIf="selectedPillarSummary" [class.active]="currentView === 'pillar-detail'">
+        <a href="#" *ngIf="currentView === 'function-detail'"
+           (click)="goBackToPillarDetail(); $event.preventDefault()" class="text-decoration-none">
+          {{ selectedPillarSummary.pillar.name }}
+        </a>
+        <span *ngIf="currentView === 'pillar-detail'">{{ selectedPillarSummary.pillar.name }}</span>
+      </li>
+      <li class="breadcrumb-item active" *ngIf="selectedFunctionSummary && currentView === 'function-detail'">
+        {{ selectedFunctionSummary.functionCapability.name }}
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Pillar Overview -->
+  <div *ngIf="currentView === 'pillar-overview'" [@fadeInOut]>
+    <div class="row g-4" *ngIf="pillarSummaries.length > 0">
+      <div *ngFor="let pillarSummary of pillarSummaries; let i = index" class="col-lg-6 col-xl-4">
+        <div class="card h-100 pillar-summary-card"
+             (click)="showPillarDetail(pillarSummary)"
+             role="button"
+             tabindex="0"
+             (keydown.enter)="showPillarDetail(pillarSummary)"
+             (keydown.space)="showPillarDetail(pillarSummary)">
+          <div class="card-header">
+            <h5 class="card-title mb-1">
+              <i class="bi bi-diagram-3-fill text-primary me-2"></i>
+              {{ pillarSummary.pillar.name }}
+            </h5>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge {{ getMaturityStageColor(pillarSummary.overallMaturityStage) }}">
+                {{ pillarSummary.overallMaturityStage }}
+              </span>
+              <small class="text-muted">
+                {{ pillarSummary.functions.length }} function{{ pillarSummary.functions.length !== 1 ? 's' : '' }}
+              </small>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Assessment Progress -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Assessment Progress</span>
+                <span class="badge bg-light text-dark">{{ pillarSummary.assessmentPercentage }}%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-primary"
+                     [style.width.%]="pillarSummary.assessmentPercentage"
+                     role="progressbar"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-1">
+                <small class="text-muted">{{ pillarSummary.assessedItems }} assessed</small>
+                <small class="text-muted">{{ pillarSummary.totalItems }} total</small>
+              </div>
+            </div>
+
+            <!-- Maturity Stage Breakdown -->
+            <div class="maturity-stage-summary">
+              <h6 class="text-muted mb-2">Maturity Stage Progress</h6>
+              <div class="row g-2">
+                <div *ngFor="let breakdown of pillarSummary.maturityStageBreakdown" class="col-6">
+                  <div class="d-flex align-items-center">
+                    <span class="badge {{ getStatusClass(breakdown.status) }} me-2" style="min-width: 20px;">
+                      <i class="bi {{ getStatusIcon(breakdown.status) }}"></i>
+                    </span>
+                    <div class="flex-grow-1">
+                      <div class="small fw-semibold">{{ breakdown.stageName }}</div>
+                      <div class="small text-muted">{{ breakdown.percentage }}% ({{ breakdown.assessed }}/{{ breakdown.total }})</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <div class="d-flex justify-content-end">
+              <button class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-right me-1"></i>View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Data Message -->
+    <div *ngIf="pillarSummaries.length === 0" class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="alert alert-info text-center">
+          <i class="bi bi-info-circle fs-2 mb-3"></i>
+          <h5>No Assessment Data Found</h5>
+          <p class="mb-3">No assessment data is available to generate reports. Please complete some assessments first.</p>
+          <a routerLink="/assessment" class="btn btn-primary">
+            <i class="bi bi-clipboard-check me-2"></i>Start Assessment
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pillar Detail View -->
+  <div *ngIf="currentView === 'pillar-detail' && selectedPillarSummary" [@slideIn]>
+    <div class="card mb-4">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-1">
+              <i class="bi bi-diagram-3-fill text-primary me-2"></i>
+              {{ selectedPillarSummary.pillar.name }}
+            </h4>
+            <div class="d-flex gap-3 align-items-center">
+              <span class="badge {{ getMaturityStageColor(selectedPillarSummary.overallMaturityStage) }} fs-6">
+                Overall Maturity: {{ selectedPillarSummary.overallMaturityStage }}
+              </span>
+              <span class="text-muted">
+                {{ selectedPillarSummary.functions.length }} function{{ selectedPillarSummary.functions.length !== 1 ? 's' : '' }} •
+                {{ selectedPillarSummary.assessmentPercentage }}% assessed
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Pillar Maturity Stage Overview -->
+        <div class="row mb-4">
+          <div *ngFor="let breakdown of selectedPillarSummary.maturityStageBreakdown" class="col-md-3 col-sm-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <div class="display-6 mb-2">
+                  <i class="bi {{ getStatusIcon(breakdown.status) }} {{ getStatusClass(breakdown.status) }} rounded-circle p-2"></i>
+                </div>
+                <h6 class="card-title">{{ breakdown.stageName }}</h6>
+                <div class="h4 mb-1">{{ breakdown.percentage }}%</div>
+                <div class="text-muted small">{{ breakdown.assessed }} of {{ breakdown.total }} assessed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Functions Table -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Functions & Capabilities</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Function/Capability</th>
+                <th>Type</th>
+                <th class="text-center">Assessment Progress</th>
+                <th class="text-center">Maturity Stage</th>
+                <th class="text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let functionSummary of selectedPillarSummary.functions"
+                  [class.table-active]="selectedFunctionId === functionSummary.functionCapability.id">
+                <td>
+                  <div class="fw-semibold">{{ functionSummary.functionCapability.name }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-primary">{{ functionSummary.functionCapability.type }}</span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex align-items-center justify-content-center">
+                    <div class="progress me-2" style="width: 100px; height: 20px;">
+                      <div class="progress-bar"
+                           [class]="functionSummary.assessmentPercentage === 100 ? 'bg-success' :
+                                   functionSummary.assessmentPercentage >= 50 ? 'bg-warning' : 'bg-danger'"
+                           [style.width.%]="functionSummary.assessmentPercentage"
+                           role="progressbar">
+                        <small class="text-white fw-bold">{{ functionSummary.assessmentPercentage }}%</small>
+                      </div>
+                    </div>
+                    <small class="text-muted">{{ functionSummary.assessedItems }}/{{ functionSummary.totalItems }}</small>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span class="badge {{ getMaturityStageColor(functionSummary.overallMaturityStage) }}">
+                    {{ functionSummary.overallMaturityStage }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-outline-primary btn-sm"
+                          (click)="showFunctionDetail(functionSummary)"
+                          [disabled]="functionSummary.totalItems === 0">
+                    <i class="bi bi-eye me-1"></i>View Details
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Function Detail View -->
+  <div *ngIf="currentView === 'function-detail' && selectedFunctionSummary" [@slideIn]>
+    <div class="card mb-4">
+      <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-1">
+              <i class="bi bi-gear-fill text-primary me-2"></i>
+              {{ selectedFunctionSummary.functionCapability.name }}
+            </h4>
+            <div class="d-flex gap-3 align-items-center">
+              <span class="badge bg-primary">{{ selectedFunctionSummary.functionCapability.type }}</span>
+              <span class="badge {{ getMaturityStageColor(selectedFunctionSummary.overallMaturityStage) }}">
+                Maturity: {{ selectedFunctionSummary.overallMaturityStage }}
+              </span>
+              <span class="text-muted">
+                {{ selectedFunctionSummary.assessmentPercentage }}% assessed
+                ({{ selectedFunctionSummary.assessedItems }}/{{ selectedFunctionSummary.totalItems }})
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <!-- Function Maturity Stage Breakdown -->
+        <div class="row">
+          <div *ngFor="let breakdown of selectedFunctionSummary.maturityStageBreakdown" class="col-md-3 col-sm-6 mb-3">
+            <div class="card h-100">
+              <div class="card-body text-center">
+                <div class="display-6 mb-2">
+                  <i class="bi {{ getStatusIcon(breakdown.status) }} {{ getStatusClass(breakdown.status) }} rounded-circle p-2"></i>
+                </div>
+                <h6 class="card-title">{{ breakdown.stageName }}</h6>
+                <div class="h4 mb-1">{{ breakdown.percentage }}%</div>
+                <div class="text-muted small">{{ breakdown.assessed }} of {{ breakdown.total }} assessed</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Assessment Items -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Assessment Details</h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Technology/Process</th>
+                <th>Type</th>
+                <th class="text-center">Maturity Stage</th>
+                <th class="text-center">Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of selectedFunctionDetails">
+                <td>
+                  <div class="fw-semibold">{{ item.description }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-secondary">{{ item.type }}</span>
+                </td>
+                <td class="text-center">
+                  <span class="badge {{ getMaturityStageColor(item.maturityStageName) }}">
+                    {{ item.maturityStageName }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span class="badge {{ getAssessmentStatusClass(item.status) }}">
+                    {{ item.status }}
+                  </span>
+                </td>
+                <td>
+                  <div class="text-muted small" [title]="item.notes">
+                    {{ item.notes || 'No notes' }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

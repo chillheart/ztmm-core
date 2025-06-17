@@ -26,6 +26,9 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "allowedCommonJsDependencies": [
+              "pdf-lib",
+              "file-saver",
+              "pako"
             ],
             "assets": [
               {

@@ -7,7 +7,7 @@ import { NavbarComponent } from './core/components/navbar.component';
 import { HomeComponent } from './core/components/home.component';
 import { AssessmentComponent } from './features/assessment/assessment.component';
 import { AdminComponent } from './features/configuration/admin.component';
-import { ResultsComponent } from './features/reports/results.component';
+import { ReportsComponent } from './features/reports/reports.component';
 import { ZtmmDataWebService } from './services/ztmm-data-web.service';
 import { DataExportService } from './utilities/data-export.service';
 // import { TestUtils } from './testing/test-utils';
@@ -25,12 +25,13 @@ describe('Application Integration Tests', () => {
         HomeComponent,
         AssessmentComponent,
         AdminComponent,
-        ResultsComponent,
+        ReportsComponent,
         RouterTestingModule.withRoutes([
           { path: '', component: HomeComponent },
           { path: 'assessment', component: AssessmentComponent },
           { path: 'configuration', component: AdminComponent },
-          { path: 'results', component: ResultsComponent },
+          { path: 'reports', component: ReportsComponent },
+          { path: 'results', redirectTo: '/reports', pathMatch: 'full' }, // Legacy redirect
           { path: '**', redirectTo: '/', pathMatch: 'full' }
         ])
       ],
@@ -77,9 +78,14 @@ describe('Application Integration Tests', () => {
       expect(location.path()).toBe('/configuration');
     });
 
-    it('should navigate to results page', async () => {
+    it('should navigate to reports page', async () => {
+      await router.navigate(['/reports']);
+      expect(location.path()).toBe('/reports');
+    });
+
+    it('should redirect results to reports page', async () => {
       await router.navigate(['/results']);
-      expect(location.path()).toBe('/results');
+      expect(location.path()).toBe('/reports');
     });
 
     it('should redirect unknown routes to home', async () => {
@@ -144,11 +150,11 @@ describe('Application Integration Tests', () => {
       expect(tabs.length).toBeGreaterThan(0);
     });
 
-    it('should load Results component with empty results initially', () => {
-      const fixture = TestBed.createComponent(ResultsComponent);
-      const component = fixture.componentInstance as ResultsComponent;
+    it('should load Reports component with empty data initially', () => {
+      const fixture = TestBed.createComponent(ReportsComponent);
+      const component = fixture.componentInstance as ReportsComponent;
 
-      expect(component.results).toEqual([]);
+      expect(component.pillarSummaries).toEqual([]);
     });
   });
 
@@ -156,14 +162,14 @@ describe('Application Integration Tests', () => {
     it('should share data service instance across components', () => {
       const assessmentFixture = TestBed.createComponent(AssessmentComponent);
       const adminFixture = TestBed.createComponent(AdminComponent);
-      const resultsFixture = TestBed.createComponent(ResultsComponent);
+      const reportsFixture = TestBed.createComponent(ReportsComponent);
 
       const assessmentService = (assessmentFixture.componentInstance as any).data;
       const adminService = (adminFixture.componentInstance as any).data;
-      const resultsService = (resultsFixture.componentInstance as any).data;
+      const reportsService = (reportsFixture.componentInstance as any).data;
 
       expect(assessmentService).toBe(adminService);
-      expect(adminService).toBe(resultsService);
+      expect(adminService).toBe(reportsService);
     });
 
     it('should handle database initialization consistently', async () => {

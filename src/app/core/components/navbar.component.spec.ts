@@ -65,7 +65,7 @@ describe('NavbarComponent', () => {
     const linkRoutes = Array.from(navLinks).map(link => link.getAttribute('routerLink'));
     expect(linkRoutes).toContain('/assessment');
     expect(linkRoutes).toContain('/configuration');
-    expect(linkRoutes).toContain('/results');
+    expect(linkRoutes).toContain('/reports');
   });
 
   it('should have proper navigation link text', () => {
@@ -74,7 +74,7 @@ describe('NavbarComponent', () => {
 
     const linkTexts = Array.from(navLinks).map(link => link.textContent?.trim());
     expect(linkTexts).toContain('Assessment');
-    expect(linkTexts).toContain('Results');
+    expect(linkTexts).toContain('Reports');
     // Configuration link only has an icon, no text
     expect(linkTexts.filter(text => text && text.length > 0).length).toBe(2);
   });

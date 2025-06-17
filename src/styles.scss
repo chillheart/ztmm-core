@@ -33,3 +33,42 @@ body {
 .navbar .nav-link:hover {
   color: #f8f9fa !important;
 }
+
+/* Custom dropdown styles for components without Bootstrap JS */
+.btn-group.position-relative .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 10rem;
+  padding: .5rem 0;
+  margin: .125rem 0 0;
+  font-size: .875rem;
+  color: #212529;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: .375rem;
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .175);
+}
+
+.btn-group.position-relative .dropdown-menu.show {
+  display: block;
+}
+
+.btn-group.position-relative .dropdown-item:hover,
+.btn-group.position-relative .dropdown-item:focus {
+  color: #1e2125;
+  text-decoration: none;
+  background-color: #e9ecef;
+}
+
+.btn-group.position-relative .dropdown-item:active {
+  color: #fff;
+  text-decoration: none;
+  background-color: #0d6efd;
+}
