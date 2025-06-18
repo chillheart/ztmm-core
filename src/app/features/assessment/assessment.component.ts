@@ -77,7 +77,8 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
   // Auto-save properties
   private autoSaveTimeout: number | null = null;
-  private readonly autoSaveDelay = 1000; // 1 second delay
+  private readonly autoSaveDelay = 300; // 300ms debounce delay
+  private activeSaves = new Set<number>(); // Track active saves by index
   isAutoSaving = false;
 
   // Make Math available to template
@@ -425,6 +426,35 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     setTimeout(() => (this.showSuccess = false), 2000);
   }
 
+  // Force save all pending changes immediately (useful before navigation)
+  async saveAllPendingChanges(): Promise<void> {
+    // Clear any pending timeout
+    if (this.autoSaveTimeout) {
+      window.clearTimeout(this.autoSaveTimeout);
+      this.autoSaveTimeout = null;
+    }
+
+    // Save all items that have data but aren't currently being saved
+    const savePromises: Promise<void>[] = [];
+
+    for (let i = 0; i < this.technologiesProcesses.length; i++) {
+      const status = this.assessmentStatuses[i];
+      const notes = this.assessmentNotes[i];
+
+      // Only save if there's meaningful data and it's not already being saved
+      if ((status || (notes && notes.trim())) && !this.activeSaves.has(i)) {
+        savePromises.push(this.saveAssessmentItem(i));
+      }
+    }
+
+    // Wait for all saves to complete
+    if (savePromises.length > 0) {
+      console.log(`Force saving ${savePromises.length} pending assessment changes...`);
+      await Promise.all(savePromises);
+      console.log('✅ All pending changes saved successfully');
+    }
+  }
+
   // Pagination methods - now stage-based
   updatePagination() {
     // Set current stage based on current page
@@ -506,53 +536,74 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     return (this.currentPage - 1) * this.itemsPerPage + localIndex;
   }
 
-  // Auto-save functionality
+  // Auto-save functionality - immediately save on change with debouncing
   onAssessmentChange(index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string) {
-    // Update the appropriate array
+    console.log(`Assessment change detected: index=${index}, field=${field}, value="${value}"`);
+
+    // Update the appropriate array immediately
     if (field === 'status') {
       this.assessmentStatuses[index] = value as AssessmentStatus | null;
     } else {
       this.assessmentNotes[index] = value as string;
     }
 
-    // Clear existing timeout
+    // Clear existing timeout for this item
     if (this.autoSaveTimeout) {
       window.clearTimeout(this.autoSaveTimeout);
     }
 
-    // Set new timeout for auto-save
+    // Debounce the save operation to prevent too many rapid saves
     this.autoSaveTimeout = window.setTimeout(() => {
-      this.autoSaveCurrentItem(index);
+      this.saveAssessmentItem(index);
     }, this.autoSaveDelay) as number;
   }
 
-  private async autoSaveCurrentItem(index: number) {
+  private async saveAssessmentItem(index: number): Promise<void> {
+    // Prevent multiple saves for the same item
+    if (this.activeSaves.has(index)) {
+      console.log(`Save already in progress for item ${index}, skipping...`);
+      return;
+    }
+
     const tp = this.technologiesProcesses[index];
     const status = this.assessmentStatuses[index];
     const notes = this.assessmentNotes[index] || '';
 
-    if (tp) {
-      try {
-        this.isAutoSaving = true;
-        
-        if (status) {
-          // Save the assessment with the current status and notes
-          await this.data.saveAssessment(tp.id, status, notes);
-          console.log(`Auto-saved assessment for ${tp.name}: ${status} with notes: "${notes}"`);
-        } else {
-          // If status is null, we can't save to the current API but we should indicate the change
-          console.log(`Auto-save: Status cleared for ${tp.name}, notes: "${notes}" - TODO: implement delete/clear assessment`);
-          // TODO: Implement deleteAssessment method in the service
-          // await this.data.deleteAssessment(tp.id);
-        }
+    if (!tp) {
+      console.warn(`No technology process found at index ${index}`);
+      return;
+    }
 
-        // Always reload assessment responses and rebuild summary after any change
-        this.assessmentResponses = await this.data.getAssessmentResponses();
-        await this.buildPillarSummary();
+    this.activeSaves.add(index);
+    this.isAutoSaving = true;
 
-        this.isAutoSaving = false;
-      } catch (error) {
-        console.error('Error auto-saving assessment:', error);
+    try {
+      console.log(`Saving assessment for ${tp.name}: status="${status}", notes="${notes}"`);
+
+      if (status) {
+        // Save the assessment with the current status and notes
+        await this.data.saveAssessment(tp.id, status, notes);
+        console.log(`✅ Successfully saved assessment for ${tp.name}`);
+      } else {
+        // If status is null, we might want to delete the assessment
+        // For now, just log as the API doesn't support deletion
+        console.log(`⚠️ Status is null for ${tp.name}, notes: "${notes}" - TODO: implement delete/clear assessment`);
+        // TODO: Implement deleteAssessment method in the service
+        // await this.data.deleteAssessment(tp.id);
+      }
+
+      // Reload assessment responses and rebuild summary after successful save
+      this.assessmentResponses = await this.data.getAssessmentResponses();
+      await this.buildPillarSummary();
+
+    } catch (error) {
+      console.error(`❌ Error saving assessment for ${tp.name}:`, error);
+      // TODO: Show user-friendly error message
+    } finally {
+      this.activeSaves.delete(index);
+
+      // Only set isAutoSaving to false if no other saves are active
+      if (this.activeSaves.size === 0) {
         this.isAutoSaving = false;
       }
     }
@@ -563,16 +614,22 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     if (this.autoSaveTimeout) {
       window.clearTimeout(this.autoSaveTimeout);
     }
+
+    // Clear active saves tracking
+    this.activeSaves.clear();
   }
 
   // Helper methods for event handling
   onStatusChange(event: Event, index: number) {
     const target = event.target as HTMLSelectElement;
-    this.onAssessmentChange(index, 'status', target.value);
+    const value = target.value === '' ? null : target.value as AssessmentStatus;
+    console.log(`Status change from select: "${target.value}" -> ${value}`);
+    this.onAssessmentChange(index, 'status', value);
   }
 
   onNotesChange(event: Event, index: number) {
     const target = event.target as HTMLTextAreaElement;
+    console.log(`Notes change: "${target.value}"`);
     this.onAssessmentChange(index, 'notes', target.value);
   }
 
