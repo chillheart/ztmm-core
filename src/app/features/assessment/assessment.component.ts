@@ -268,16 +268,19 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     // Group technologies/processes by maturity stage
     for (const tp of this.technologiesProcesses) {
       const stageName = this.getMaturityStageName(tp.maturity_stage_id);
-      if (!this.technologiesProcessesByStage[stageName]) {
+      if (!Object.prototype.hasOwnProperty.call(this.technologiesProcessesByStage, stageName)) {
         this.technologiesProcessesByStage[stageName] = [];
       }
-      this.technologiesProcessesByStage[stageName].push(tp);
+      this.technologiesProcessesByStage[stageName]?.push(tp);
     }
 
     // Get available stages in the correct order
-    this.availableStages = this.stageOrder.filter(stage =>
-      this.technologiesProcessesByStage[stage] && this.technologiesProcessesByStage[stage].length > 0
-    );
+    this.availableStages = this.stageOrder.filter(stage => {
+      const stageGroup = this.technologiesProcessesByStage[stage];
+      return Object.prototype.hasOwnProperty.call(this.technologiesProcessesByStage, stage) && 
+             stageGroup && 
+             stageGroup.length > 0;
+    });
 
     // Set total pages to number of available stages (each stage is one page)
     this.totalPages = this.availableStages.length;
