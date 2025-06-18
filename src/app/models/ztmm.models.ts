@@ -17,6 +17,7 @@ export interface MaturityStage {
 
 export interface TechnologyProcess {
   id: number;
+  name: string;
   description: string;
   type: 'Technology' | 'Process';
   function_capability_id: number;

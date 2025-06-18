@@ -63,7 +63,7 @@ describe('DemoDataGeneratorService', () => {
 
       // Check that Authentication demo data was added
       const authenticationCalls = mockDataService.addTechnologyProcess.calls.all().filter(call =>
-        call.args[2] === 1 // function_capability_id for Authentication
+        call.args[3] === 1 // function_capability_id for Authentication (now 4th parameter)
       );
 
       expect(authenticationCalls.length).toBeGreaterThan(0);
@@ -110,9 +110,9 @@ describe('DemoDataGeneratorService', () => {
 
     it('should return true when signature demo items exist', async () => {
       const existingTechProcesses: TechnologyProcess[] = [
-        { id: 1, description: 'Azure Active Directory Multi-Factor Authentication', type: 'Technology', function_capability_id: 1, maturity_stage_id: 3 },
-        { id: 2, description: 'Microsoft Intune Device Compliance', type: 'Technology', function_capability_id: 2, maturity_stage_id: 3 },
-        { id: 3, description: 'Azure Virtual Network', type: 'Technology', function_capability_id: 3, maturity_stage_id: 2 }
+        { id: 1, name: 'Azure Active Directory Multi-Factor Authentication', description: 'Azure Active Directory Multi-Factor Authentication', type: 'Technology', function_capability_id: 1, maturity_stage_id: 3 },
+        { id: 2, name: 'Microsoft Intune Device Compliance', description: 'Microsoft Intune Device Compliance', type: 'Technology', function_capability_id: 2, maturity_stage_id: 3 },
+        { id: 3, name: 'Azure Virtual Network', description: 'Azure Virtual Network', type: 'Technology', function_capability_id: 3, maturity_stage_id: 2 }
       ];
 
       mockDataService.getAllTechnologiesProcesses.and.returnValue(Promise.resolve(existingTechProcesses));
@@ -124,8 +124,8 @@ describe('DemoDataGeneratorService', () => {
 
     it('should return false when only some signature items exist', async () => {
       const existingTechProcesses: TechnologyProcess[] = [
-        { id: 1, description: 'Azure Active Directory Multi-Factor Authentication', type: 'Technology', function_capability_id: 1, maturity_stage_id: 3 },
-        { id: 2, description: 'Some other technology', type: 'Technology', function_capability_id: 2, maturity_stage_id: 2 }
+        { id: 1, name: 'Azure Active Directory Multi-Factor Authentication', description: 'Azure Active Directory Multi-Factor Authentication', type: 'Technology', function_capability_id: 1, maturity_stage_id: 3 },
+        { id: 2, name: 'Some other technology', description: 'Some other technology', type: 'Technology', function_capability_id: 2, maturity_stage_id: 2 }
       ];
 
       mockDataService.getAllTechnologiesProcesses.and.returnValue(Promise.resolve(existingTechProcesses));

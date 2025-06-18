@@ -968,7 +968,11 @@ export class DemoDataGeneratorService {
               item.maturityStageId = 2;
             }
 
+            // Generate a short name from the description (first 3-5 words or up to 50 chars)
+            const name = item.description.split(' ').slice(0, 4).join(' ');
+
             await this.dataService.addTechnologyProcess(
+              name.length > 50 ? name.substring(0, 47) + '...' : name,
               item.description,
               item.type,
               fc.id,

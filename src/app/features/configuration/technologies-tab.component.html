@@ -1,223 +1,263 @@
 <div class="row justify-content-center">
-  <div class="col-12">
+  <div class="col-md-12 col-lg-12">
     <div class="card shadow-sm">
-      <div class="card-header bg-warning text-dark">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <h4 class="mb-0">
-              <i class="bi bi-tools me-2"></i>
-              Technologies & Processes
-            </h4>
-            <small>Define specific technologies and processes for each function/capability</small>
-          </div>
-          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadTechnologiesProcesses.emit()" title="Refresh data">
-            <i class="bi bi-arrow-clockwise"></i>
-            Refresh
-          </button>
-        </div>
+      <div class="card-header bg-warning text-white">
+        <h4 class="mb-0">
+          <i class="bi bi-tools me-2"></i>
+          Technologies & Processes
+        </h4>
+        <small>Define the technologies and processes within each function/capability</small>
       </div>
       <div class="card-body">
-        <form class="mb-4" #techForm="ngForm" (ngSubmit)="onAddTechnologyProcess(techForm)">
+        <!-- Pillar Filter -->
+        <div class="filter-section mb-4">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label for="pillarSelect" class="form-label small text-muted">Filter by Pillar</label>
+              <select
+                id="pillarSelect"
+                [(ngModel)]="selectedTechPillarId"
+                (ngModelChange)="onTechPillarChange()"
+                class="form-select">
+                <option [value]="null">All Pillars</option>
+                <option *ngFor="let pillar of pillars" [value]="pillar.id">{{ pillar.name }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <form class="mb-4" #addForm="ngForm" (ngSubmit)="onAddTechnologyProcess(addForm)">
           <div class="row g-2 mb-3">
-            <div class="col-md-3">
-              <label for="techPillarSelect" class="form-label small text-muted">Filter by Pillar</label>
-              <select [(ngModel)]="selectedTechPillarId"
-                      id="techPillarSelect"
-                      name="techPillarSelect"
-                      class="form-select"
-                      (change)="onTechPillarChange()">
-                <option [ngValue]="null">All Pillars</option>
-                <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label for="fcSelect" class="form-label small text-muted">Function/Capability</label>
-              <select [(ngModel)]="selectedFunctionCapabilityId"
-                      id="fcSelect"
-                      name="fcSelect"
-                      class="form-select"
-                      required
-                      [ngClass]="{'is-invalid': isInvalid(techForm, 'fcSelect', techFormSubmitted)}">
-                <option [ngValue]="null">Choose function...</option>
-                <option *ngFor="let fc of filteredFunctionCapabilities" [ngValue]="fc.id">
-                  {{ fc.name }} ({{ fc.type }})
-                </option>
-              </select>
-              <div *ngIf="isInvalid(techForm, 'fcSelect', techFormSubmitted)" class="invalid-feedback">
-                Function/Capability is required.
+            <div class="col-md-6">
+              <label for="newTechProcessName" class="form-label small text-muted">Name</label>
+              <input
+                type="text"
+                id="newTechProcessName"
+                name="newTechProcessName"
+                [(ngModel)]="newTechnologyProcessName"
+                required
+                class="form-control"
+                placeholder="Enter technology/process name"
+                [class.is-invalid]="isInvalid(addForm, 'newTechProcessName', techFormSubmitted)">
+              <div *ngIf="isInvalid(addForm, 'newTechProcessName', techFormSubmitted)" class="invalid-feedback">
+                Name is required
               </div>
             </div>
-            <div class="col-md-3">
-              <label for="maturityStageSelect" class="form-label small text-muted">Maturity Stage</label>
-              <select [(ngModel)]="selectedMaturityStageId"
-                      id="maturityStageSelect"
-                      name="maturityStageSelect"
-                      class="form-select"
-                      required
-                      [ngClass]="{'is-invalid': isInvalid(techForm, 'maturityStageSelect', techFormSubmitted)}">
-                <option [ngValue]="null">Choose stage...</option>
-                <option *ngFor="let ms of maturityStages" [ngValue]="ms.id">{{ ms.name }}</option>
-              </select>
-              <div *ngIf="isInvalid(techForm, 'maturityStageSelect', techFormSubmitted)" class="invalid-feedback">
-                Maturity stage is required.
-              </div>
-            </div>
-            <div class="col-md-2">
-              <label for="technologyProcessType" class="form-label small text-muted">Type</label>
-              <select [(ngModel)]="newTechnologyProcessType"
-                      id="technologyProcessType"
-                      name="technologyProcessType"
-                      class="form-select"
-                      required>
+            <div class="col-md-6">
+              <label for="newTechProcessType" class="form-label small text-muted">Type</label>
+              <select
+                id="newTechProcessType"
+                name="newTechProcessType"
+                [(ngModel)]="newTechnologyProcessType"
+                required
+                class="form-select">
                 <option value="Technology">Technology</option>
                 <option value="Process">Process</option>
               </select>
             </div>
           </div>
+
           <div class="row g-2 mb-3">
             <div class="col-12">
-              <label for="technologyProcess" class="form-label small text-muted">Technology/Process Description</label>
-              <div class="input-group">
-                <input [(ngModel)]="newTechnologyProcess"
-                       id="technologyProcess"
-                       name="technologyProcess"
-                       class="form-control"
-                       placeholder="Enter detailed description of the technology or process..."
-                       required
-                       [ngClass]="{'is-invalid': isInvalid(techForm, 'technologyProcess', techFormSubmitted)}" />
-                <button class="btn btn-warning" type="submit">
-                  <i class="bi bi-plus me-1"></i>Add
-                </button>
-              </div>
-              <div *ngIf="isInvalid(techForm, 'technologyProcess', techFormSubmitted)" class="invalid-feedback">
-                Technology/Process description is required.
+              <label for="newTechProcessDescription" class="form-label small text-muted">Description</label>
+              <textarea
+                id="newTechProcessDescription"
+                name="newTechProcessDescription"
+                [(ngModel)]="newTechnologyProcessDescription"
+                required
+                class="form-control"
+                rows="3"
+                placeholder="Enter detailed description"
+                [class.is-invalid]="isInvalid(addForm, 'newTechProcessDescription', techFormSubmitted)"></textarea>
+              <div *ngIf="isInvalid(addForm, 'newTechProcessDescription', techFormSubmitted)" class="invalid-feedback">
+                Description is required
               </div>
             </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label for="functionCapabilitySelect" class="form-label small text-muted">Function Capability</label>
+              <select
+                id="functionCapabilitySelect"
+                name="functionCapabilitySelect"
+                [(ngModel)]="selectedFunctionCapabilityId"
+                required
+                class="form-select"
+                [class.is-invalid]="isInvalid(addForm, 'functionCapabilitySelect', techFormSubmitted)">
+                <option [value]="null">Select Function Capability</option>
+                <option *ngFor="let fc of filteredFunctionCapabilities" [value]="fc.id">{{ fc.name }}</option>
+              </select>
+              <div *ngIf="isInvalid(addForm, 'functionCapabilitySelect', techFormSubmitted)" class="invalid-feedback">
+                Function Capability is required
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="maturityStageSelect" class="form-label small text-muted">Maturity Stage</label>
+              <select
+                id="maturityStageSelect"
+                name="maturityStageSelect"
+                [(ngModel)]="selectedMaturityStageId"
+                required
+                class="form-select"
+                [class.is-invalid]="isInvalid(addForm, 'maturityStageSelect', techFormSubmitted)">
+                <option [value]="null">Select Maturity Stage</option>
+                <option *ngFor="let ms of maturityStages" [value]="ms.id">{{ ms.name }}</option>
+              </select>
+              <div *ngIf="isInvalid(addForm, 'maturityStageSelect', techFormSubmitted)" class="invalid-feedback">
+                Maturity Stage is required
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-2"></i>
+              Add Technology/Process
+            </button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <!-- Empty State -->
-        <div *ngIf="filteredTechnologiesProcesses.length === 0" class="text-center py-5">
-          <i class="bi bi-tools display-1 text-muted mb-3"></i>
-          <h5 class="text-muted">
-            <span *ngIf="selectedTechPillarId">No technologies or processes found for the selected pillar</span>
-            <span *ngIf="!selectedTechPillarId">No technologies or processes defined yet</span>
-          </h5>
-          <p class="text-muted">
-            <span *ngIf="selectedTechPillarId">Try selecting a different pillar or clearing the filter.</span>
-            <span *ngIf="!selectedTechPillarId">Start by adding your first technology or process above.</span>
-          </p>
-          <div class="alert alert-info mt-3" *ngIf="!selectedTechPillarId">
-            <i class="bi bi-lightbulb me-2"></i>
-            <strong>Tip:</strong> Use the pillar filter to focus on specific areas when adding items.
-          </div>
-          <div class="alert alert-success mt-3" *ngIf="!selectedTechPillarId && technologiesProcesses.length === 0">
-            <i class="bi bi-database me-2"></i>
-            <strong>New Installation:</strong> This application now includes sample technologies and processes.
-            If you're seeing this message, you may need to refresh the page or reset your database to load the examples.
-            <br><small class="mt-2 d-block">Visit the <a href="/debug" target="_blank">debug page</a> to reset with sample data if needed.</small>
-          </div>
-        </div>
-
-        <!-- Technologies/Processes List -->
-        <div *ngIf="filteredTechnologiesProcesses.length > 0" class="tech-list">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-muted mb-0">Your Technologies & Processes ({{ filteredTechnologiesProcesses.length }})</h6>
-            <div class="d-flex align-items-center gap-3">
-              <small class="text-muted">
-                <i class="bi bi-filter me-1"></i>
-                {{ selectedTechPillarId ? 'Filtered by: ' + getPillarName(selectedTechPillarId) : 'Showing all' }}
-                <span *ngIf="selectedTechPillarId && technologiesProcesses.length > filteredTechnologiesProcesses.length">
-                  ({{ technologiesProcesses.length - filteredTechnologiesProcesses.length }} hidden)
-                </span>
-              </small>
-            </div>
-          </div>
-          <div class="row">
-            <div *ngFor="let tp of filteredTechnologiesProcesses" class="col-12 mb-3">
-              <div class="card h-100 border-start border-4"
-                   [ngClass]="tp.type === 'Technology' ? 'border-primary' : 'border-success'">
-                <div class="card-body">
-                  <ng-container *ngIf="editingTechProcessId === tp.id; else techView">
-                    <div class="row g-2 align-items-center">
-                      <div class="col-md-4">
-                        <label for="editTechProcessDescription" class="form-label small text-muted">Description</label>
-                        <input [(ngModel)]="editingTechProcess.description"
-                               id="editTechProcessDescription"
-                               class="form-control" />
-                      </div>
-                      <div class="col-md-2">
-                        <label for="editTechProcessType" class="form-label small text-muted">Type</label>
-                        <select [(ngModel)]="editingTechProcess.type"
-                                id="editTechProcessType"
-                                class="form-select">
-                          <option value="Technology">Technology</option>
-                          <option value="Process">Process</option>
-                        </select>
-                      </div>
-                      <div class="col-md-3">
-                        <label for="editTechProcessFunction" class="form-label small text-muted">Function/Capability</label>
-                        <select [(ngModel)]="editingTechProcess.function_capability_id"
-                                id="editTechProcessFunction"
-                                class="form-select">
-                          <option *ngFor="let fc of functionCapabilities" [ngValue]="fc.id">{{ fc.name }}</option>
-                        </select>
-                      </div>
-                      <div class="col-md-2">
-                        <label for="editTechProcessMaturity" class="form-label small text-muted">Maturity Stage</label>
-                        <select [(ngModel)]="editingTechProcess.maturity_stage_id"
-                                id="editTechProcessMaturity"
-                                class="form-select">
-                          <option *ngFor="let ms of maturityStages" [ngValue]="ms.id">{{ ms.name }}</option>
-                        </select>
-                      </div>
-                      <div class="col-md-1">
-                        <div class="d-flex gap-1" style="margin-top: 1.5rem;">
-                          <button class="btn btn-sm btn-success" (click)="saveEditTechProcess()" title="Save changes">
-                            <i class="bi bi-check"></i>
-                          </button>
-                          <button class="btn btn-sm btn-secondary" (click)="cancelEditTechProcess()" title="Cancel">
-                            <i class="bi bi-x"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </ng-container>
-                  <ng-template #techView>
-                    <div class="d-flex justify-content-between align-items-start">
-                      <div class="flex-grow-1">
-                        <div class="d-flex align-items-center mb-2">
-                          <i class="bi"
-                             [ngClass]="tp.type === 'Technology' ? 'bi-cpu text-primary' : 'bi-gear text-success'"
-                             style="font-size: 1.2rem;"></i>
-                          <span class="badge ms-2"
-                                [ngClass]="tp.type === 'Technology' ? 'bg-primary' : 'bg-success'">
-                            {{ tp.type }}
-                          </span>
-                        </div>
-                        <h6 class="mb-2">{{ tp.description }}</h6>
-                        <div class="small text-muted">
-                          <div class="d-flex flex-wrap gap-2">
-                            <span class="badge bg-info">{{ getFunctionCapabilityName(tp.function_capability_id) }}</span>
-                            <span class="badge bg-warning text-dark">{{ getMaturityStageName(tp.maturity_stage_id) }}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="btn-group btn-group-sm ms-3">
-                        <button class="btn btn-outline-primary" (click)="startEditTechProcess(tp)" title="Edit technology/process">
-                          <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-outline-danger" (click)="onRemoveTechnologyProcess(tp.id)" title="Delete technology/process">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </ng-template>
+<!-- Technologies/Processes List -->
+<div class="row justify-content-center mt-4" *ngIf="filteredTechnologiesProcesses.length > 0">
+  <div class="col-12">
+    <div class="tech-list">
+      <div *ngFor="let tp of filteredTechnologiesProcesses" class="col-12 mb-3">
+        <div class="card h-100" [class]="tp.type === 'Technology' ? 'border-primary' : 'border-success'">
+          <div *ngIf="editingTechProcessId !== tp.id" class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge" [class]="tp.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+                    <i [class]="tp.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-2'"></i>
+                    {{ tp.type }}
+                  </span>
+                  <h5 class="card-title mb-0">{{ tp.name }}</h5>
                 </div>
+                <p class="card-text text-muted mb-2">{{ tp.description }}</p>
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge bg-info">
+                    <i class="bi bi-building"></i>
+                    {{ getPillarName(getPillarIdForTech(tp.function_capability_id)) }}
+                  </span>
+                  <span class="badge bg-secondary">
+                    <i class="bi bi-layers"></i>
+                    {{ getFunctionCapabilityName(tp.function_capability_id) }}
+                  </span>
+                  <span class="badge bg-dark">
+                    <i class="bi bi-bar-chart-steps"></i>
+                    {{ getMaturityStageName(tp.maturity_stage_id) }}
+                  </span>
+                </div>
+              </div>
+              <div class="btn-group-sm">
+                <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="startEditTechProcess(tp)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveTechnologyProcess(tp.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
               </div>
             </div>
           </div>
+
+          <div *ngIf="editingTechProcessId === tp.id" class="card-body">
+            <form (ngSubmit)="saveEditTechProcess()" #editForm="ngForm">
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <label for="editTechProcessName" class="form-label small text-muted">Name</label>
+                  <input
+                    type="text"
+                    id="editTechProcessName"
+                    name="editTechProcessName"
+                    [(ngModel)]="editingTechProcess.name"
+                    required
+                    class="form-control">
+                </div>
+                <div class="col-md-6">
+                  <label for="editTechProcessType" class="form-label small text-muted">Type</label>
+                  <select
+                    id="editTechProcessType"
+                    name="editTechProcessType"
+                    [(ngModel)]="editingTechProcess.type"
+                    required
+                    class="form-select">
+                    <option value="Technology">Technology</option>
+                    <option value="Process">Process</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-12">
+                  <label for="editTechProcessDescription" class="form-label small text-muted">Description</label>
+                  <textarea
+                    id="editTechProcessDescription"
+                    name="editTechProcessDescription"
+                    [(ngModel)]="editingTechProcess.description"
+                    required
+                    class="form-control"
+                    rows="3"></textarea>
+                </div>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <label for="editFunctionCapabilitySelect" class="form-label small text-muted">Function Capability</label>
+                  <select
+                    id="editFunctionCapabilitySelect"
+                    name="editFunctionCapabilitySelect"
+                    [(ngModel)]="editingTechProcess.function_capability_id"
+                    required
+                    class="form-select">
+                    <option [value]="null">Select Function Capability</option>
+                    <option *ngFor="let fc of functionCapabilities" [value]="fc.id">{{ fc.name }}</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="editMaturityStageSelect" class="form-label small text-muted">Maturity Stage</label>
+                  <select
+                    id="editMaturityStageSelect"
+                    name="editMaturityStageSelect"
+                    [(ngModel)]="editingTechProcess.maturity_stage_id"
+                    required
+                    class="form-select">
+                    <option [value]="null">Select Maturity Stage</option>
+                    <option *ngFor="let ms of maturityStages" [value]="ms.id">{{ ms.name }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" (click)="cancelEditTechProcess()">
+                  <i class="bi bi-x-circle me-2"></i>
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-success">
+                  <i class="bi bi-check-circle me-2"></i>
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div class="row justify-content-center mt-4" *ngIf="filteredTechnologiesProcesses.length === 0">
+  <div class="col-md-8 text-center">
+    <div class="empty-state">
+      <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>No technologies/processes configured yet.</strong>
+        <br>Add your first technology or process using the form above to get started.
       </div>
     </div>
   </div>

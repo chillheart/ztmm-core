@@ -101,9 +101,9 @@ export class ZtmmDataWebService {
     return this.handleApiCall(() => this.indexedDB.getTechnologiesProcessesByFunction(functionCapabilityId), 'getTechnologiesProcessesByFunction');
   }
 
-  async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
+  async addTechnologyProcess(name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
-    return this.handleApiCall(() => this.indexedDB.addTechnologyProcess(description, type, functionCapabilityId, maturityStageId), 'addTechnologyProcess');
+    return this.handleApiCall(() => this.indexedDB.addTechnologyProcess(name, description, type, functionCapabilityId, maturityStageId), 'addTechnologyProcess');
   }
 
   async removeTechnologyProcess(id: number): Promise<void> {
@@ -111,9 +111,9 @@ export class ZtmmDataWebService {
     return this.handleApiCall(() => this.indexedDB.removeTechnologyProcess(id), 'removeTechnologyProcess');
   }
 
-  async editTechnologyProcess(id: number, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
+  async editTechnologyProcess(id: number, name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
-    return this.handleApiCall(() => this.indexedDB.editTechnologyProcess(id, description, type, functionCapabilityId, maturityStageId), 'editTechnologyProcess');
+    return this.handleApiCall(() => this.indexedDB.editTechnologyProcess(id, name, description, type, functionCapabilityId, maturityStageId), 'editTechnologyProcess');
   }
 
   async saveAssessment(techProcessId: number, status: AssessmentStatus, notes?: string): Promise<void> {
@@ -203,7 +203,9 @@ export class ZtmmDataWebService {
       // Migrate technology processes
       if (electronData.technologiesProcesses) {
         for (const tp of electronData.technologiesProcesses) {
-          await this.addTechnologyProcess(tp.description, tp.type, tp.function_capability_id, tp.maturity_stage_id);
+          // Handle backward compatibility for older data without name field
+          const name = tp.name || tp.description.substring(0, 50); // Use first 50 chars as fallback name
+          await this.addTechnologyProcess(name, tp.description, tp.type, tp.function_capability_id, tp.maturity_stage_id);
         }
       }
 

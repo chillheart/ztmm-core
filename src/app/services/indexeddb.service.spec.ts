@@ -259,36 +259,36 @@ describe('IndexedDBService', () => {
     });
 
     it('should add a technology process', async () => {
-      await service.addTechnologyProcess('Test Technology', 'Technology', 1, 1);
+      await service.addTechnologyProcess('Test Tech', 'Test Technology Description', 'Technology', 1, 1);
       const techProcesses = await service.getAllTechnologiesProcesses();
-      expect(techProcesses.some(tp => tp.description === 'Test Technology')).toBeTrue();
+      expect(techProcesses.some(tp => tp.name === 'Test Tech' && tp.description === 'Test Technology Description')).toBeTrue();
     });
 
     it('should add a process', async () => {
-      await service.addTechnologyProcess('Test Process', 'Process', 1, 1);
+      await service.addTechnologyProcess('Test Process', 'Test Process Description', 'Process', 1, 1);
       const techProcesses = await service.getAllTechnologiesProcesses();
-      expect(techProcesses.some(tp => tp.description === 'Test Process' && tp.type === 'Process')).toBeTrue();
+      expect(techProcesses.some(tp => tp.name === 'Test Process' && tp.description === 'Test Process Description' && tp.type === 'Process')).toBeTrue();
     });
 
     it('should validate technology process type', async () => {
-      await expectAsync(service.addTechnologyProcess('Invalid', 'InvalidType' as any, 1, 1))
+      await expectAsync(service.addTechnologyProcess('Invalid', 'Invalid description', 'InvalidType' as any, 1, 1))
         .toBeRejectedWithError('Type must be either Technology or Process');
     });
 
     it('should get technology processes by function capability', async () => {
       // Add some test technology processes
-      await service.addTechnologyProcess('Tech for Function 1', 'Technology', 1, 1);
-      await service.addTechnologyProcess('Tech for Function 2', 'Technology', 2, 1);
+      await service.addTechnologyProcess('Tech1', 'Tech for Function 1', 'Technology', 1, 1);
+      await service.addTechnologyProcess('Tech2', 'Tech for Function 2', 'Technology', 2, 1);
 
       const techProcessesForFunction1 = await service.getTechnologiesProcessesByFunction(1);
-      expect(techProcessesForFunction1.some(tp => tp.description === 'Tech for Function 1')).toBeTrue();
+      expect(techProcessesForFunction1.some(tp => tp.name === 'Tech1')).toBeTrue();
       expect(techProcessesForFunction1.every(tp => tp.function_capability_id === 1)).toBeTrue();
     });
 
     it('should remove a technology process', async () => {
-      await service.addTechnologyProcess('To Be Removed', 'Technology', 1, 1);
+      await service.addTechnologyProcess('To Remove', 'To Be Removed', 'Technology', 1, 1);
       const techProcesses = await service.getAllTechnologiesProcesses();
-      const processToRemove = techProcesses.find(tp => tp.description === 'To Be Removed');
+      const processToRemove = techProcesses.find(tp => tp.name === 'To Remove');
 
       expect(processToRemove).toBeDefined();
       await service.removeTechnologyProcess(processToRemove!.id);
@@ -298,12 +298,12 @@ describe('IndexedDBService', () => {
     });
 
     it('should edit a technology process', async () => {
-      await service.addTechnologyProcess('Original Tech', 'Technology', 1, 1);
+      await service.addTechnologyProcess('Original', 'Original Tech', 'Technology', 1, 1);
       const techProcesses = await service.getAllTechnologiesProcesses();
-      const processToEdit = techProcesses.find(tp => tp.description === 'Original Tech');
+      const processToEdit = techProcesses.find(tp => tp.name === 'Original');
 
       expect(processToEdit).toBeDefined();
-      await service.editTechnologyProcess(processToEdit!.id, 'Updated Tech', 'Process', 2, 2);
+      await service.editTechnologyProcess(processToEdit!.id, 'Updated', 'Updated Tech', 'Process', 2, 2);
 
       const updatedProcesses = await service.getAllTechnologiesProcesses();
       const updatedProcess = updatedProcesses.find(tp => tp.id === processToEdit!.id);
@@ -322,9 +322,9 @@ describe('IndexedDBService', () => {
 
     it('should save an assessment', async () => {
       // First add a technology process
-      await service.addTechnologyProcess('Test Tech for Assessment', 'Technology', 1, 1);
+      await service.addTechnologyProcess('Test Tech for Assessment', 'Test Tech for Assessment Description', 'Technology', 1, 1);
       const techProcesses = await service.getAllTechnologiesProcesses();
-      const testTech = techProcesses.find(tp => tp.description === 'Test Tech for Assessment');
+      const testTech = techProcesses.find(tp => tp.name === 'Test Tech for Assessment');
 
       expect(testTech).toBeDefined();
       await service.saveAssessment(testTech!.id, 'Partially Implemented', 'Test notes');
@@ -339,9 +339,9 @@ describe('IndexedDBService', () => {
 
     it('should update an existing assessment', async () => {
       // Add a technology process and assessment
-      await service.addTechnologyProcess('Tech for Update Test', 'Technology', 1, 1);
+      await service.addTechnologyProcess('Tech for Update Test', 'Tech for Update Test Description', 'Technology', 1, 1);
       const techProcesses = await service.getAllTechnologiesProcesses();
-      const testTech = techProcesses.find(tp => tp.description === 'Tech for Update Test');
+      const testTech = techProcesses.find(tp => tp.name === 'Tech for Update Test');
 
       expect(testTech).toBeDefined();
       await service.saveAssessment(testTech!.id, 'Not Implemented', 'Initial notes');
@@ -549,7 +549,7 @@ describe('IndexedDBService', () => {
 
     it('should handle long technology process descriptions', async () => {
       const longDescription = 'a'.repeat(600);
-      await expectAsync(service.addTechnologyProcess(longDescription, 'Technology', 1, 1))
+      await expectAsync(service.addTechnologyProcess('Valid Name', longDescription, 'Technology', 1, 1))
         .toBeRejectedWithError('Description cannot exceed 500 characters');
     });
 

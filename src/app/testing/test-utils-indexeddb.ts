@@ -37,9 +37,9 @@ export class TestUtilsIndexedDB {
     ];
 
     const mockTechnologyProcesses: TechnologyProcess[] = [
-      { id: 1, description: 'Multi-factor Authentication', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 },
-      { id: 2, description: 'Single Sign-On', type: 'Technology', function_capability_id: 1, maturity_stage_id: 3 },
-      { id: 3, description: 'Identity Management Process', type: 'Process', function_capability_id: 2, maturity_stage_id: 2 }
+      { id: 1, name: 'Multi-factor Authentication', description: 'Multi-factor Authentication', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 },
+      { id: 2, name: 'Single Sign-On', description: 'Single Sign-On', type: 'Technology', function_capability_id: 1, maturity_stage_id: 3 },
+      { id: 3, name: 'Identity Management Process', description: 'Identity Management Process', type: 'Process', function_capability_id: 2, maturity_stage_id: 2 }
     ];
 
     const mockAssessmentResponses: AssessmentResponse[] = [

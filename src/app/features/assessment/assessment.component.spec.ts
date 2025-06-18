@@ -27,8 +27,8 @@ describe('AssessmentComponent', () => {
   ];
 
   const mockTechnologiesProcesses: TechnologyProcess[] = [
-    { id: 1, description: 'Azure AD', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 },
-    { id: 2, description: 'Identity Lifecycle', type: 'Process', function_capability_id: 1, maturity_stage_id: 3 }
+    { id: 1, name: 'Azure AD', description: 'Azure AD', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 },
+    { id: 2, name: 'Identity Lifecycle', description: 'Identity Lifecycle', type: 'Process', function_capability_id: 1, maturity_stage_id: 3 }
   ];
 
   const mockAssessmentResponses: AssessmentResponse[] = [

@@ -528,9 +528,15 @@ export class IndexedDBService {
     }
   }
 
-  async addTechnologyProcess(description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
+  async addTechnologyProcess(name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
 
+    if (!name || name.trim().length === 0) {
+      throw new Error('Technology/Process name is required');
+    }
+    if (name.length > 100) {
+      throw new Error('Name cannot exceed 100 characters');
+    }
     if (!description || description.trim().length === 0) {
       throw new Error('Technology/Process description is required');
     }
@@ -548,6 +554,7 @@ export class IndexedDBService {
     }
 
     const newTechnologyProcess: Omit<TechnologyProcess, 'id'> = {
+      name: name.trim(),
       description: description.trim(),
       type,
       function_capability_id: functionCapabilityId,
@@ -583,14 +590,23 @@ export class IndexedDBService {
     }
   }
 
-  async editTechnologyProcess(id: number, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
+  async editTechnologyProcess(id: number, name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
 
     if (!Number.isInteger(id) || id < 1) {
       throw new Error('Invalid technology process ID');
     }
+    if (!name || name.trim().length === 0) {
+      throw new Error('Technology/Process name is required');
+    }
+    if (name.length > 100) {
+      throw new Error('Name cannot exceed 100 characters');
+    }
     if (!description || description.trim().length === 0) {
       throw new Error('Technology/Process description is required');
+    }
+    if (description.length > 500) {
+      throw new Error('Description cannot exceed 500 characters');
     }
     if (!['Technology', 'Process'].includes(type)) {
       throw new Error('Type must be either Technology or Process');
@@ -607,6 +623,7 @@ export class IndexedDBService {
       throw new Error('Technology process not found');
     }
 
+    techProcess.name = name.trim();
     techProcess.description = description.trim();
     techProcess.type = type;
     techProcess.function_capability_id = functionCapabilityId;

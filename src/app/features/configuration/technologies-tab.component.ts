@@ -15,16 +15,17 @@ export class TechnologiesTabComponent {
   @Input() functionCapabilities: FunctionCapability[] = [];
   @Input() maturityStages: MaturityStage[] = [];
   @Input() technologiesProcesses: TechnologyProcess[] = [];
-  @Output() addTechnologyProcess = new EventEmitter<{description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}>();
+  @Output() addTechnologyProcess = new EventEmitter<{name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}>();
   @Output() removeTechnologyProcess = new EventEmitter<number>();
-  @Output() editTechnologyProcess = new EventEmitter<{id: number, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}>();
+  @Output() editTechnologyProcess = new EventEmitter<{id: number, name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}>();
   @Output() loadTechnologiesProcesses = new EventEmitter<void>();
 
-  newTechnologyProcess = '';
+  newTechnologyProcessName = '';
+  newTechnologyProcessDescription = '';
   newTechnologyProcessType: 'Technology' | 'Process' = 'Technology';
   selectedFunctionCapabilityId: number | null = null;
   selectedMaturityStageId: number | null = null;
-  selectedTechPillarId: number | null = null;
+  selectedTechPillarId: number | string | null = null;
   techFormSubmitted = false;
   editingTechProcessId: number | null = null;
   editingTechProcess: Partial<TechnologyProcess> = {};
@@ -35,11 +36,16 @@ export class TechnologiesTabComponent {
   }
 
   get filteredTechnologiesProcesses() {
-    if (!this.selectedTechPillarId) return this.technologiesProcesses;
+    if (!this.selectedTechPillarId || this.selectedTechPillarId === 'null') {
+      return this.technologiesProcesses;
+    }
+
+    // Ensure we're working with a number
+    const pillarId = typeof this.selectedTechPillarId === 'string' ? Number(this.selectedTechPillarId) : this.selectedTechPillarId;
 
     // Get function capability IDs that belong to the selected pillar
     const pillarFunctionCapabilityIds = this.functionCapabilities
-      .filter(fc => fc.pillar_id === this.selectedTechPillarId)
+      .filter(fc => fc.pillar_id === pillarId)
       .map(fc => fc.id);
 
     // Filter technologies/processes that belong to those function capabilities
@@ -50,15 +56,17 @@ export class TechnologiesTabComponent {
 
   onAddTechnologyProcess(form: NgForm) {
     this.techFormSubmitted = true;
-    if (form.valid && this.newTechnologyProcess.trim() &&
+    if (form.valid && this.newTechnologyProcessName.trim() && this.newTechnologyProcessDescription.trim() &&
         this.selectedFunctionCapabilityId && this.selectedMaturityStageId) {
       this.addTechnologyProcess.emit({
-        description: this.newTechnologyProcess.trim(),
+        name: this.newTechnologyProcessName.trim(),
+        description: this.newTechnologyProcessDescription.trim(),
         type: this.newTechnologyProcessType,
         functionCapabilityId: this.selectedFunctionCapabilityId,
         maturityStageId: this.selectedMaturityStageId
       });
-      this.newTechnologyProcess = '';
+      this.newTechnologyProcessName = '';
+      this.newTechnologyProcessDescription = '';
       this.techFormSubmitted = false;
       form.resetForm();
       this.selectedFunctionCapabilityId = null;
@@ -79,11 +87,13 @@ export class TechnologiesTabComponent {
   }
 
   saveEditTechProcess() {
-    if (this.editingTechProcessId && this.editingTechProcess.description?.trim() &&
+    if (this.editingTechProcessId && this.editingTechProcess.name?.trim() &&
+        this.editingTechProcess.description?.trim() &&
         this.editingTechProcess.type && this.editingTechProcess.function_capability_id &&
         this.editingTechProcess.maturity_stage_id) {
       this.editTechnologyProcess.emit({
         id: this.editingTechProcessId,
+        name: this.editingTechProcess.name.trim(),
         description: this.editingTechProcess.description.trim(),
         type: this.editingTechProcess.type,
         functionCapabilityId: this.editingTechProcess.function_capability_id,
@@ -99,6 +109,11 @@ export class TechnologiesTabComponent {
   }
 
   onTechPillarChange() {
+    // Convert string to number if needed
+    if (typeof this.selectedTechPillarId === 'string') {
+      this.selectedTechPillarId = this.selectedTechPillarId === 'null' ? null : Number(this.selectedTechPillarId);
+    }
+
     // If a function capability is selected, check if it still matches the new pillar filter
     if (this.selectedFunctionCapabilityId && this.selectedTechPillarId) {
       const selectedFunction = this.functionCapabilities.find(fc => fc.id === this.selectedFunctionCapabilityId);
@@ -112,6 +127,10 @@ export class TechnologiesTabComponent {
 
   getPillarName(pillarId: number): string {
     return this.pillars.find(p => p.id === pillarId)?.name || 'Unknown';
+  }
+
+  getPillarIdForTech(functionCapabilityId: number): number {
+    return this.functionCapabilities.find(fc => fc.id === functionCapabilityId)?.pillar_id || 0;
   }
 
   getFunctionCapabilityName(functionCapabilityId: number): string {

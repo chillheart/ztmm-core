@@ -31,7 +31,7 @@ describe('AdminComponent', () => {
   ];
 
   const mockTechnologiesProcesses: TechnologyProcess[] = [
-    { id: 1, description: 'Azure AD', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 }
+    { id: 1, name: 'Azure AD', description: 'Azure AD', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 }
   ];
 
   beforeEach(async () => {
@@ -160,7 +160,8 @@ describe('AdminComponent', () => {
     expect(component.newFunctionCapability).toBe('');
     expect(component.newFunctionCapabilityType).toBe('Function');
     expect(component.selectedPillarId).toBeNull();
-    expect(component.newTechnologyProcess).toBe('');
+    expect(component.newTechnologyProcessName).toBe('');
+    expect(component.newTechnologyProcessDescription).toBe('');
     expect(component.newTechnologyProcessType).toBe('Technology');
     expect(component.selectedFunctionCapabilityId).toBeNull();
     expect(component.selectedMaturityStageId).toBeNull();
@@ -311,19 +312,21 @@ describe('AdminComponent', () => {
     });
 
     it('should add a new technology process', async () => {
-      component.newTechnologyProcess = 'New Technology';
+      component.newTechnologyProcessName = 'New Technology';
+      component.newTechnologyProcessDescription = 'New Technology Description';
       component.newTechnologyProcessType = 'Technology';
 
       await component.addTechnologyProcess();
 
-      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('New Technology', 'Technology', 1, 2);
+      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('New Technology', 'New Technology Description', 'Technology', 1, 2);
       expect(mockDataService.getTechnologiesProcessesByFunction).toHaveBeenCalledWith(1);
-      expect(component.newTechnologyProcess).toBe('');
+      expect(component.newTechnologyProcessName).toBe('');
+      expect(component.newTechnologyProcessDescription).toBe('');
       expect(component.newTechnologyProcessType).toBe('Technology');
     });
 
-    it('should not add technology process with empty description', async () => {
-      component.newTechnologyProcess = '';
+    it('should not add technology process with empty name', async () => {
+      component.newTechnologyProcessName = '';
 
       await component.addTechnologyProcess();
 
@@ -332,7 +335,7 @@ describe('AdminComponent', () => {
 
     it('should not add technology process without selections', async () => {
       component.selectedFunctionCapabilityId = null;
-      component.newTechnologyProcess = 'Test';
+      component.newTechnologyProcessName = 'Test';
 
       await component.addTechnologyProcess();
 
@@ -355,10 +358,10 @@ describe('AdminComponent', () => {
       component.selectedFunctionCapabilityId = 1;
 
       component.startEditTechProcess(techProcess);
-      component.editingTechProcess = { description: 'Updated Description', type: 'Process', function_capability_id: 2, maturity_stage_id: 3 };
+      component.editingTechProcess = { name: 'Updated Name', description: 'Updated Description', type: 'Process', function_capability_id: 2, maturity_stage_id: 3 };
       await component.saveEditTechProcess();
 
-      expect(mockDataService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Description', 'Process', 2, 3);
+      expect(mockDataService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Name', 'Updated Description', 'Process', 2, 3);
       expect(component.loadTechnologiesProcesses).toBeDefined();
     });
 
@@ -474,7 +477,7 @@ describe('AdminComponent', () => {
       // Missing selections
       component.selectedFunctionCapabilityId = null;
       component.selectedMaturityStageId = null;
-      component.newTechnologyProcess = 'Test';
+      component.newTechnologyProcessName = 'Test';
 
       await component.addTechnologyProcess();
 
@@ -610,7 +613,8 @@ describe('AdminComponent', () => {
         component.selectedFunctionCapabilityId = 1;
 
         // Add a new technology process
-        component.newTechnologyProcess = 'Test Technology';
+        component.newTechnologyProcessName = 'Test Technology';
+        component.newTechnologyProcessDescription = 'Test Technology Description';
         component.selectedMaturityStageId = 1;
         await component.addTechnologyProcess();
 
