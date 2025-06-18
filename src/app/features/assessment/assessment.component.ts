@@ -271,7 +271,10 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       if (!Object.prototype.hasOwnProperty.call(this.technologiesProcessesByStage, stageName)) {
         this.technologiesProcessesByStage[stageName] = [];
       }
-      this.technologiesProcessesByStage[stageName]?.push(tp);
+      const stageGroup = this.technologiesProcessesByStage[stageName];
+      if (stageGroup) {
+        stageGroup.push(tp);
+      }
     }
 
     // Get available stages in the correct order
