@@ -221,8 +221,8 @@ describe('AssessmentComponent', () => {
 
   it('should initialize assessment arrays on function capability selection', async () => {
     component.selectedFunctionCapabilityId = 1;
-    // Clear existing assessment responses to test initialization with empty arrays
-    component.assessmentResponses = [];
+    // Mock getAssessmentResponses to return empty array for this test
+    mockDataService.getAssessmentResponses.and.returnValue(Promise.resolve([]));
 
     await component.onFunctionCapabilityChange();
 
