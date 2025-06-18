@@ -128,6 +128,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
     try {
       this.assessmentResponses = await this.data.getAssessmentResponses();
+      console.log(`Loaded ${this.assessmentResponses.length} assessment responses during initialization`);
     } catch (error) {
       console.error('❌ Error loading assessment responses:', error);
       this.assessmentResponses = [];
@@ -213,18 +214,29 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     if (this.selectedFunctionCapabilityId) {
       // Use specialized method for loading technologies/processes by function capability
       this.technologiesProcesses = await this.data.getTechnologiesProcessesByFunction(this.selectedFunctionCapabilityId);
+
+      // Ensure we have the latest assessment responses before populating the arrays
+      this.assessmentResponses = await this.data.getAssessmentResponses();
+
       this.assessmentStatuses = Array(this.technologiesProcesses.length).fill(null);
       this.assessmentNotes = Array(this.technologiesProcesses.length).fill('');
 
       // Load existing assessment data if available
+      console.log(`Loading existing responses for ${this.technologiesProcesses.length} technologies/processes`);
+      let loadedResponsesCount = 0;
+
       for (let i = 0; i < this.technologiesProcesses.length; i++) {
         const tp = this.technologiesProcesses[i];
         const existingAssessment = this.assessmentResponses.find(ar => ar.tech_process_id === tp.id);
         if (existingAssessment) {
           this.assessmentStatuses[i] = existingAssessment.status;
           this.assessmentNotes[i] = existingAssessment.notes || '';
+          loadedResponsesCount++;
+          console.log(`Loaded existing response for ${tp.name}: status="${existingAssessment.status}" (type: ${typeof existingAssessment.status}), notes="${existingAssessment.notes}"`);
         }
       }
+
+      console.log(`Loaded ${loadedResponsesCount} existing assessment responses out of ${this.technologiesProcesses.length} items`);
 
       // Group technologies/processes by maturity stage
       this.groupTechnologiesProcessesByStage();
@@ -496,12 +508,11 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
   // Auto-save functionality
   onAssessmentChange(index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string) {
-    const globalIndex = this.getGlobalItemIndex(index);
-
+    // Update the appropriate array
     if (field === 'status') {
-      this.assessmentStatuses[globalIndex] = value as AssessmentStatus | null;
+      this.assessmentStatuses[index] = value as AssessmentStatus | null;
     } else {
-      this.assessmentNotes[globalIndex] = value as string;
+      this.assessmentNotes[index] = value as string;
     }
 
     // Clear existing timeout
@@ -511,24 +522,31 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
     // Set new timeout for auto-save
     this.autoSaveTimeout = window.setTimeout(() => {
-      this.autoSaveCurrentItem(globalIndex);
+      this.autoSaveCurrentItem(index);
     }, this.autoSaveDelay) as number;
   }
 
-  private async autoSaveCurrentItem(globalIndex: number) {
-    const tp = this.technologiesProcesses[globalIndex];
-    const status = this.assessmentStatuses[globalIndex];
+  private async autoSaveCurrentItem(index: number) {
+    const tp = this.technologiesProcesses[index];
+    const status = this.assessmentStatuses[index];
+    const notes = this.assessmentNotes[index] || '';
 
-    if (tp && status) {
+    if (tp) {
       try {
         this.isAutoSaving = true;
-        await this.data.saveAssessment(
-          tp.id,
-          status,
-          this.assessmentNotes[globalIndex] || ''
-        );
+        
+        if (status) {
+          // Save the assessment with the current status and notes
+          await this.data.saveAssessment(tp.id, status, notes);
+          console.log(`Auto-saved assessment for ${tp.name}: ${status} with notes: "${notes}"`);
+        } else {
+          // If status is null, we can't save to the current API but we should indicate the change
+          console.log(`Auto-save: Status cleared for ${tp.name}, notes: "${notes}" - TODO: implement delete/clear assessment`);
+          // TODO: Implement deleteAssessment method in the service
+          // await this.data.deleteAssessment(tp.id);
+        }
 
-        // Reload assessment responses and rebuild summary
+        // Always reload assessment responses and rebuild summary after any change
         this.assessmentResponses = await this.data.getAssessmentResponses();
         await this.buildPillarSummary();
 

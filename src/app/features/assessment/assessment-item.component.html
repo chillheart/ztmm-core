@@ -37,20 +37,20 @@
         <div class="col-md-6">
           <label class="form-label fw-semibold small text-muted" [for]="'status_' + technologyProcess.id">Implementation Status</label>
           <select class="form-select"
-                  [value]="status"
-                  (change)="onStatusChange($event)"
+                  [ngModel]="status"
+                  (ngModelChange)="onStatusChangeNew($event)"
                   [id]="'status_' + technologyProcess.id"
                   [name]="'status_' + technologyProcess.id">
-            <option [value]="null">Select Status</option>
-            <option *ngFor="let statusOption of statusOptions" [value]="statusOption">{{ statusOption }}</option>
+            <option [ngValue]="null">Select Status</option>
+            <option *ngFor="let statusOption of statusOptions" [ngValue]="statusOption">{{ statusOption }}</option>
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label fw-semibold small text-muted" [for]="'notes_' + technologyProcess.id">Assessment Notes</label>
           <textarea class="form-control"
                     rows="2"
-                    [value]="notes"
-                    (input)="onNotesChange($event)"
+                    [ngModel]="notes"
+                    (ngModelChange)="onNotesChangeNew($event)"
                     [id]="'notes_' + technologyProcess.id"
                     [name]="'notes_' + technologyProcess.id"
                     placeholder="Add notes about implementation..."></textarea>
