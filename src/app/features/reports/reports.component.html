@@ -292,8 +292,15 @@
 
     <!-- Detailed Assessment Items -->
     <div class="card">
-      <div class="card-header">
+      <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Assessment Details</h5>
+        <button type="button"
+                class="btn btn-outline-secondary btn-sm"
+                (click)="toggleTechnologyDescriptions()"
+                title="Toggle technology descriptions">
+          <i class="bi bi-text-paragraph me-1"></i>
+          {{ showTechnologyDescriptions ? 'Hide' : 'Show' }} Descriptions
+        </button>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
@@ -310,7 +317,8 @@
             <tbody>
               <tr *ngFor="let item of selectedFunctionDetails">
                 <td>
-                  <div class="fw-semibold">{{ item.description }}</div>
+                  <div class="fw-semibold">{{ item.name }}</div>
+                  <div *ngIf="showTechnologyDescriptions" class="text-muted small mt-1">{{ item.description }}</div>
                 </td>
                 <td>
                   <span class="badge bg-secondary">{{ item.type }}</span>

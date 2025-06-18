@@ -39,6 +39,7 @@
     [selectedFunctionCapabilityType]="getSelectedFunctionCapabilityType()"
     [isAutoSaving]="isAutoSaving"
     [showSuccess]="showSuccess"
+    [showTechnologyDescriptions]="showTechnologyDescriptions"
     [currentPage]="currentPage"
     [totalPages]="totalPages"
     [itemsPerPage]="itemsPerPage"
@@ -51,6 +52,7 @@
     (previousPage)="previousPage()"
     (nextPage)="nextPage()"
     (saveCurrentPage)="saveCurrentPage()"
-    (saveAll)="saveAll()">
+    (saveAll)="saveAll()"
+    (toggleDescriptions)="toggleTechnologyDescriptions()">
   </app-assessment-overview>
 </div>

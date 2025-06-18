@@ -25,6 +25,7 @@ export class AssessmentOverviewComponent {
   @Input() selectedFunctionCapabilityType = '';
   @Input() isAutoSaving = false;
   @Input() showSuccess = false;
+  @Input() showTechnologyDescriptions = false;
 
   // Pagination inputs
   @Input() currentPage = 1;
@@ -43,6 +44,7 @@ export class AssessmentOverviewComponent {
   @Output() nextPage = new EventEmitter<void>();
   @Output() saveCurrentPage = new EventEmitter<void>();
   @Output() saveAll = new EventEmitter<void>();
+  @Output() toggleDescriptions = new EventEmitter<void>();
 
   // Make Math available to template
   Math = Math;
@@ -77,6 +79,10 @@ export class AssessmentOverviewComponent {
 
   onSaveAll(): void {
     this.saveAll.emit();
+  }
+
+  onToggleDescriptions(): void {
+    this.toggleDescriptions.emit();
   }
 
   getGlobalItemIndex(localIndex: number): number {

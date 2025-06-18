@@ -81,6 +81,9 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   private activeSaves = new Set<number>(); // Track active saves by index
   isAutoSaving = false;
 
+  // Display options
+  showTechnologyDescriptions = false;
+
   // Make Math available to template
   Math = Math;
 
@@ -280,8 +283,8 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     // Get available stages in the correct order
     this.availableStages = this.stageOrder.filter(stage => {
       const stageGroup = this.technologiesProcessesByStage[stage];
-      return Object.prototype.hasOwnProperty.call(this.technologiesProcessesByStage, stage) && 
-             stageGroup && 
+      return Object.prototype.hasOwnProperty.call(this.technologiesProcessesByStage, stage) &&
+             stageGroup &&
              stageGroup.length > 0;
     });
 
@@ -677,5 +680,26 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     const total = this.getTotalItems();
     const completed = this.getTotalCompletedItems();
     return total > 0 ? Math.round((completed / total) * 100) : 0;
+  }
+
+  private generateRecommendations(pillarSummary: any): string[] {
+    const recommendations: string[] = [];
+
+    if (pillarSummary.assessmentPercentage < 50) {
+      recommendations.push(`Focus on basic implementation for ${pillarSummary.pillar.name}`);
+      recommendations.push('Develop comprehensive strategy and roadmap');
+    } else if (pillarSummary.assessmentPercentage < 80) {
+      recommendations.push(`Enhance existing ${pillarSummary.pillar.name} implementations`);
+      recommendations.push('Address identified gaps and improve processes');
+    } else {
+      recommendations.push(`Optimize ${pillarSummary.pillar.name} for advanced maturity`);
+      recommendations.push('Consider automation and advanced monitoring');
+    }
+
+    return recommendations;
+  }
+
+  toggleTechnologyDescriptions(): void {
+    this.showTechnologyDescriptions = !this.showTechnologyDescriptions;
   }
 }

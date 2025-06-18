@@ -19,6 +19,7 @@ export class AssessmentItemComponent implements OnInit, OnChanges {
   @Input() functionCapabilities: FunctionCapability[] = [];
   @Input() maturityStages: MaturityStage[] = [];
   @Input() isAutoSaving = false;
+  @Input() showDescription = false;
 
   @Output() statusChange = new EventEmitter<AssessmentStatus | null>();
   @Output() notesChange = new EventEmitter<string>();

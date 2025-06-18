@@ -36,11 +36,11 @@ export class TestUtils {
     ];
 
     const mockTechnologiesProcesses: TechnologyProcess[] = [
-      { id: 1, description: 'Azure Active Directory', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 },
-      { id: 2, description: 'Identity Lifecycle Management', type: 'Process', function_capability_id: 1, maturity_stage_id: 3 },
-      { id: 3, description: 'Microsoft Authenticator', type: 'Technology', function_capability_id: 2, maturity_stage_id: 2 },
-      { id: 4, description: 'Microsoft Intune', type: 'Technology', function_capability_id: 3, maturity_stage_id: 3 },
-      { id: 5, description: 'Device Compliance Policies', type: 'Process', function_capability_id: 4, maturity_stage_id: 4 }
+      { id: 1, name: 'Azure AD', description: 'Azure Active Directory', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 },
+      { id: 2, name: 'Identity Lifecycle', description: 'Identity Lifecycle Management', type: 'Process', function_capability_id: 1, maturity_stage_id: 3 },
+      { id: 3, name: 'MS Authenticator', description: 'Microsoft Authenticator', type: 'Technology', function_capability_id: 2, maturity_stage_id: 2 },
+      { id: 4, name: 'Intune', description: 'Microsoft Intune', type: 'Technology', function_capability_id: 3, maturity_stage_id: 3 },
+      { id: 5, name: 'Compliance Policies', description: 'Device Compliance Policies', type: 'Process', function_capability_id: 4, maturity_stage_id: 4 }
     ];
 
     const mockAssessmentResponses: AssessmentResponse[] = [
