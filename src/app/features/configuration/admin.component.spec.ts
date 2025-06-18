@@ -64,6 +64,7 @@ describe('AdminComponent', () => {
 
     const demoDataSpy = jasmine.createSpyObj('DemoDataGeneratorService', [
       'generateDemoData',
+      'generateCompleteDemoData',
       'isDemoDataAlreadyGenerated',
       'getDemoDataStatistics'
     ]);
@@ -111,6 +112,7 @@ describe('AdminComponent', () => {
 
     // Setup demo data service spies
     demoDataSpy.generateDemoData.and.returnValue(Promise.resolve());
+    demoDataSpy.generateCompleteDemoData.and.returnValue(Promise.resolve());
     demoDataSpy.isDemoDataAlreadyGenerated.and.returnValue(Promise.resolve(false));
     demoDataSpy.getDemoDataStatistics.and.returnValue(Promise.resolve({
       functionsWithData: 37,
@@ -645,7 +647,7 @@ describe('AdminComponent', () => {
 
         await component.onGenerateDemoData();
 
-        expect(mockDemoDataService.generateDemoData).toHaveBeenCalled();
+        expect(mockDemoDataService.generateCompleteDemoData).toHaveBeenCalledWith(true);
         expect(component.isGeneratingDemo).toBe(false);
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Demo data has been successfully generated'));
       });
@@ -656,7 +658,7 @@ describe('AdminComponent', () => {
 
         await component.onGenerateDemoData();
 
-        expect(mockDemoDataService.generateDemoData).not.toHaveBeenCalled();
+        expect(mockDemoDataService.generateCompleteDemoData).not.toHaveBeenCalled();
       });
 
       it('should generate demo data if user confirms when data already exists', async () => {
@@ -666,7 +668,7 @@ describe('AdminComponent', () => {
 
         await component.onGenerateDemoData();
 
-        expect(mockDemoDataService.generateDemoData).toHaveBeenCalled();
+        expect(mockDemoDataService.generateCompleteDemoData).toHaveBeenCalledWith(true);
         expect(component.isGeneratingDemo).toBe(false);
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Demo data has been successfully generated'));
       });
@@ -675,7 +677,7 @@ describe('AdminComponent', () => {
         spyOn(window, 'alert'); // Suppress alert messages
         spyOn(window, 'confirm').and.returnValue(true); // Mock confirmation dialog
         spyOn(console, 'error'); // Suppress error messages
-        mockDemoDataService.generateDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
+        mockDemoDataService.generateCompleteDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
 
         // Set up component state to trigger confirmation dialog
         component.demoDataExists = true;

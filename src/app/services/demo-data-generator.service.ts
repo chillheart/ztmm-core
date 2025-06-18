@@ -18,8 +18,10 @@ export class DemoDataGeneratorService {
 
   // Comprehensive demo data for each function and capability emulating an Azure environment
   // Each function/capability has at least 2 technologies and 2 processes for each maturity stage
-  // NOTE: This is demonstration data designed to showcase the assessment tool's capabilities
-  // and is not intended to be an all-encompassing list of security technologies and processes
+  // NOTE: This is AI-generated demonstration data designed to showcase the assessment tool's capabilities.
+  // It is not intended to be an all-encompassing list of security technologies and processes, nor should
+  // it be considered a complete or real-world Zero Trust architecture. This data is for demonstration
+  // purposes only and should not be used as actual security guidance for production environments.
   private readonly demoData: Record<string, DemoTechnologyProcess[]> = {
     // Identity Pillar - Authentication Function
     'Authentication': [

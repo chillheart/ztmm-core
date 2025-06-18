@@ -591,7 +591,8 @@ export class AdminComponent implements OnInit {
           '• Delete ALL existing technologies/processes\n' +
           '• Delete ALL assessment responses\n' +
           '• Reset to default framework structure\n' +
-          '• Generate comprehensive Azure-focused demo data\n\n' +
+          '• Generate comprehensive Azure-focused demo data\n' +
+          '• Generate sample assessment responses for all pillars\n\n' +
           'Do you want to continue?'
         );
 
@@ -604,8 +605,8 @@ export class AdminComponent implements OnInit {
       // First reset the database to ensure clean state
       await this.data.resetDatabase();
 
-      // Then generate demo data
-      await this.demoDataGenerator.generateDemoData();
+      // Then generate demo data with assessment responses
+      await this.demoDataGenerator.generateCompleteDemoData(true);
 
       // Reload all data to reflect the new demo data
       await this.loadAll();
@@ -615,7 +616,7 @@ export class AdminComponent implements OnInit {
       console.log('Demo data generation completed successfully!');
 
       // Show success message
-      alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies and processes for each function and capability.');
+      alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies, processes, and sample assessment responses for each function and capability.');
 
     } catch (error) {
       console.error('Error generating demo data:', error);
