@@ -1224,7 +1224,7 @@ export class DemoDataGeneratorService {
   /**
    * Generates both demo data and assessment responses
    */
-  async generateCompleteDemoData(includeAssessments: boolean = false): Promise<void> {
+  async generateCompleteDemoData(includeAssessments = false): Promise<void> {
     console.log('Starting complete demo data generation...');
 
     // Generate technology/process data
