@@ -36,6 +36,7 @@ interface DetailedAssessmentItem {
   pillarName: string;
   functionCapabilityName: string;
   functionCapabilityType: string;
+  name: string;
   description: string;
   type: string;
   maturityStageName: string;
@@ -88,6 +89,9 @@ export class ReportsComponent implements OnInit {
   selectedPillarSummary: PillarSummary | null = null;
   selectedFunctionSummary: FunctionSummary | null = null;
   selectedFunctionDetails: DetailedAssessmentItem[] = [];
+
+  // Display options
+  showTechnologyDescriptions = false;
 
   constructor(
     private data: ZtmmDataWebService,
@@ -295,6 +299,7 @@ export class ReportsComponent implements OnInit {
         pillarName: pillar?.name || '',
         functionCapabilityName: this.selectedFunctionSummary!.functionCapability.name,
         functionCapabilityType: this.selectedFunctionSummary!.functionCapability.type,
+        name: tp.name,
         description: tp.description,
         type: tp.type,
         maturityStageName: maturityStage?.name || '',
@@ -308,7 +313,7 @@ export class ReportsComponent implements OnInit {
     this.selectedFunctionDetails.sort((a, b) => {
       const stageComparison = stageOrder.indexOf(a.maturityStageName) - stageOrder.indexOf(b.maturityStageName);
       if (stageComparison !== 0) return stageComparison;
-      return a.description.localeCompare(b.description);
+      return a.name.localeCompare(b.name);
     });
   }
 
@@ -404,6 +409,10 @@ export class ReportsComponent implements OnInit {
 
   closeDropdown(): void {
     this.dropdownOpen = false;
+  }
+
+  toggleTechnologyDescriptions(): void {
+    this.showTechnologyDescriptions = !this.showTechnologyDescriptions;
   }
 
   @HostListener('document:click', ['$event'])

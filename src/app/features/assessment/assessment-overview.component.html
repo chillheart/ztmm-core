@@ -20,7 +20,16 @@
             </div>
             <div class="col-md-4 text-end">
               <div class="assessment-progress">
-                <div class="text-muted small mb-1">Overall Progress</div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="text-muted small">Overall Progress</div>
+                  <button type="button"
+                          class="btn btn-outline-secondary btn-sm"
+                          (click)="onToggleDescriptions()"
+                          title="Toggle technology descriptions">
+                    <i class="bi bi-text-paragraph me-1"></i>
+                    {{ showTechnologyDescriptions ? 'Hide' : 'Show' }} Descriptions
+                  </button>
+                </div>
                 <div class="progress mb-2" style="height: 24px;">
                   <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
                        [style.width.%]="getCurrentProgress()"
@@ -88,6 +97,7 @@
                 [functionCapabilities]="functionCapabilities"
                 [maturityStages]="maturityStages"
                 [isAutoSaving]="isAutoSaving"
+                [showDescription]="showTechnologyDescriptions"
                 (statusChange)="onStatusChangeForItem(tp, $event)"
                 (notesChange)="onNotesChangeForItem(tp, $event)">
               </app-assessment-item>
@@ -107,6 +117,7 @@
               [functionCapabilities]="functionCapabilities"
               [maturityStages]="maturityStages"
               [isAutoSaving]="isAutoSaving"
+              [showDescription]="showTechnologyDescriptions"
               (statusChange)="onStatusChange(i, $event)"
               (notesChange)="onNotesChange(i, $event)">
             </app-assessment-item>

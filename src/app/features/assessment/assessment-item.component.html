@@ -11,7 +11,8 @@
             <i [class]="technologyProcess.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-2'"></i>
             {{ technologyProcess.type }}
           </span>
-          <h6 class="mb-0 text-dark fw-bold">{{ technologyProcess.description }}</h6>
+          <h6 class="mb-0 text-dark fw-bold">{{ technologyProcess.name }}</h6>
+          <div *ngIf="showDescription" class="text-muted small mt-1">{{ technologyProcess.description }}</div>
         </div>
         <div class="d-flex align-items-center flex-wrap gap-2">
           <span class="badge bg-info small">
