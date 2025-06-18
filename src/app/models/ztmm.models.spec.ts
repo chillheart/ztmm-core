@@ -80,6 +80,7 @@ describe('ZTMM Models', () => {
     it('should create a valid Technology object', () => {
       const technology: TechnologyProcess = {
         id: 1,
+        name: 'Azure Active Directory',
         description: 'Azure Active Directory',
         type: 'Technology',
         function_capability_id: 1,
@@ -87,12 +88,14 @@ describe('ZTMM Models', () => {
       };
 
       expect(technology.type).toBe('Technology');
+      expect(technology.name).toBe('Azure Active Directory');
       expect(technology.description).toBe('Azure Active Directory');
     });
 
     it('should create a valid Process object', () => {
       const process: TechnologyProcess = {
         id: 2,
+        name: 'Identity lifecycle management',
         description: 'Identity lifecycle management',
         type: 'Process',
         function_capability_id: 1,
@@ -100,6 +103,7 @@ describe('ZTMM Models', () => {
       };
 
       expect(process.type).toBe('Process');
+      expect(process.name).toBe('Identity lifecycle management');
       expect(process.description).toBe('Identity lifecycle management');
     });
   });

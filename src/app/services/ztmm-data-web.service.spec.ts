@@ -10,7 +10,7 @@ describe('ZtmmDataWebService (IndexedDB)', () => {
   const mockPillar = { id: 1, name: 'Test Pillar' };
   const mockFunctionCapability = { id: 1, name: 'Test Function', type: 'Function' as const, pillar_id: 1 };
   const mockMaturityStage = { id: 1, name: 'Traditional' as const };
-  const mockTechnologyProcess = { id: 1, description: 'Test Technology', type: 'Technology' as const, function_capability_id: 1, maturity_stage_id: 1 };
+  const mockTechnologyProcess = { id: 1, name: 'Test Technology', description: 'Test Technology', type: 'Technology' as const, function_capability_id: 1, maturity_stage_id: 1 };
   const mockAssessmentResponse = { id: 1, tech_process_id: 1, status: 'Fully Implemented' as const, notes: 'Test notes' };
 
   beforeEach(() => {
@@ -187,10 +187,10 @@ describe('ZtmmDataWebService (IndexedDB)', () => {
     });
 
     it('should add a technology process', async () => {
-      await service.addTechnologyProcess('New Tech', 'Technology', 1, 1);
+      await service.addTechnologyProcess('New Tech', 'New technology description', 'Technology', 1, 1);
 
       expect(mockIndexedDBService.initialize).toHaveBeenCalled();
-      expect(mockIndexedDBService.addTechnologyProcess).toHaveBeenCalledWith('New Tech', 'Technology', 1, 1);
+      expect(mockIndexedDBService.addTechnologyProcess).toHaveBeenCalledWith('New Tech', 'New technology description', 'Technology', 1, 1);
     });
 
     it('should remove a technology process', async () => {
@@ -201,10 +201,10 @@ describe('ZtmmDataWebService (IndexedDB)', () => {
     });
 
     it('should edit a technology process', async () => {
-      await service.editTechnologyProcess(1, 'Updated Tech', 'Process', 2, 2);
+      await service.editTechnologyProcess(1, 'Updated Tech', 'Updated technology description', 'Process', 2, 2);
 
       expect(mockIndexedDBService.initialize).toHaveBeenCalled();
-      expect(mockIndexedDBService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Tech', 'Process', 2, 2);
+      expect(mockIndexedDBService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Tech', 'Updated technology description', 'Process', 2, 2);
     });
   });
 
@@ -331,7 +331,7 @@ describe('ZtmmDataWebService (IndexedDB)', () => {
 
       expect(mockIndexedDBService.addPillar).toHaveBeenCalledWith('Electron Pillar');
       expect(mockIndexedDBService.addFunctionCapability).toHaveBeenCalledWith('Electron Function', 'Function', 1);
-      expect(mockIndexedDBService.addTechnologyProcess).toHaveBeenCalledWith('Electron Tech', 'Technology', 1, 1);
+      expect(mockIndexedDBService.addTechnologyProcess).toHaveBeenCalledWith('Electron Tech', 'Electron Tech', 'Technology', 1, 1);
       expect(mockIndexedDBService.saveAssessment).toHaveBeenCalledWith(1, 'Fully Implemented', 'Electron assessment');
     });
 

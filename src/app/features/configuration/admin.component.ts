@@ -28,7 +28,8 @@ export class AdminComponent implements OnInit {
   newFunctionCapability = '';
   newFunctionCapabilityType: 'Function' | 'Capability' = 'Function';
   selectedPillarId: number | null = null;
-  newTechnologyProcess = '';
+  newTechnologyProcessName = '';
+  newTechnologyProcessDescription = '';
   newTechnologyProcessType: 'Technology' | 'Process' = 'Technology';
   selectedFunctionCapabilityId: number | null = null;
   selectedMaturityStageId: number | null = null;
@@ -158,19 +159,21 @@ export class AdminComponent implements OnInit {
     if (techForm && techForm.invalid) {
       return;
     }
-    if (!this.newTechnologyProcess.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
+    if (!this.newTechnologyProcessName.trim() || !this.newTechnologyProcessDescription.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
       return;
     }
 
     try {
       await this.data.addTechnologyProcess(
-        this.newTechnologyProcess.trim(),
+        this.newTechnologyProcessName.trim(),
+        this.newTechnologyProcessDescription.trim(),
         this.newTechnologyProcessType,
         this.selectedFunctionCapabilityId,
         this.selectedMaturityStageId
       );
 
-      this.newTechnologyProcess = '';
+      this.newTechnologyProcessName = '';
+      this.newTechnologyProcessDescription = '';
       this.newTechnologyProcessType = 'Technology';
 
       await this.loadTechnologiesProcesses();
@@ -319,6 +322,7 @@ export class AdminComponent implements OnInit {
   async saveEditTechProcess() {
     if (
       this.editingTechProcessId &&
+      this.editingTechProcess.name?.trim() &&
       this.editingTechProcess.description?.trim() &&
       this.editingTechProcess.type &&
       this.editingTechProcess.function_capability_id &&
@@ -326,6 +330,7 @@ export class AdminComponent implements OnInit {
     ) {
       await this.data.editTechnologyProcess(
         this.editingTechProcessId,
+        this.editingTechProcess.name.trim(),
         this.editingTechProcess.description.trim(),
         this.editingTechProcess.type,
         this.editingTechProcess.function_capability_id,
@@ -538,8 +543,8 @@ export class AdminComponent implements OnInit {
     await this.data.saveFunctionOrder(functionIds);
   }
 
-  async onAddTechnologyProcess(data: {description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
-    await this.data.addTechnologyProcess(data.description, data.type, data.functionCapabilityId, data.maturityStageId);
+  async onAddTechnologyProcess(data: {name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
+    await this.data.addTechnologyProcess(data.name, data.description, data.type, data.functionCapabilityId, data.maturityStageId);
     await this.loadTechnologiesProcesses();
   }
 
@@ -548,8 +553,8 @@ export class AdminComponent implements OnInit {
     this.loadTechnologiesProcesses();
   }
 
-  async onEditTechnologyProcess(data: {id: number, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
-    await this.data.editTechnologyProcess(data.id, data.description, data.type, data.functionCapabilityId, data.maturityStageId);
+  async onEditTechnologyProcess(data: {id: number, name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number}) {
+    await this.data.editTechnologyProcess(data.id, data.name, data.description, data.type, data.functionCapabilityId, data.maturityStageId);
     this.loadTechnologiesProcesses();
   }
 
@@ -586,7 +591,8 @@ export class AdminComponent implements OnInit {
           '• Delete ALL existing technologies/processes\n' +
           '• Delete ALL assessment responses\n' +
           '• Reset to default framework structure\n' +
-          '• Generate comprehensive Azure-focused demo data\n\n' +
+          '• Generate comprehensive Azure-focused demo data\n' +
+          '• Generate sample assessment responses for all pillars\n\n' +
           'Do you want to continue?'
         );
 
@@ -599,8 +605,8 @@ export class AdminComponent implements OnInit {
       // First reset the database to ensure clean state
       await this.data.resetDatabase();
 
-      // Then generate demo data
-      await this.demoDataGenerator.generateDemoData();
+      // Then generate demo data with assessment responses
+      await this.demoDataGenerator.generateCompleteDemoData(true);
 
       // Reload all data to reflect the new demo data
       await this.loadAll();
@@ -610,7 +616,7 @@ export class AdminComponent implements OnInit {
       console.log('Demo data generation completed successfully!');
 
       // Show success message
-      alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies and processes for each function and capability.');
+      alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies, processes, and sample assessment responses for each function and capability.');
 
     } catch (error) {
       console.error('Error generating demo data:', error);

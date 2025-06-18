@@ -31,7 +31,7 @@ describe('AdminComponent', () => {
   ];
 
   const mockTechnologiesProcesses: TechnologyProcess[] = [
-    { id: 1, description: 'Azure AD', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 }
+    { id: 1, name: 'Azure AD', description: 'Azure AD', type: 'Technology', function_capability_id: 1, maturity_stage_id: 2 }
   ];
 
   beforeEach(async () => {
@@ -64,6 +64,7 @@ describe('AdminComponent', () => {
 
     const demoDataSpy = jasmine.createSpyObj('DemoDataGeneratorService', [
       'generateDemoData',
+      'generateCompleteDemoData',
       'isDemoDataAlreadyGenerated',
       'getDemoDataStatistics'
     ]);
@@ -111,6 +112,7 @@ describe('AdminComponent', () => {
 
     // Setup demo data service spies
     demoDataSpy.generateDemoData.and.returnValue(Promise.resolve());
+    demoDataSpy.generateCompleteDemoData.and.returnValue(Promise.resolve());
     demoDataSpy.isDemoDataAlreadyGenerated.and.returnValue(Promise.resolve(false));
     demoDataSpy.getDemoDataStatistics.and.returnValue(Promise.resolve({
       functionsWithData: 37,
@@ -160,7 +162,8 @@ describe('AdminComponent', () => {
     expect(component.newFunctionCapability).toBe('');
     expect(component.newFunctionCapabilityType).toBe('Function');
     expect(component.selectedPillarId).toBeNull();
-    expect(component.newTechnologyProcess).toBe('');
+    expect(component.newTechnologyProcessName).toBe('');
+    expect(component.newTechnologyProcessDescription).toBe('');
     expect(component.newTechnologyProcessType).toBe('Technology');
     expect(component.selectedFunctionCapabilityId).toBeNull();
     expect(component.selectedMaturityStageId).toBeNull();
@@ -311,19 +314,21 @@ describe('AdminComponent', () => {
     });
 
     it('should add a new technology process', async () => {
-      component.newTechnologyProcess = 'New Technology';
+      component.newTechnologyProcessName = 'New Technology';
+      component.newTechnologyProcessDescription = 'New Technology Description';
       component.newTechnologyProcessType = 'Technology';
 
       await component.addTechnologyProcess();
 
-      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('New Technology', 'Technology', 1, 2);
+      expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('New Technology', 'New Technology Description', 'Technology', 1, 2);
       expect(mockDataService.getTechnologiesProcessesByFunction).toHaveBeenCalledWith(1);
-      expect(component.newTechnologyProcess).toBe('');
+      expect(component.newTechnologyProcessName).toBe('');
+      expect(component.newTechnologyProcessDescription).toBe('');
       expect(component.newTechnologyProcessType).toBe('Technology');
     });
 
-    it('should not add technology process with empty description', async () => {
-      component.newTechnologyProcess = '';
+    it('should not add technology process with empty name', async () => {
+      component.newTechnologyProcessName = '';
 
       await component.addTechnologyProcess();
 
@@ -332,7 +337,7 @@ describe('AdminComponent', () => {
 
     it('should not add technology process without selections', async () => {
       component.selectedFunctionCapabilityId = null;
-      component.newTechnologyProcess = 'Test';
+      component.newTechnologyProcessName = 'Test';
 
       await component.addTechnologyProcess();
 
@@ -355,10 +360,10 @@ describe('AdminComponent', () => {
       component.selectedFunctionCapabilityId = 1;
 
       component.startEditTechProcess(techProcess);
-      component.editingTechProcess = { description: 'Updated Description', type: 'Process', function_capability_id: 2, maturity_stage_id: 3 };
+      component.editingTechProcess = { name: 'Updated Name', description: 'Updated Description', type: 'Process', function_capability_id: 2, maturity_stage_id: 3 };
       await component.saveEditTechProcess();
 
-      expect(mockDataService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Description', 'Process', 2, 3);
+      expect(mockDataService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Name', 'Updated Description', 'Process', 2, 3);
       expect(component.loadTechnologiesProcesses).toBeDefined();
     });
 
@@ -474,7 +479,7 @@ describe('AdminComponent', () => {
       // Missing selections
       component.selectedFunctionCapabilityId = null;
       component.selectedMaturityStageId = null;
-      component.newTechnologyProcess = 'Test';
+      component.newTechnologyProcessName = 'Test';
 
       await component.addTechnologyProcess();
 
@@ -610,7 +615,8 @@ describe('AdminComponent', () => {
         component.selectedFunctionCapabilityId = 1;
 
         // Add a new technology process
-        component.newTechnologyProcess = 'Test Technology';
+        component.newTechnologyProcessName = 'Test Technology';
+        component.newTechnologyProcessDescription = 'Test Technology Description';
         component.selectedMaturityStageId = 1;
         await component.addTechnologyProcess();
 
@@ -641,7 +647,7 @@ describe('AdminComponent', () => {
 
         await component.onGenerateDemoData();
 
-        expect(mockDemoDataService.generateDemoData).toHaveBeenCalled();
+        expect(mockDemoDataService.generateCompleteDemoData).toHaveBeenCalledWith(true);
         expect(component.isGeneratingDemo).toBe(false);
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Demo data has been successfully generated'));
       });
@@ -652,7 +658,7 @@ describe('AdminComponent', () => {
 
         await component.onGenerateDemoData();
 
-        expect(mockDemoDataService.generateDemoData).not.toHaveBeenCalled();
+        expect(mockDemoDataService.generateCompleteDemoData).not.toHaveBeenCalled();
       });
 
       it('should generate demo data if user confirms when data already exists', async () => {
@@ -662,7 +668,7 @@ describe('AdminComponent', () => {
 
         await component.onGenerateDemoData();
 
-        expect(mockDemoDataService.generateDemoData).toHaveBeenCalled();
+        expect(mockDemoDataService.generateCompleteDemoData).toHaveBeenCalledWith(true);
         expect(component.isGeneratingDemo).toBe(false);
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('Demo data has been successfully generated'));
       });
@@ -671,7 +677,7 @@ describe('AdminComponent', () => {
         spyOn(window, 'alert'); // Suppress alert messages
         spyOn(window, 'confirm').and.returnValue(true); // Mock confirmation dialog
         spyOn(console, 'error'); // Suppress error messages
-        mockDemoDataService.generateDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
+        mockDemoDataService.generateCompleteDemoData.and.returnValue(Promise.reject(new Error('Generation failed')));
 
         // Set up component state to trigger confirmation dialog
         component.demoDataExists = true;

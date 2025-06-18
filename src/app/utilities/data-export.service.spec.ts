@@ -22,6 +22,7 @@ describe('DataExportService', () => {
   };
   const mockTechnologyProcess: TechnologyProcess = {
     id: 1,
+    name: 'Test Technology',
     description: 'Test Technology',
     type: 'Technology',
     function_capability_id: 1,
@@ -352,8 +353,8 @@ describe('DataExportService', () => {
       const mixedTechProcessData: ExportedData = {
         ...mockExportedData,
         technologiesProcesses: [
-          { id: 1, description: 'Tech 1', type: 'Technology', function_capability_id: 1, maturity_stage_id: 1 },
-          { id: 2, description: 'Process 1', type: 'Process', function_capability_id: 1, maturity_stage_id: 2 }
+          { id: 1, name: 'Tech 1', description: 'Tech 1', type: 'Technology', function_capability_id: 1, maturity_stage_id: 1 },
+          { id: 2, name: 'Process 1', description: 'Process 1', type: 'Process', function_capability_id: 1, maturity_stage_id: 2 }
         ]
       };
 
