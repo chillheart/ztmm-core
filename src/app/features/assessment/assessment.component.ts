@@ -82,7 +82,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   isAutoSaving = false;
 
   // Display options
-  showTechnologyDescriptions = false;
+  showTechnologyDescriptions = true;
 
   // Make Math available to template
   Math = Math;

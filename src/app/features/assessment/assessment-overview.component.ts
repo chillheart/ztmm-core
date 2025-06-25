@@ -25,7 +25,7 @@ export class AssessmentOverviewComponent {
   @Input() selectedFunctionCapabilityType = '';
   @Input() isAutoSaving = false;
   @Input() showSuccess = false;
-  @Input() showTechnologyDescriptions = false;
+  @Input() showTechnologyDescriptions = true;
 
   // Pagination inputs
   @Input() currentPage = 1;
