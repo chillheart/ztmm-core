@@ -2,8 +2,8 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="mb-1">Assessment Reports</h1>
-      <p class="text-muted mb-0">Analyze your Zero Trust maturity assessment results</p>
+      <h1 class="mb-1">Zero Trust Maturity Progression</h1>
+      <p class="text-muted mb-0">Track your organization's progress through maturity stages from Traditional to Optimal</p>
     </div>
 
     <!-- Export Component -->
@@ -43,9 +43,7 @@
   <div *ngIf="currentView === 'function-detail'" [@slideIn]>
     <app-function-detail
       [functionSummary]="selectedFunctionSummary"
-      [detailedItems]="selectedFunctionDetails"
-      [showDescriptions]="showTechnologyDescriptions"
-      (descriptionsToggled)="onDescriptionsToggled($event)">
+      [detailedItems]="selectedFunctionDetails">
     </app-function-detail>
   </div>
 </div>

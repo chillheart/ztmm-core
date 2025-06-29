@@ -104,49 +104,185 @@ export class MaturityCalculationService {
 
   /**
    * Calculates the overall maturity stage for a function based on completed stages
+   * Enforces sequential maturity: must complete all previous stages before advancing
    */
-  calculateOverallMaturityStage(maturityBreakdown: MaturityStageBreakdown[]): string {
+  calculateOverallMaturityStage(maturityBreakdown: MaturityStageBreakdown[]): {
+    stage: string;
+    actualStage: string;
+    hasGap: boolean;
+    explanation?: string;
+    stageBreakdown: MaturityStageBreakdown[];
+  } {
     const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
 
-    // Find the highest stage that is completed
+    // First, let's mark which stages can be advanced to based on sequential requirements
+    const updatedBreakdown = this.validateSequentialMaturity(maturityBreakdown);
+
+    // Find the highest completed stage that can be achieved sequentially
+    let achievedStage = 'Traditional';
+    let actualStage = 'Traditional';
+    let hasGap = false;
+    let explanation = '';
+
+    // Calculate what stage they would be at without sequential constraints
     const completedStages = maturityBreakdown
       .filter(mb => mb.status === 'completed')
       .map(mb => mb.stageName)
       .sort((a, b) => stageOrder.indexOf(b) - stageOrder.indexOf(a));
 
     if (completedStages.length > 0) {
-      return completedStages[0];
+      actualStage = completedStages[0];
+    } else {
+      // If no stages are completed, find the highest stage with progress
+      const inProgressStages = maturityBreakdown
+        .filter(mb => mb.status === 'in-progress')
+        .map(mb => mb.stageName)
+        .sort((a, b) => stageOrder.indexOf(b) - stageOrder.indexOf(a));
+
+      if (inProgressStages.length > 0) {
+        const currentStageIndex = stageOrder.indexOf(inProgressStages[0]);
+        actualStage = currentStageIndex > 0 ? stageOrder[currentStageIndex - 1] : 'Traditional';
+      }
     }
 
-    // If no stages are completed, find the highest stage with progress
-    const inProgressStages = maturityBreakdown
-      .filter(mb => mb.status === 'in-progress')
-      .map(mb => mb.stageName)
-      .sort((a, b) => stageOrder.indexOf(b) - stageOrder.indexOf(a));
+    // Calculate sequential achieved stage
+    for (let i = 0; i < stageOrder.length; i++) {
+      const stage = stageOrder[i];
+      const stageBreakdown = updatedBreakdown.find(mb => mb.stageName === stage);
 
-    if (inProgressStages.length > 0) {
-      // Return the previous stage to indicate they haven't reached the in-progress stage yet
-      const currentStageIndex = stageOrder.indexOf(inProgressStages[0]);
-      return currentStageIndex > 0 ? stageOrder[currentStageIndex - 1] : 'Traditional';
+      if (stageBreakdown && stageBreakdown.status === 'completed' && stageBreakdown.canAdvanceToThisStage) {
+        achievedStage = stage;
+      } else {
+        break; // Stop at first incomplete or blocked stage
+      }
     }
 
-    return 'Traditional';
+    // Check for gaps
+    if (actualStage !== achievedStage) {
+      hasGap = true;
+      const blockedStage = updatedBreakdown.find(mb => mb.stageName === actualStage);
+      if (blockedStage && blockedStage.blockedByPreviousStages) {
+        explanation = `Sequential maturity requirement: Cannot advance to ${actualStage} stage until all items in the ${blockedStage.blockedByPreviousStages.join(', ')} stage${blockedStage.blockedByPreviousStages.length > 1 ? 's' : ''} are completed.`;
+      }
+    }
+
+    return {
+      stage: achievedStage,
+      actualStage,
+      hasGap,
+      explanation,
+      stageBreakdown: updatedBreakdown
+    };
+  }
+
+  /**
+   * Validates sequential maturity requirements for each stage
+   */
+  private validateSequentialMaturity(maturityBreakdown: MaturityStageBreakdown[]): MaturityStageBreakdown[] {
+    const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+
+    return maturityBreakdown.map(breakdown => {
+      const stageIndex = stageOrder.indexOf(breakdown.stageName);
+      const canAdvanceToThisStage = this.canAdvanceToStage(breakdown.stageName, maturityBreakdown);
+      const blockedByPreviousStages = this.getBlockingStages(breakdown.stageName, maturityBreakdown);
+
+      return {
+        ...breakdown,
+        canAdvanceToThisStage,
+        blockedByPreviousStages
+      };
+    });
+  }
+
+  /**
+   * Checks if advancement to a specific stage is allowed based on sequential requirements
+   */
+  private canAdvanceToStage(stageName: string, maturityBreakdown: MaturityStageBreakdown[]): boolean {
+    const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+    const stageIndex = stageOrder.indexOf(stageName);
+
+    // Traditional stage is always accessible
+    if (stageIndex === 0) return true;
+
+    // Check if all previous stages are completed
+    for (let i = 0; i < stageIndex; i++) {
+      const previousStage = stageOrder[i];
+      const previousStageBreakdown = maturityBreakdown.find(mb => mb.stageName === previousStage);
+
+      if (!previousStageBreakdown || previousStageBreakdown.status !== 'completed') {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Gets the list of stages that are blocking advancement to the specified stage
+   */
+  private getBlockingStages(stageName: string, maturityBreakdown: MaturityStageBreakdown[]): string[] {
+    const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+    const stageIndex = stageOrder.indexOf(stageName);
+    const blockingStages: string[] = [];
+
+    // Check previous stages for incomplete items
+    for (let i = 0; i < stageIndex; i++) {
+      const previousStage = stageOrder[i];
+      const previousStageBreakdown = maturityBreakdown.find(mb => mb.stageName === previousStage);
+
+      if (!previousStageBreakdown || previousStageBreakdown.status !== 'completed') {
+        blockingStages.push(previousStage);
+      }
+    }
+
+    return blockingStages;
   }
 
   /**
    * Calculates the overall maturity stage for a pillar based on function summaries
+   * Enforces sequential maturity requirements
    */
-  calculatePillarMaturityStage(functions: FunctionSummary[]): string {
-    if (functions.length === 0) return 'Traditional';
+  calculatePillarMaturityStage(functions: FunctionSummary[]): {
+    stage: string;
+    actualStage: string;
+    hasGap: boolean;
+    explanation?: string;
+  } {
+    if (functions.length === 0) return {
+      stage: 'Traditional',
+      actualStage: 'Traditional',
+      hasGap: false
+    };
 
     const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
-    const functionStages = functions.map(f => f.overallMaturityStage);
 
-    // Calculate the average stage index
-    const stageIndices = functionStages.map(stage => stageOrder.indexOf(stage));
-    const averageIndex = Math.floor(stageIndices.reduce((sum, index) => sum + index, 0) / stageIndices.length);
+    // Calculate actual average (without sequential constraints)
+    const actualFunctionStages = functions.map(f => f.actualMaturityStage);
+    const actualStageIndices = actualFunctionStages.map(stage => stageOrder.indexOf(stage));
+    const actualAverageIndex = Math.floor(actualStageIndices.reduce((sum, index) => sum + index, 0) / actualStageIndices.length);
+    const actualStage = stageOrder[actualAverageIndex] || 'Traditional';
 
-    return stageOrder[averageIndex] || 'Traditional';
+    // Calculate sequential average (with sequential constraints)
+    const sequentialFunctionStages = functions.map(f => f.overallMaturityStage);
+    const sequentialStageIndices = sequentialFunctionStages.map(stage => stageOrder.indexOf(stage));
+    const sequentialAverageIndex = Math.floor(sequentialStageIndices.reduce((sum, index) => sum + index, 0) / sequentialStageIndices.length);
+    const achievedStage = stageOrder[sequentialAverageIndex] || 'Traditional';
+
+    // Check if there's a gap
+    const hasGap = actualStage !== achievedStage;
+    const functionsWithGaps = functions.filter(f => f.hasSequentialMaturityGap);
+
+    let explanation = '';
+    if (hasGap && functionsWithGaps.length > 0) {
+      explanation = `Sequential maturity requirements prevent advancement to ${actualStage} stage. ${functionsWithGaps.length} function${functionsWithGaps.length > 1 ? 's' : ''} ${functionsWithGaps.length > 1 ? 'have' : 'has'} incomplete prerequisite stages.`;
+    }
+
+    return {
+      stage: achievedStage,
+      actualStage,
+      hasGap,
+      explanation
+    };
   }
 
   /**

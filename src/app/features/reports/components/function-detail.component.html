@@ -1,0 +1,171 @@
+<div *ngIf="functionSummary">
+  <!-- Function Header -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-1">
+            <i class="bi bi-gear-fill text-primary me-2"></i>
+            {{ functionSummary.functionCapability.name }}
+          </h4>
+          <div class="d-flex gap-3 align-items-center">
+            <span class="badge"
+                  [class]="functionSummary.functionCapability.type === 'Function' ? 'bg-primary' : 'bg-info'">
+              {{ functionSummary.functionCapability.type }}
+            </span>
+            <span class="badge {{ maturityCalc.getMaturityStageColor(functionSummary.overallMaturityStage) }} text-white">
+              Current Maturity: {{ functionSummary.overallMaturityStage }}
+            </span>
+            <span *ngIf="functionSummary.hasSequentialMaturityGap"
+                  class="badge bg-warning text-dark">
+              Potential: {{ functionSummary.actualMaturityStage }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <!-- Sequential Maturity Gap Warning -->
+      <div *ngIf="functionSummary.hasSequentialMaturityGap" class="alert alert-warning d-flex align-items-start mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+        <div>
+          <h6 class="alert-heading mb-2">Sequential Maturity Requirement</h6>
+          <p class="mb-1">{{ functionSummary.sequentialMaturityExplanation }}</p>
+          <small class="text-muted">
+            <strong>Note:</strong> Zero Trust maturity requires completing all technologies and processes from previous stages before advancing to the next stage.
+          </small>
+        </div>
+      </div>
+
+      <!-- Maturity Progression Summary -->
+      <div class="maturity-progression-summary mb-4">
+        <h6 class="text-muted mb-3">Maturity Stage Implementation Progress</h6>
+        <div class="row">
+          <div *ngFor="let breakdown of functionSummary.maturityStageBreakdown" class="col-md-3 col-sm-6 mb-3">
+            <div class="maturity-stage-summary-card"
+                 [class.stage-completed]="breakdown.status === 'completed'"
+                 [class.stage-in-progress]="breakdown.status === 'in-progress'"
+                 [class.stage-not-started]="breakdown.status === 'not-started'"
+                 [class.stage-not-assessed]="breakdown.status === 'not-assessed'">
+              <div class="stage-icon-header">
+                <i class="bi {{ maturityCalc.getStatusIcon(breakdown.status) }} stage-status-icon"></i>
+                <h6 class="stage-name">{{ breakdown.stageName }}</h6>
+              </div>
+              <div class="stage-progress-info">
+                <div class="completion-percentage">{{ breakdown.completionPercentage }}%</div>
+                <div class="completion-details">
+                  <div class="text-muted small mb-1">
+                    <strong>{{ breakdown.completedItems }}</strong> of {{ breakdown.assessedItems }} implemented
+                  </div>
+                  <div class="progress" style="height: 6px;">
+                    <div class="progress-bar {{ getProgressBarClass(breakdown.status) }}"
+                         [style.width.%]="breakdown.completionPercentage"
+                         role="progressbar"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sequential Maturity Blocking Warning -->
+              <div *ngIf="!breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages && breakdown.blockedByPreviousStages.length > 0"
+                   class="mt-2 p-2 border border-warning rounded bg-light">
+                <div class="d-flex align-items-start">
+                  <i class="bi bi-lock-fill text-warning me-2 mt-1" style="font-size: 0.8rem;"></i>
+                  <div>
+                    <div class="small text-warning fw-semibold">Blocked by Prerequisites</div>
+                    <div class="small text-muted">
+                      Complete {{ breakdown.blockedByPreviousStages.join(', ') }} stage{{ breakdown.blockedByPreviousStages.length > 1 ? 's' : '' }} first
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Implementation breakdown -->
+              <div class="implementation-breakdown mt-3" *ngIf="breakdown.assessedItems > 0">
+                <div class="breakdown-item" *ngIf="breakdown.completedItems > 0">
+                  <span class="breakdown-badge bg-success">{{ breakdown.completedItems }}</span>
+                  <span class="breakdown-label">Implemented</span>
+                </div>
+                <div class="breakdown-item" *ngIf="breakdown.inProgressItems > 0">
+                  <span class="breakdown-badge bg-warning">{{ breakdown.inProgressItems }}</span>
+                  <span class="breakdown-label">In Progress</span>
+                </div>
+                <div class="breakdown-item" *ngIf="breakdown.notStartedItems > 0">
+                  <span class="breakdown-badge bg-danger">{{ breakdown.notStartedItems }}</span>
+                  <span class="breakdown-label">Not Started</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Technologies and Processes by Maturity Stage -->
+  <div class="maturity-stages-detail">
+    <div *ngFor="let breakdown of functionSummary.maturityStageBreakdown" class="mb-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="bi {{ maturityCalc.getStatusIcon(breakdown.status) }} me-2"></i>
+              {{ breakdown.stageName }} Stage Technologies & Processes
+            </h5>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge {{ maturityCalc.getStatusClass(breakdown.status) }}">
+                {{ breakdown.completionPercentage }}% Complete
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Technology/Process</th>
+                  <th>Type</th>
+                  <th class="text-center">Implementation Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of getItemsForStage(breakdown.stageName)"
+                    [class]="getRowClass(item.status)">
+                  <td>
+                    <div class="fw-semibold">{{ item.name }}</div>
+                    <div class="text-muted small mt-1">
+                      {{ item.description }}
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge"
+                          [class]="item.type === 'Technology' ? 'bg-info' : 'bg-secondary'">
+                      {{ item.type }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge {{ maturityCalc.getAssessmentStatusClass(item.status) }}">
+                      {{ item.status }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="text-muted small" [title]="item.notes">
+                      {{ item.notes || 'No notes provided' }}
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="getItemsForStage(breakdown.stageName).length === 0">
+                  <td colspan="4" class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No technologies or processes defined for this maturity stage
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

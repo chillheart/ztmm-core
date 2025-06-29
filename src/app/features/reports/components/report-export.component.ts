@@ -42,15 +42,6 @@ export type ExportFormat = 'html' | 'csv' | 'pdf';
             CSV Export
           </button>
         </li>
-        <li>
-          <button type="button"
-                  class="dropdown-item"
-                  (click)="exportReport('pdf')"
-                  [disabled]="isExporting">
-            <i class="bi bi-file-earmark-pdf me-2"></i>
-            PDF Export
-          </button>
-        </li>
       </ul>
     </div>
   `,

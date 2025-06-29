@@ -12,6 +12,9 @@ export interface MaturityStageBreakdown {
   percentage: number;
   completionPercentage: number; // Based on completed items only
   status: MaturityStatus;
+  // New fields for sequential maturity validation
+  canAdvanceToThisStage?: boolean;
+  blockedByPreviousStages?: string[];
 }
 
 export interface FunctionSummary {
@@ -20,7 +23,11 @@ export interface FunctionSummary {
   totalItems: number;
   assessmentPercentage: number;
   overallMaturityStage: string;
+  actualMaturityStage: string; // What they would be without sequential constraints
   maturityStageBreakdown: MaturityStageBreakdown[];
+  // New fields for sequential maturity validation
+  sequentialMaturityExplanation?: string;
+  hasSequentialMaturityGap?: boolean;
 }
 
 export interface PillarSummary {
@@ -30,7 +37,11 @@ export interface PillarSummary {
   totalItems: number;
   assessmentPercentage: number;
   overallMaturityStage: string;
+  actualMaturityStage: string; // What they would be without sequential constraints
   maturityStageBreakdown: MaturityStageBreakdown[];
+  // New fields for sequential maturity validation
+  sequentialMaturityExplanation?: string;
+  hasSequentialMaturityGap?: boolean;
 }
 
 export interface DetailedAssessmentItem {

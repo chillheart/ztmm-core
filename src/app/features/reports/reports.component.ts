@@ -21,6 +21,8 @@ import {
 } from './models/report.models';
 import { ReportDataService } from './services/report-data.service';
 import { MaturityCalculationService } from './services/maturity-calculation.service';
+import { HtmlExportService } from './services/html-export.service';
+import { CsvExportService } from './services/csv-export.service';
 
 @Component({
   selector: 'app-reports',
@@ -74,12 +76,14 @@ export class ReportsComponent implements OnInit {
   selectedFunctionDetails: DetailedAssessmentItem[] = [];
 
   // Display options
-  showTechnologyDescriptions = false;
+  // showTechnologyDescriptions removed - descriptions are now always visible
 
   constructor(
     private data: ZtmmDataWebService,
     private reportDataService: ReportDataService,
-    private maturityCalculation: MaturityCalculationService
+    private maturityCalculation: MaturityCalculationService,
+    private htmlExportService: HtmlExportService,
+    private csvExportService: CsvExportService
   ) {}
 
   async ngOnInit() {
@@ -162,21 +166,99 @@ export class ReportsComponent implements OnInit {
     this.selectedFunctionDetails = [];
   }
 
-  onDescriptionsToggled(show: boolean): void {
-    this.showTechnologyDescriptions = show;
-  }
-
   onExportRequested(format: ExportFormat): void {
     this.isExportingDoc = true;
 
-    // TODO: Implement actual export logic based on format
-    console.log(`Exporting report in ${format} format...`);
-
-    // Simulate export process
-    setTimeout(() => {
+    try {
+      if (format === 'html') {
+        this.exportToHtml();
+      } else if (format === 'csv') {
+        this.exportToCsv();
+      } else {
+        // TODO: Implement PDF export
+        console.log(`Exporting report in ${format} format...`);
+        setTimeout(() => {
+          this.isExportingDoc = false;
+          console.log(`Export completed for ${format} format`);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
       this.isExportingDoc = false;
-      console.log(`Export completed for ${format} format`);
-    }, 2000);
+    }
+  }
+
+  private async exportToHtml(): Promise<void> {
+    try {
+      // Collect all function details for all functions
+      const allFunctionDetails = new Map<number, DetailedAssessmentItem[]>();
+
+      for (const pillarSummary of this.pillarSummaries) {
+        for (const functionSummary of pillarSummary.functions) {
+          const details = this.reportDataService.buildFunctionDetails(
+            functionSummary,
+            this.pillars,
+            this.maturityStages,
+            this.technologiesProcesses,
+            this.assessmentResponses
+          );
+          allFunctionDetails.set(functionSummary.functionCapability.id, details);
+        }
+      }
+
+      // Generate HTML content
+      const htmlContent = this.htmlExportService.generateHtmlReport(
+        this.pillarSummaries,
+        allFunctionDetails
+      );
+
+      // Download the HTML file
+      this.htmlExportService.downloadHtmlReport(htmlContent);
+
+      this.isExportingDoc = false;
+    } catch (error) {
+      console.error('HTML export failed:', error);
+      this.isExportingDoc = false;
+    }
+  }
+
+  private async exportToCsv(): Promise<void> {
+    try {
+      // Collect all function details for all functions
+      const allFunctionDetails = new Map<number, DetailedAssessmentItem[]>();
+
+      for (const pillarSummary of this.pillarSummaries) {
+        for (const functionSummary of pillarSummary.functions) {
+          const details = this.reportDataService.buildFunctionDetails(
+            functionSummary,
+            this.pillars,
+            this.maturityStages,
+            this.technologiesProcesses,
+            this.assessmentResponses
+          );
+          allFunctionDetails.set(functionSummary.functionCapability.id, details);
+        }
+      }
+
+      // Generate CSV content
+      const csvContent = this.csvExportService.generateCsvReport(
+        this.pillarSummaries,
+        allFunctionDetails
+      );
+
+      // Create filename with current date
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const filename = `zero-trust-maturity-assessment-${dateStr}`;
+
+      // Download the CSV file
+      this.csvExportService.downloadCsv(csvContent, filename);
+
+      this.isExportingDoc = false;
+    } catch (error) {
+      console.error('CSV export failed:', error);
+      this.isExportingDoc = false;
+    }
   }
 
   // Helper methods for backward compatibility
