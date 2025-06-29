@@ -1004,13 +1004,13 @@ export class DemoDataGeneratorService {
     try {
       console.log('Starting demo assessment response generation...');
 
-      // Define the target maturity stages for each pillar
-      const pillarMaturityStages: Record<string, { stage: number, implementation: string }> = {
-        'Identity': { stage: 3, implementation: 'mixed' }, // Advanced stage, mixed implementation
-        'Devices': { stage: 2, implementation: 'full' },   // Initial stage, fully implemented
-        'Networks': { stage: 2, implementation: 'full' },  // Initial stage, fully implemented
-        'Applications & Workloads': { stage: 2, implementation: 'full' }, // Initial stage, fully implemented
-        'Data': { stage: 1, implementation: 'full' }       // Traditional stage, fully implemented
+      // Define the target maturity stages and custom logic for each pillar
+      const pillarMaturityStages: Record<string, { stage: number, implementation: string, custom?: boolean }> = {
+        'Identity': { stage: 2, implementation: 'full' }, // Initial, fully implemented
+        'Devices': { stage: 2, implementation: 'full' },  // Initial, fully implemented
+        'Networks': { stage: 2, implementation: 'full' }, // Initial, fully implemented
+        'Applications & Workloads': { stage: 2, implementation: 'custom', custom: true }, // Initial, but missing one Traditional
+        'Data': { stage: 1, implementation: 'full' }      // Traditional, fully implemented
       };
 
       // Get all pillars and function capabilities
@@ -1033,14 +1033,19 @@ export class DemoDataGeneratorService {
 
         const pillarConfig = pillarMaturityStages[pillar.name];
         if (!pillarConfig) {
-          console.warn(`No maturity configuration found for pillar: ${pillar.name}`);
+          // For all other pillars, mark as not implemented or partially implemented
+          await this.createAssessmentResponsesForFunction(fc, { stage: 1, implementation: 'none' });
           continue;
         }
 
-        console.log(`Generating responses for ${pillar.name} pillar - ${fc.name} (Stage ${pillarConfig.stage}, ${pillarConfig.implementation} implementation)`);
-
-        const responses = await this.createAssessmentResponsesForFunction(fc, pillarConfig);
-        totalResponses += responses;
+        if (pillar.name === 'Applications & Workloads') {
+          // Custom logic: complete all Initial, but leave one Traditional not implemented
+          const responses = await this.createAssessmentResponsesForFunction(fc, { ...pillarConfig, custom: true });
+          totalResponses += responses;
+        } else {
+          const responses = await this.createAssessmentResponsesForFunction(fc, pillarConfig);
+          totalResponses += responses;
+        }
       }
 
       console.log(`Demo assessment responses generated successfully!`);
@@ -1057,7 +1062,7 @@ export class DemoDataGeneratorService {
    */
   private async createAssessmentResponsesForFunction(
     functionCapability: FunctionCapability,
-    pillarConfig: { stage: number, implementation: string }
+    pillarConfig: { stage: number, implementation: string, custom?: boolean }
   ): Promise<number> {
     try {
       // Get technologies and processes for this function
@@ -1068,52 +1073,65 @@ export class DemoDataGeneratorService {
         return 0;
       }
 
-      // Filter items based on the target maturity stage
-      const targetItems = techProcesses.filter((tp: TechnologyProcess) => tp.maturity_stage_id <= pillarConfig.stage);
-
-      if (targetItems.length === 0) {
-        console.warn(`No suitable items found for function: ${functionCapability.name} at stage ${pillarConfig.stage}`);
-        return 0;
-      }
-
-      // Select items based on implementation type
       let selectedItems: TechnologyProcess[] = [];
+      let responseCount = 0;
 
       if (pillarConfig.implementation === 'full') {
-        // Select all items at or below the target stage
-        selectedItems = targetItems.filter((tp: TechnologyProcess) => tp.maturity_stage_id === pillarConfig.stage);
-        // If no items at exact stage, take items from lower stages
-        if (selectedItems.length === 0) {
-          selectedItems = targetItems.filter((tp: TechnologyProcess) => tp.maturity_stage_id < pillarConfig.stage);
+        // Strict: Only mark items at or below the target stage as Fully Implemented, all others Not Implemented
+        selectedItems = techProcesses.filter(tp => tp.maturity_stage_id <= pillarConfig.stage);
+        for (const item of selectedItems) {
+          await this.dataService.saveAssessment(item.id, 'Fully Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          responseCount++;
         }
-      } else if (pillarConfig.implementation === 'mixed') {
-        // For Identity pillar: mix of advanced processes and some initial technologies
-        const processes = targetItems.filter((tp: TechnologyProcess) => tp.type === 'Process' && tp.maturity_stage_id === 3);
-        const technologies = targetItems.filter((tp: TechnologyProcess) => tp.type === 'Technology' && tp.maturity_stage_id <= 2);
-
-        // Select about 70% of advanced processes and 40% of initial technologies
-        const selectedProcesses = processes.slice(0, Math.ceil(processes.length * 0.7));
-        const selectedTechnologies = technologies.slice(0, Math.ceil(technologies.length * 0.4));
-
-        selectedItems = [...selectedProcesses, ...selectedTechnologies];
-      }
-
-      if (selectedItems.length === 0) {
-        return 0;
-      }
-
-      // Create assessment responses for each selected item
-      let responseCount = 0;
-      for (const item of selectedItems) {
-        const status: AssessmentStatus = this.determineAssessmentStatus(pillarConfig);
-        const notes = this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig);
-
-        await this.dataService.saveAssessment(item.id, status, notes);
-        responseCount++;
+        // Mark all other items as Not Implemented
+        const notCompleted = techProcesses.filter(tp => tp.maturity_stage_id > pillarConfig.stage);
+        for (const item of notCompleted) {
+          await this.dataService.saveAssessment(item.id, 'Not Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          responseCount++;
+        }
+      } else if (pillarConfig.implementation === 'custom' && pillarConfig.custom) {
+        // For Applications & Workloads: complete all Initial, but leave one Traditional not implemented
+        const initialItems = techProcesses.filter(tp => tp.maturity_stage_id === 2);
+        const traditionalItems = techProcesses.filter(tp => tp.maturity_stage_id === 1);
+        // Complete all Initial
+        for (const item of initialItems) {
+          await this.dataService.saveAssessment(item.id, 'Fully Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          responseCount++;
+        }
+        // Complete all but one Traditional
+        let skipped = false;
+        for (const item of traditionalItems) {
+          if (!skipped) {
+            // Leave the first Traditional item not implemented
+            await this.dataService.saveAssessment(item.id, 'Not Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+            skipped = true;
+          } else {
+            await this.dataService.saveAssessment(item.id, 'Fully Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          }
+          responseCount++;
+        }
+        // Mark all other items as Not Implemented
+        const notCompleted = techProcesses.filter(tp => tp.maturity_stage_id > 2);
+        for (const item of notCompleted) {
+          await this.dataService.saveAssessment(item.id, 'Not Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          responseCount++;
+        }
+      } else if (pillarConfig.implementation === 'none') {
+        // For all other pillars, mark as Not Implemented or Partially Implemented (randomly)
+        for (const item of techProcesses) {
+          const status = Math.random() > 0.5 ? 'Not Implemented' : 'Partially Implemented';
+          await this.dataService.saveAssessment(item.id, status, this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          responseCount++;
+        }
+      } else {
+        // Default: mark as not implemented
+        for (const item of techProcesses) {
+          await this.dataService.saveAssessment(item.id, 'Not Implemented', this.generateAssessmentNotes(functionCapability.name, item.name, pillarConfig));
+          responseCount++;
+        }
       }
 
       return responseCount;
-
     } catch (error) {
       console.error(`Error creating assessment responses for ${functionCapability.name}:`, error);
       return 0;

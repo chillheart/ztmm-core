@@ -49,7 +49,7 @@ export class ReportDataService {
         assessmentResponses
       );
 
-      const overallMaturityStage = this.maturityCalculation.calculatePillarMaturityStage(functions);
+      const maturityResult = this.maturityCalculation.calculatePillarMaturityStage(functions);
 
       return {
         pillar,
@@ -57,7 +57,10 @@ export class ReportDataService {
         assessedItems,
         totalItems,
         assessmentPercentage: totalItems > 0 ? Math.round((assessedItems / totalItems) * 100) : 0,
-        overallMaturityStage,
+        overallMaturityStage: maturityResult.stage,
+        actualMaturityStage: maturityResult.actualStage,
+        hasSequentialMaturityGap: maturityResult.hasGap,
+        sequentialMaturityExplanation: maturityResult.explanation,
         maturityStageBreakdown
       };
     });
@@ -83,7 +86,7 @@ export class ReportDataService {
         assessmentResponses
       );
 
-      const overallMaturityStage = this.maturityCalculation.calculateOverallMaturityStage(maturityStageBreakdown);
+      const maturityResult = this.maturityCalculation.calculateOverallMaturityStage(maturityStageBreakdown);
 
       return {
         functionCapability: func,
@@ -91,8 +94,11 @@ export class ReportDataService {
         totalItems: functionTechProcesses.length,
         assessmentPercentage: functionTechProcesses.length > 0 ?
           Math.round((functionAssessedItems / functionTechProcesses.length) * 100) : 0,
-        overallMaturityStage,
-        maturityStageBreakdown
+        overallMaturityStage: maturityResult.stage,
+        actualMaturityStage: maturityResult.actualStage,
+        hasSequentialMaturityGap: maturityResult.hasGap,
+        sequentialMaturityExplanation: maturityResult.explanation,
+        maturityStageBreakdown: maturityResult.stageBreakdown
       };
     });
   }
