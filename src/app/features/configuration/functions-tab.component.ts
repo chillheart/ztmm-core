@@ -83,9 +83,8 @@ export class FunctionsTabComponent {
       // Remove the dragged item
       newFunctions.splice(this.dragFunctionIndex, 1);
 
-      // Insert at new position
-      const insertIndex = this.dragFunctionIndex < targetIndex ? targetIndex - 1 : targetIndex;
-      newFunctions.splice(insertIndex, 0, draggedFunction);
+      // Insert at the new position (always at targetIndex)
+      newFunctions.splice(targetIndex, 0, draggedFunction);
 
       // Emit the new order (just IDs)
       this.saveFunctionOrder.emit(newFunctions.map(f => f.id));

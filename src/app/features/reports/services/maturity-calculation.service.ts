@@ -162,7 +162,7 @@ export class MaturityCalculationService {
       hasGap = true;
       const blockedStage = updatedBreakdown.find(mb => mb.stageName === actualStage);
       if (blockedStage && blockedStage.blockedByPreviousStages) {
-        explanation = `Sequential maturity requirement: Cannot advance to ${actualStage} stage until all items in the ${blockedStage.blockedByPreviousStages.join(', ')} stage${blockedStage.blockedByPreviousStages.length > 1 ? 's' : ''} are completed.`;
+        explanation = `Sequential maturity requirements: Cannot advance to ${actualStage} stage until all items in the ${blockedStage.blockedByPreviousStages.join(', ')} stage${blockedStage.blockedByPreviousStages.length > 1 ? 's' : ''} are completed.`;
       }
     }
 
@@ -259,22 +259,25 @@ export class MaturityCalculationService {
     // Calculate actual average (without sequential constraints)
     const actualFunctionStages = functions.map(f => f.actualMaturityStage);
     const actualStageIndices = actualFunctionStages.map(stage => stageOrder.indexOf(stage));
-    const actualAverageIndex = Math.floor(actualStageIndices.reduce((sum, index) => sum + index, 0) / actualStageIndices.length);
+    const actualAverageIndex = Math.ceil(actualStageIndices.reduce((sum, index) => sum + index, 0) / actualStageIndices.length);
     const actualStage = stageOrder[actualAverageIndex] || 'Traditional';
 
     // Calculate sequential average (with sequential constraints)
     const sequentialFunctionStages = functions.map(f => f.overallMaturityStage);
     const sequentialStageIndices = sequentialFunctionStages.map(stage => stageOrder.indexOf(stage));
-    const sequentialAverageIndex = Math.floor(sequentialStageIndices.reduce((sum, index) => sum + index, 0) / sequentialStageIndices.length);
+    const sequentialAverageIndex = Math.ceil(sequentialStageIndices.reduce((sum, index) => sum + index, 0) / sequentialStageIndices.length);
     const achievedStage = stageOrder[sequentialAverageIndex] || 'Traditional';
 
     // Check if there's a gap
     const hasGap = actualStage !== achievedStage;
     const functionsWithGaps = functions.filter(f => f.hasSequentialMaturityGap);
 
-    let explanation = '';
-    if (hasGap && functionsWithGaps.length > 0) {
-      explanation = `Sequential maturity requirements prevent advancement to ${actualStage} stage. ${functionsWithGaps.length} function${functionsWithGaps.length > 1 ? 's' : ''} ${functionsWithGaps.length > 1 ? 'have' : 'has'} incomplete prerequisite stages.`;
+    let explanation = undefined;
+    if (hasGap) {
+      explanation = `Sequential maturity requirements prevent advancement to ${actualStage} stage.`;
+      if (functionsWithGaps.length > 0) {
+        explanation += ` ${functionsWithGaps.length} function${functionsWithGaps.length > 1 ? 's' : ''} ${functionsWithGaps.length > 1 ? 'have' : 'has'} incomplete prerequisite stages.`;
+      }
     }
 
     return {

@@ -332,4 +332,71 @@ describe('AssessmentComponent', () => {
       'Superseded'
     ]);
   });
+
+  it('should go to a specific page and update pagination', () => {
+    component.availableStages = ['Traditional', 'Initial', 'Advanced'];
+    component.totalPages = 3;
+    component.currentPage = 1;
+    spyOn(component, 'updatePagination');
+    component.goToPage(2);
+    expect(component.currentPage).toBe(2);
+    expect(component.updatePagination).toHaveBeenCalled();
+  });
+
+  it('should go to previous and next page', () => {
+    component.availableStages = ['Traditional', 'Initial', 'Advanced'];
+    component.totalPages = 3;
+    component.currentPage = 2;
+    spyOn(component, 'updatePagination');
+    component.previousPage();
+    expect(component.currentPage).toBe(1);
+    component.nextPage();
+    expect(component.currentPage).toBe(2);
+    expect(component.updatePagination).toHaveBeenCalledTimes(2);
+  });
+
+  it('should return correct page numbers', () => {
+    component.totalPages = 3;
+    component.currentPage = 2;
+    expect(component.getPageNumbers()).toEqual([1, 2, 3]);
+    component.totalPages = 10;
+    component.currentPage = 5;
+    expect(component.getPageNumbers().length).toBeLessThanOrEqual(5);
+  });
+
+  it('should calculate current progress', () => {
+    component.technologiesProcesses = [{...mockTechnologiesProcesses[0]}, {...mockTechnologiesProcesses[1]}];
+    component.assessmentStatuses = ['Fully Implemented', null];
+    expect(component.getCurrentProgress()).toBe(50);
+  });
+
+  it('should handle assessment change and auto-save', async () => {
+    component.technologiesProcesses = [{...mockTechnologiesProcesses[0]}];
+    component.assessmentStatuses = [null];
+    component.assessmentNotes = [''];
+    spyOn<any>(component, 'saveAssessmentItem').and.returnValue(Promise.resolve());
+    component.onAssessmentChange(0, 'status', 'Fully Implemented');
+    expect(component.assessmentStatuses[0]).toBe('Fully Implemented');
+    component.onAssessmentChange(0, 'notes', 'Test note');
+    expect(component.assessmentNotes[0]).toBe('Test note');
+  });
+
+  it('should call saveAssessmentItem and handle activeSaves', async () => {
+    component.technologiesProcesses = [{...mockTechnologiesProcesses[0]}];
+    component.assessmentStatuses = ['Fully Implemented'];
+    component.assessmentNotes = ['Test note'];
+    // Use bracket notation to access private property for test
+    const activeSaves = (component as any)['activeSaves'];
+    const promise = (component as any)['saveAssessmentItem'](0);
+    expect(activeSaves.has(0)).toBeTrue();
+    await promise;
+    expect(activeSaves.has(0)).toBeFalse();
+  });
+
+  it('should clean up on destroy', () => {
+    (component as any)['autoSaveTimeout'] = window.setTimeout(() => {}, 1000);
+    (component as any)['activeSaves'].add(1);
+    component.ngOnDestroy();
+    expect((component as any)['activeSaves'].size).toBe(0);
+  });
 });
