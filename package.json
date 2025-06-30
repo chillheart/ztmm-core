@@ -15,7 +15,8 @@
     "lint": "ng lint",
     "lint:fix": "ng lint --fix",
     "lint:check": "eslint --print-config eslint.config.cjs",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "ci:full": "npm run lint && npm run type-check && npm run test:ci"
   },
   "private": true,
   "dependencies": {
