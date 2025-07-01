@@ -2,7 +2,7 @@
 
 [![PR Checks](https://github.com/chillheart/ztmm-assessment/workflows/PR%20Checks/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
 
-A compre│   ├── app.routes.ts           # Application routing (includes /results redirect)ensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
+A compreensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
 
 ## 🚀 Features
 
@@ -163,60 +163,23 @@ The application follows Angular best practices with a feature-based architecture
 ```
 src/
 ├── app/
-│   ├── core/                    # Core application components
-│   │   └── components/              # Core UI components
-│   │       ├── home.component.*         # Landing page with instructions
-│   │       ├── navbar.component.*       # Navigation header
-│   │       └── footer.component.*       # Application footer
-│   ├── features/                # Feature modules (organized by domain)
-│   │   ├── assessment/              # Assessment functionality
-│   │   │   ├── assessment.component.*       # Main assessment interface
-│   │   │   ├── assessment-item.component.*  # Individual assessment items
-│   │   │   ├── assessment-overview.component.* # Assessment progress overview
-│   │   │   ├── pillar-summary.component.*   # Pillar-specific summaries
-│   │   │   ├── overall-progress-summary.component.* # Overall progress tracking
-│   │   │   └── pagination.component.*       # Assessment pagination
-│   │   ├── configuration/           # Admin/Configuration management
-│   │   │   ├── admin.component.*            # Main configuration interface
-│   │   │   ├── pillars-tab.component.*      # Pillar management
-│   │   │   ├── functions-tab.component.*    # Function/capability management
-│   │   │   ├── technologies-tab.component.* # Technology/process management
-│   │   │   └── data-management-tab.component.* # Import/export functionality
-│   │   └── reports/              # Results and reporting
-│   │       └── reports.component.*         # Reports dashboard and PDF export
-│   ├── models/                  # TypeScript interfaces and types
-│   │   └── ztmm.models.ts              # Core data models and interfaces
-│   ├── services/                # Application services
-│   │   ├── indexeddb.service.ts            # Low-level IndexedDB operations
-│   │   ├── ztmm-data-web.service.ts        # Main data access layer (interface)
-│   │   ├── ztmm-data-web-indexeddb.service.ts # IndexedDB implementation
-│   │   ├── pdf-export.service.ts           # PDF report generation
-│   │   └── demo-data-generator.service.ts  # Demo data for testing
-│   ├── security/                # Security testing and validation
-│   │   ├── security-tests.spec.ts          # OWASP Top 10 security tests
-│   │   ├── penetration-tests.spec.ts       # Penetration testing suite
-│   │   ├── basic-security-tests.spec.ts    # Basic security validations
-│   │   ├── simple-security-tests.spec.ts   # Simplified security checks
-│   │   ├── security-config.ts              # Security configuration
-│   │   └── security-test-utils.ts          # Security testing utilities
-│   ├── shared/                  # Shared components and utilities
-│   │   └── components/                 # Reusable UI components
-│   ├── testing/                 # Test utilities and setup
-│   │   ├── test-setup.ts                   # Global test configuration
-│   │   ├── test-utils.ts                   # General testing utilities
-│   │   └── test-utils-indexeddb.ts         # IndexedDB testing utilities
-│   ├── utilities/               # Helper functions and utilities
-│   ├── app.component.*          # Root application component
-│   ├── app.config.ts           # Application configuration
-│   └── app.routes.ts           # Application routing (includes /results redirect)
-├── assets/                      # Static assets
-│   ├── icons/                      # Application icons
-│   ├── icon.ico                    # Favicon
-│   ├── icon.png                    # App icon (PNG)
-│   └── icon.icns                   # App icon (macOS)
-├── styles.scss                  # Global application styles
-├── main.ts                      # Application bootstrap
-└── index.html                   # Main HTML template
+│   ├── core/                # Core application-wide components (home, navbar, footer)
+│   ├── features/            # Feature modules, each in its own folder
+│   │   ├── assessment/          # Assessment workflow and progress tracking
+│   │   ├── configuration/       # Admin/configuration management (pillars, functions, tech, data management)
+│   │   └── reports/             # Reporting dashboard, detail views, export logic
+│   ├── models/              # TypeScript interfaces and data models
+│   ├── services/            # Application-wide services (data access, PDF export, demo data)
+│   ├── shared/              # Shared/reusable UI components (if any)
+│   ├── testing/             # Test setup and utilities
+│   ├── utilities/           # Helper functions and utility services
+│   ├── app.component.*      # Root Angular component
+│   ├── app.config.ts        # Application configuration
+│   └── app.routes.ts        # Application routing
+├── assets/                  # Static assets (icons, images)
+├── styles.scss              # Global styles
+├── main.ts                  # Application bootstrap
+└── index.html               # Main HTML template
 ```
 
 ### Architecture Highlights
