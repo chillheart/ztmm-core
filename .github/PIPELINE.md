@@ -13,12 +13,8 @@ This document describes the GitHub Actions workflows configured for the ZTMM Ass
 - Uploads coverage reports as artifacts
 - Only runs on non-draft PRs
 
-### 2. GitHub Pages Deployment (`deploy-github-pages.yml`)
-**Triggered on:** Release creation
-
 **Features:**
 - Builds production version
-- Deploys to GitHub Pages automatically
 
 ## What Each Workflow Tests
 
@@ -26,13 +22,6 @@ This document describes the GitHub Actions workflows configured for the ZTMM Ass
 - ✅ **Linting**: ESLint with security rules
 - ✅ **Type Checking**: TypeScript compilation
 - ✅ **Unit Tests**: Jest/Karma tests with coverage
-
-### Security Testing
-- ✅ **OWASP Top 10**: Custom security tests for common vulnerabilities
-- ✅ **Penetration Tests**: Application-specific security tests
-- ✅ **Dependency Audit**: npm audit for vulnerable packages
-- ✅ **Static Analysis**: CodeQL for code-level security issues
-- ✅ **Vulnerability Scanning**: Trivy for container/filesystem vulnerabilities
 
 ### Build Verification
 - ✅ **Production Build**: Ensures the app builds successfully for deployment

@@ -45,24 +45,6 @@ export class IndexedDBService {
   private isInitialized = false;
   private dbName = 'ztmm-assessment'; // Default database name
 
-  // For testing: allow setting a custom database name
-  setDatabaseName(name: string): void {
-    if (this.isInitialized) {
-      throw new Error('Cannot change database name after initialization');
-    }
-    this.dbName = name;
-  }
-
-  // For testing: reset the service to uninitialized state
-  resetService(): void {
-    if (this.db) {
-      this.db.close();
-    }
-    this.db = null;
-    this.isInitialized = false;
-    this.dbName = 'ztmm-assessment'; // Reset to default
-  }
-
   // Default data to be inserted on first initialization
   private readonly defaultPillars: (Pillar & { order_index: number })[] = [
     { id: 1, name: 'Identity', order_index: 1 },

@@ -25,9 +25,7 @@ describe('IndexedDBService', () => {
     }).compileComponents();
 
     service = TestBed.inject(IndexedDBService);
-
-    // Set unique database name for this test instance
-    service.setDatabaseName(testDbName);
+    // service.setDatabaseName(testDbName); // Removed, no longer needed
   });
 
   afterEach(async () => {
