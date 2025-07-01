@@ -373,7 +373,7 @@ export class HtmlExportService {
     </div>`;
   }
 
-  downloadHtmlReport(htmlContent: string, filename: string = 'zero-trust-assessment-report.html'): void {
+  downloadHtmlReport(htmlContent: string, filename = 'zero-trust-assessment-report.html'): void {
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
