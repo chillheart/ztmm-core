@@ -19,7 +19,7 @@ describe('FunctionsTabComponent', () => {
     component.newFunctionCapability = 'Test Function';
     component.newFunctionCapabilityType = 'Function';
     component.selectedPillarId = 1;
-    const form = { valid: true, resetForm: () => {}, controls: {} } as any;
+    const form = { valid: true, resetForm: () => { /* no-op for test */ }, controls: {} } as any;
     component.onAddFunctionCapability(form);
     expect(component.addFunctionCapability.emit).toHaveBeenCalledWith({
       name: 'Test Function',

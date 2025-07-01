@@ -22,7 +22,7 @@ describe('TechnologiesTabComponent', () => {
     component.newTechnologyProcessType = 'Technology';
     component.selectedFunctionCapabilityId = 1;
     component.selectedMaturityStageId = 2;
-    const form = { valid: true, resetForm: () => {}, controls: {} } as any;
+    const form = { valid: true, resetForm: () => { /* no-op for test */ }, controls: {} } as any;
     component.onAddTechnologyProcess(form);
     expect(component.addTechnologyProcess.emit).toHaveBeenCalledWith({
       name: 'Tech1',

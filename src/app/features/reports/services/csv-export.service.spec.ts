@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { CsvExportService } from './csv-export.service';
-import { PillarSummary, FunctionSummary, DetailedAssessmentItem } from '../models/report.models';
+import { PillarSummary, DetailedAssessmentItem } from '../models/report.models';
 
 describe('CsvExportService', () => {
   let service: CsvExportService;

@@ -394,7 +394,7 @@ describe('AssessmentComponent', () => {
   });
 
   it('should clean up on destroy', () => {
-    (component as any)['autoSaveTimeout'] = window.setTimeout(() => {}, 1000);
+    (component as any)['autoSaveTimeout'] = window.setTimeout(() => { /* no-op for test */ }, 1000);
     (component as any)['activeSaves'].add(1);
     component.ngOnDestroy();
     expect((component as any)['activeSaves'].size).toBe(0);

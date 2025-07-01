@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HtmlExportService } from './html-export.service';
-import { PillarSummary, FunctionSummary, DetailedAssessmentItem } from '../models/report.models';
+import { PillarSummary, DetailedAssessmentItem } from '../models/report.models';
 import { MaturityCalculationService } from './maturity-calculation.service';
 
 describe('HtmlExportService', () => {

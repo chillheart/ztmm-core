@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { MaturityCalculationService } from './maturity-calculation.service';
-import { PillarSummary, FunctionSummary, MaturityStageBreakdown } from '../models/report.models';
 
 describe('MaturityCalculationService', () => {
   let service: MaturityCalculationService;
@@ -16,35 +15,7 @@ describe('MaturityCalculationService', () => {
 
   it('should enforce sequential maturity', () => {
     // Arrange: create a pillar summary with a gap in sequential maturity
-    const breakdown: MaturityStageBreakdown[] = [
-      { stageName: 'Traditional', assessedItems: 2, totalItems: 2, completedItems: 2, inProgressItems: 0, notStartedItems: 0, percentage: 100, completionPercentage: 100, status: 'completed', canAdvanceToThisStage: true },
-      { stageName: 'Initial', assessedItems: 2, totalItems: 2, completedItems: 2, inProgressItems: 0, notStartedItems: 0, percentage: 100, completionPercentage: 100, status: 'completed', canAdvanceToThisStage: true },
-      { stageName: 'Advanced', assessedItems: 2, totalItems: 2, completedItems: 0, inProgressItems: 0, notStartedItems: 2, percentage: 0, completionPercentage: 0, status: 'not-started', canAdvanceToThisStage: false }
-    ];
-    const func: FunctionSummary = {
-      functionCapability: { id: 1, name: 'Test', type: 'Function', pillar_id: 1 },
-      assessedItems: 4,
-      totalItems: 6,
-      assessmentPercentage: 66.7,
-      overallMaturityStage: 'Initial',
-      actualMaturityStage: 'Advanced',
-      maturityStageBreakdown: breakdown,
-      sequentialMaturityExplanation: 'Blocked by previous stage',
-      hasSequentialMaturityGap: true
-    };
-    const pillar: PillarSummary = {
-      pillar: { id: 1, name: 'Identity' },
-      functions: [func],
-      assessedItems: 4,
-      totalItems: 6,
-      assessmentPercentage: 66.7,
-      overallMaturityStage: 'Initial',
-      actualMaturityStage: 'Advanced',
-      maturityStageBreakdown: breakdown,
-      sequentialMaturityExplanation: 'Blocked by previous stage',
-      hasSequentialMaturityGap: true
-    };
-
+    // Removed unused: const breakdown: MaturityStageBreakdown[] = [...];
     // Act: call the method under test (replace with your actual method)
     // const result = service.enforceSequentialMaturity(pillar);
     // Assert: expect result to reflect sequential enforcement
@@ -56,7 +27,7 @@ describe('MaturityCalculationService', () => {
   });
 
   it('should enforce sequential maturity and provide explanation for gaps', () => {
-    const breakdown = [
+    const result = service.calculateOverallMaturityStage([
       {
         stageName: 'Traditional',
         assessedItems: 2,
@@ -101,8 +72,7 @@ describe('MaturityCalculationService', () => {
         completionPercentage: 0,
         status: 'not-assessed' as const
       }
-    ];
-    const result = service.calculateOverallMaturityStage(breakdown);
+    ]);
     expect(result.stage).toBe('Traditional'); // Sequentially allowed
     expect(result.actualStage).toBe('Advanced'); // Highest completed
     expect(result.hasGap).toBeTrue();

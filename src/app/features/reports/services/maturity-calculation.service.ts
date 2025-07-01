@@ -146,8 +146,7 @@ export class MaturityCalculationService {
     }
 
     // Calculate sequential achieved stage
-    for (let i = 0; i < stageOrder.length; i++) {
-      const stage = stageOrder[i];
+    for (const stage of stageOrder) {
       const stageBreakdown = updatedBreakdown.find(mb => mb.stageName === stage);
 
       if (stageBreakdown && stageBreakdown.status === 'completed' && stageBreakdown.canAdvanceToThisStage) {
@@ -179,10 +178,7 @@ export class MaturityCalculationService {
    * Validates sequential maturity requirements for each stage
    */
   private validateSequentialMaturity(maturityBreakdown: MaturityStageBreakdown[]): MaturityStageBreakdown[] {
-    const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
-
     return maturityBreakdown.map(breakdown => {
-      const stageIndex = stageOrder.indexOf(breakdown.stageName);
       const canAdvanceToThisStage = this.canAdvanceToStage(breakdown.stageName, maturityBreakdown);
       const blockedByPreviousStages = this.getBlockingStages(breakdown.stageName, maturityBreakdown);
 

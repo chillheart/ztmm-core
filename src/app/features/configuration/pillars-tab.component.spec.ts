@@ -57,13 +57,13 @@ describe('PillarsTabComponent', () => {
   it('should emit addPillar when form is valid and submitted', () => {
     spyOn(component.addPillar, 'emit');
     component.newPillar = 'Network';
-    const form = { valid: true, resetForm: () => {}, controls: { pillar: { invalid: false, dirty: true } } } as any;
+    const form = { valid: true, resetForm: () => { /* no-op for test */ }, controls: { pillar: { invalid: false, dirty: true } } } as any;
     component.onAddPillar(form);
     expect(component.addPillar.emit).toHaveBeenCalledWith('Network');
   });
   it('should not emit addPillar if form is invalid or name is empty', () => {
     spyOn(component.addPillar, 'emit');
-    const form = { valid: false, resetForm: () => {}, controls: { pillar: { invalid: true, dirty: true } } } as any;
+    const form = { valid: false, resetForm: () => { /* no-op for test */ }, controls: { pillar: { invalid: true, dirty: true } } } as any;
     component.newPillar = '';
     component.onAddPillar(form);
     expect(component.addPillar.emit).not.toHaveBeenCalled();

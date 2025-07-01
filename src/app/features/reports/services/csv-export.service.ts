@@ -130,7 +130,7 @@ export class CsvExportService {
     return value;
   }
 
-  downloadCsv(csvContent: string, filename: string = 'zero-trust-maturity-assessment'): void {
+  downloadCsv(csvContent: string, filename = 'zero-trust-maturity-assessment'): void {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
 
