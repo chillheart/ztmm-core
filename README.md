@@ -1,8 +1,6 @@
 # ZTMM Assessment Tool
 
-[![PR Checks](https://github.com/chillheart/ztmm-assessment/workflows/PR%20Checks/badge.svg)](https://github.com/chillheart/ztmm-assessment/actions/workflows/pr-validation.yml)
-
-A compreensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars, functions, capabilities, and technologies with complete privacy - all data is stored locally in your browser.
+A compreensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars and technologies.
 
 ## 🚀 Features
 
@@ -126,30 +124,25 @@ npm run preview
 
 ## 🌐 Deployment
 
-### GitHub Pages (Automated)
-The project includes a GitHub Actions workflow that automatically deploys to GitHub Pages when a new release is created:
+### Cloudflare Pages Deployment
 
-1. **Create a Release**: Go to your repository's "Releases" section and create a new release
-2. **Automatic Deployment**: The workflow will automatically:
-   - Run tests and linting
-   - Build the application with the correct base href
-   - Deploy to GitHub Pages
+The project is now hosted on Cloudflare Pages.
 
-#### Manual GitHub Pages Deployment
-For manual deployment to GitHub Pages:
-```bash
-npm run build:github-pages
-```
-Or using the legacy script:
-```bash
-npm run deploy:gh-pages
-```
+#### Automated Deployment
+- Pushes and merges to the main branch are automatically deployed to Cloudflare Pages using its integration.
+- For details on configuring Cloudflare Pages, visit [Cloudflare Pages documentation](https://developers.cloudflare.com/pages/).
 
-#### GitHub Pages Setup
-To enable GitHub Pages deployment:
-1. Go to your repository Settings → Pages
-2. Set Source to "GitHub Actions"
-3. The workflow will handle the rest automatically
+#### Manual Deployment
+To manually deploy:
+1. Build the production version:
+   ```bash
+   npm run build:prod
+   ```
+2. Upload the contents of the `dist/` directory to your Cloudflare Pages project.
+
+#### Custom Domain
+- The application is available at: [https://ztmm-assessment.pages.dev](https://ztmm-assessment.pages.dev)
+- For custom domain setup, follow Cloudflare Pages custom domain guide.
 
 ### Self-Hosting
 1. Build the production version: `npm run build:prod`
@@ -217,7 +210,7 @@ The built application will be available in the `dist/` directory and can be depl
 
 ## 🔗 Demo & Live Version
 
-You can try the application online at: [GitHub Pages Demo](https://chillheart.github.io/ztmm-assessment/)
+You can try the application online at: [Cloudflare Pages Demo](https://ztmm-assessment.pages.dev)
 
 ## 🏠 Self-Hosting
 
@@ -225,7 +218,7 @@ Want to host this tool for your organization?
 1. Fork this repository
 2. Customize the configuration as needed
 3. Deploy to your preferred hosting platform:
-   - **GitHub Pages**: Use `npm run deploy:gh-pages`
+   - **Cloudflare Pages**: See above for deployment steps
    - **Netlify**: Connect your repository for automatic deployments
    - **Vercel**: Import your repository for instant deployment
    - **Static Web Hosting**: Upload the `dist/` folder contents
@@ -236,17 +229,6 @@ Run the test suite:
 ```bash
 npm test
 ```
-
-Run tests with coverage:
-```bash
-npm run test:coverage
-```
-
-Run security tests:
-```bash
-npm run security:test
-```
-
 
 ## 📝 Contributing
 
@@ -263,126 +245,3 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 ## 🤝 Support
 
 For questions, issues, or feature requests, please create an issue in the repository.
-
-## 🔄 Version History
-
-### **v1.3.5** (Current) - Navigation Simplification
-- **🔄 Component Restructure**: Removed redundant Results component
-  - Streamlined navigation by removing duplicate Results component
-  - All `/results` routes now automatically redirect to `/reports` for consistency
-  - Updated navigation links and test expectations throughout the application
-  - Maintained backward compatibility with automatic redirection
-- **📋 Documentation**: Updated README and navigation references
-  - Corrected all documentation to reflect the simplified navigation structure
-  - Enhanced routing documentation with redirect behavior explanation
-
-### **v1.3.4** - Code Quality Enhancement
-- **🔧 Code Quality**: Comprehensive linting and code quality improvements
-  - Fixed all ESLint linting errors across the codebase
-  - Applied automated fixes for formatting and style consistency
-  - Enhanced code maintainability with proper parameter handling
-- **✅ Testing Validation**: Verified code quality improvements
-  - All 414 tests continue to pass after linting fixes
-  - Maintained functionality while improving code standards
-  - Ensured no regressions in existing features
-- **📋 Development Process**: Enhanced development workflow
-  - Improved branch-based development with code quality checks
-  - Better adherence to TypeScript and Angular best practices
-  - Streamlined linting process for future development
-
-### **v1.3.3** - Feature-Based Architecture & Enhanced Security
-- **🏗️ Architecture Refactor**: Migrated to feature-based Angular architecture
-  - Organized code into `core/`, `features/`, and `shared/` modules
-  - Improved maintainability and scalability
-  - Better separation of concerns with domain-driven design
-- **🔒 Security Enhancement**: Comprehensive security testing framework
-  - OWASP Top 10 security tests integration
-  - Penetration testing suite with automated validation
-  - Security configuration and utilities for continuous monitoring
-- **🧪 Testing Infrastructure**: Robust testing ecosystem
-  - Enhanced test utilities for IndexedDB operations
-  - Comprehensive unit and integration test coverage
-  - Security-focused testing with automated CI/CD validation
-- **📱 UI/UX Improvements**: Enhanced user experience
-  - Assessment pagination for better navigation
-  - Improved progress tracking and overview components
-  - Enhanced footer and navigation components
-- **⚡ Performance**: Optimized data handling and component structure
-
-### **v1.3.0** - Major Feature Enhancements
-- **🔄 CI/CD Pipeline**: Comprehensive continuous integration setup
-  - GitHub Actions workflows for automated testing and deployment
-  - CodeQL security scanning and vulnerability detection
-  - Automated PR validation with enhanced checks
-- **🛡️ Security Hardening**: Advanced security measures
-  - Trivy filesystem scanning for vulnerabilities
-  - Enhanced dependency auditing and security validation
-  - Security configuration and monitoring tools
-
-### **v1.2.0** - Native IndexedDB Implementation
-- **💾 Database Migration**: Switched to using native IndexedDB APIs
-  - Direct browser database integration for better performance
-  - Improved data reliability and error handling
-- **📖 User Experience**: Updated home page with comprehensive instructions
-  - Privacy statement prominently displayed
-  - Step-by-step getting started guide
-  - Enhanced onboarding experience
-
-### **v1.1.0** - Web Application Foundation
-- **🌐 Web-Based Platform**: Complete transition to browser-based application
-  - IndexedDB storage for local data persistence
-  - Complete privacy with no external server dependencies
-- **📊 Enhanced Features**: Comprehensive assessment capabilities
-  - PDF export functionality for professional reporting
-  - Import/export for data management and backup
-  - Enhanced UI with Bootstrap 5 integration
-- **🧪 Quality Assurance**: Comprehensive test coverage
-  - Unit tests for all major components
-  - Integration tests for data flow validation
-  - Automated testing pipeline setup
-
-### **v1.0.0** - Initial Release
-- **⭐ Core Functionality**: Initial ZTMM assessment implementation
-  - Configuration management with intuitive interface
-  - Drag-and-drop reordering for user-friendly setup
-  - Pillar-based assessment workflow
-  - Progress tracking and basic reporting
-- **🛠️ Foundation**: Basic Angular application structure
-  - Component-based architecture
-  - Bootstrap UI framework integration
-  - Local storage implementation
-
-## 🔄 Continuous Integration
-
-This project includes comprehensive CI/CD pipelines that automatically run on pull requests and pushes:
-
-### What Gets Tested
-- **Code Quality**: ESLint linting and TypeScript type checking
-- **Unit Tests**: Full test suite with coverage reporting
-- **Security**: OWASP Top 10 tests, penetration tests, and dependency audits
-- **Build Verification**: Production build validation
-
-### Workflows
-- **PR Validation**: Enhanced checks with automated PR comments
-
-### Running Tests Locally
-```bash
-# Run the full CI suite (same as pipeline)
-npm run ci:full
-
-# The ci:full script includes:
-npm run lint                 # ESLint linting
-npm run test:ci             # Unit tests with coverage
-npm run security:test       # All security tests (OWASP + Penetration)
-
-# Additional commands available:
-npm run security:audit      # Dependency security audit
-npm run security:codeql     # CodeQL static analysis (requires CodeQL CLI)
-npm run security:validate   # Validate CodeQL configuration
-npm run security:owasp      # OWASP tests only
-npm run security:penetration # Penetration tests only
-npm run build:prod         # Production build
-npm run ci:validate        # Run local validation script
-```
-
-For detailed pipeline documentation, see [`.github/PIPELINE.md`](.github/PIPELINE.md).
