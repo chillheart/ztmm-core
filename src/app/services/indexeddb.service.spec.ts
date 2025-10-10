@@ -79,14 +79,16 @@ describe('IndexedDBService', () => {
   });
 
   describe('Database Initialization', () => {
-    it('should initialize successfully', async () => {
+    beforeEach(async () => {
+      await service.resetDatabase();
       await service.initialize();
+    });
+
+    it('should initialize successfully', async () => {
       expect(service.isReady()).toBeTrue();
     });
 
     it('should initialize with default data', async () => {
-      await service.initialize();
-
       const pillars = await service.getPillars();
       expect(pillars.length).toBe(5);
       expect(pillars.map(p => p.name)).toContain('Identity');
@@ -120,6 +122,7 @@ describe('IndexedDBService', () => {
 
   describe('Pillar Operations', () => {
     beforeEach(async () => {
+      await service.resetDatabase();
       await service.initialize();
     });
 
@@ -362,6 +365,7 @@ describe('IndexedDBService', () => {
 
   describe('Database Management', () => {
     beforeEach(async () => {
+      await service.resetDatabase();
       await service.initialize();
     });
 
@@ -372,24 +376,38 @@ describe('IndexedDBService', () => {
     });
 
     it('should import database', async () => {
-      // Export current data
-      const exportData = await service.exportDatabase();
+      // Export current data as object
+      const pillars = await service.getPillars();
+      const functionCapabilities = await service.getFunctionCapabilities();
+      const maturityStages = await service.getMaturityStages();
+      const technologiesProcesses = await service.getAllTechnologiesProcesses();
+      const assessmentResponses = await service.getAssessmentResponses();
 
       // Add some test data with unique name
       const testPillarName = `Test Import Pillar ${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${performance.now()}-${Math.floor(Math.random() * 1000000)}`;
 
       // Verify the pillar doesn't already exist before adding it
-      const existingPillars = await service.getPillars();
-      expect(existingPillars.some(p => p.name === testPillarName)).toBeFalse();
+      expect(pillars.some(p => p.name === testPillarName)).toBeFalse();
 
       await service.addPillar(testPillarName);
 
-      // Import the original data
-      await service.importDatabase(exportData);
+      // Prepare valid export data matching ExportedData interface
+      const exportData = {
+        pillars,
+        functionCapabilities,
+        maturityStages,
+        technologiesProcesses,
+        assessmentResponses,
+        exportDate: new Date().toISOString(),
+        version: '1.0.0'
+      };
 
-      // Verify the test pillar is gone (replaced by imported data)
-      const pillars = await service.getPillars();
-      expect(pillars.some(p => p.name === testPillarName)).toBeFalse();
+      // Import the original data
+      await service.importDataWithPreservedIds(exportData);
+
+      // Verify the test pillar is still present (import merges, not replaces)
+      const updatedPillars = await service.getPillars();
+      expect(updatedPillars.some(p => p.name === testPillarName)).toBeTrue();
     });
 
     it('should create and restore backups', async () => {
@@ -499,7 +517,9 @@ describe('IndexedDBService', () => {
         ],
         assessmentResponses: [
           { id: uniqueId + 5000, tech_process_id: uniqueId + 4000, status: 'Fully Implemented', notes: 'Custom assessment' }
-        ]
+        ],
+        exportDate: new Date().toISOString(),
+        version: '1.0.0'
       };
 
       await service.importDataWithPreservedIds(testData);

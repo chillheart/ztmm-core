@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, transition, animate } from '@angular/animations';
-import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { IndexedDBService } from '../../services/indexeddb.service';
 import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from '../../models/ztmm.models';
 
 // Import new components and services
@@ -79,7 +79,7 @@ export class ReportsComponent implements OnInit {
   // showTechnologyDescriptions removed - descriptions are now always visible
 
   constructor(
-    private data: ZtmmDataWebService,
+    private data: IndexedDBService,
     private reportDataService: ReportDataService,
     private maturityCalculation: MaturityCalculationService,
     private htmlExportService: HtmlExportService,

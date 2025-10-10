@@ -85,9 +85,9 @@
       [functionCapabilities]="functionCapabilities"
       [maturityStages]="maturityStages"
       [technologiesProcesses]="technologiesProcesses"
-      (addTechnologyProcess)="onAddTechnologyProcess($event)"
+      (addTechnologyProcess)="addOrEditTechnologyProcess($event)"
       (removeTechnologyProcess)="onRemoveTechnologyProcess($event)"
-      (editTechnologyProcess)="onEditTechnologyProcess($event)"
+      (editTechnologyProcess)="addOrEditTechnologyProcess($event)"
       (loadTechnologiesProcesses)="onLoadTechnologiesProcesses()">
     </app-technologies-tab>
   </div>

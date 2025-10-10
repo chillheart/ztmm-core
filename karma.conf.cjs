@@ -56,7 +56,7 @@ module.exports = function (config) {
         }
       }
     },
-    reporters: ['progress', 'kjhtml', 'coverage'],
+  reporters: process.env.CI ? ['progress', 'coverage'] : ['progress', 'kjhtml', 'coverage'],
     browsers: ['Chrome'],
     restartOnFileChange: true,
     singleRun: false,

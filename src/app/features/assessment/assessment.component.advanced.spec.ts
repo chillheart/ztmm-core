@@ -1,13 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AssessmentComponent } from './assessment.component';
-import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { IndexedDBService } from '../../services/indexeddb.service';
 import { TestUtilsIndexedDB } from '../../testing/test-utils-indexeddb';
 
 describe('AssessmentComponent - Advanced Tests', () => {
   let component: AssessmentComponent;
   let fixture: ComponentFixture<AssessmentComponent>;
-  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
+  let mockDataService: jasmine.SpyObj<IndexedDBService>;
   let mockApi: any;
 
   beforeEach(async () => {
@@ -15,7 +15,7 @@ describe('AssessmentComponent - Advanced Tests', () => {
     (window as any).api = TestUtilsIndexedDB.createMockElectronApi();
     mockApi = (window as any).api;
 
-    const spy = TestUtilsIndexedDB.createServiceSpy<ZtmmDataWebService>('ZtmmDataWebService', [
+    const spy = TestUtilsIndexedDB.createServiceSpy<IndexedDBService>('IndexedDBService', [
       'getPillars',
       'getFunctionCapabilities',
       'getMaturityStages',
@@ -29,7 +29,7 @@ describe('AssessmentComponent - Advanced Tests', () => {
     await TestBed.configureTestingModule({
       imports: [AssessmentComponent, FormsModule],
       providers: [
-        { provide: ZtmmDataWebService, useValue: spy }
+        { provide: IndexedDBService, useValue: spy }
       ]
     }).compileComponents();
 

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AdminComponent } from './admin.component';
-import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { IndexedDBService } from '../../services/indexeddb.service';
 import { DataExportService } from '../../utilities/data-export.service';
 import { DemoDataGeneratorService } from '../../services/demo-data-generator.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '../../models/ztmm.models';
@@ -9,7 +9,7 @@ import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '..
 describe('AdminComponent', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
-  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
+  let mockDataService: jasmine.SpyObj<IndexedDBService>;
   let _mockExportService: jasmine.SpyObj<DataExportService>; // eslint-disable-line @typescript-eslint/no-unused-vars
   let mockDemoDataService: jasmine.SpyObj<DemoDataGeneratorService>;
 
@@ -35,7 +35,7 @@ describe('AdminComponent', () => {
   ];
 
   beforeEach(async () => {
-    const spy = jasmine.createSpyObj('ZtmmDataWebService', [
+    const spy = jasmine.createSpyObj('IndexedDBService', [
       'getPillars',
       'addPillar',
       'removePillar',
@@ -71,7 +71,6 @@ describe('AdminComponent', () => {
 
     // Setup default spy returns BEFORE component creation
     spy.getPillars.and.returnValue(Promise.resolve(mockPillars));
-    spy.addPillar.and.returnValue(Promise.resolve());
     spy.removePillar.and.returnValue(Promise.resolve());
     spy.editPillar.and.returnValue(Promise.resolve());
     spy.savePillarOrder.and.returnValue(Promise.resolve());
@@ -81,7 +80,6 @@ describe('AdminComponent', () => {
     spy.editFunctionCapability.and.returnValue(Promise.resolve());
     spy.saveFunctionOrder.and.returnValue(Promise.resolve());
     spy.getMaturityStages.and.returnValue(Promise.resolve(mockMaturityStages));
-
     // Mock getTechnologiesProcesses to return different data for different function capabilities
     spy.getTechnologiesProcesses.and.callFake((fcId: number) => {
       if (fcId === 1) {
@@ -124,13 +122,13 @@ describe('AdminComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AdminComponent, FormsModule],
       providers: [
-        { provide: ZtmmDataWebService, useValue: spy },
+        { provide: IndexedDBService, useValue: spy },
         { provide: DataExportService, useValue: exportSpy },
         { provide: DemoDataGeneratorService, useValue: demoDataSpy }
       ]
     }).compileComponents();
 
-    mockDataService = spy; // Store reference to spy directly
+  mockDataService = spy; // Store reference to spy directly
     _mockExportService = exportSpy;
     mockDemoDataService = demoDataSpy;
 
@@ -318,7 +316,7 @@ describe('AdminComponent', () => {
       component.newTechnologyProcessDescription = 'New Technology Description';
       component.newTechnologyProcessType = 'Technology';
 
-      await component.addTechnologyProcess();
+  await component.addOrEditTechnologyProcess();
 
       expect(mockDataService.addTechnologyProcess).toHaveBeenCalledWith('New Technology', 'New Technology Description', 'Technology', 1, 2);
       expect(mockDataService.getTechnologiesProcessesByFunction).toHaveBeenCalledWith(1);
@@ -330,7 +328,7 @@ describe('AdminComponent', () => {
     it('should not add technology process with empty name', async () => {
       component.newTechnologyProcessName = '';
 
-      await component.addTechnologyProcess();
+  await component.addOrEditTechnologyProcess();
 
       expect(mockDataService.addTechnologyProcess).not.toHaveBeenCalled();
     });
@@ -339,7 +337,7 @@ describe('AdminComponent', () => {
       component.selectedFunctionCapabilityId = null;
       component.newTechnologyProcessName = 'Test';
 
-      await component.addTechnologyProcess();
+  await component.addOrEditTechnologyProcess();
 
       expect(mockDataService.addTechnologyProcess).not.toHaveBeenCalled();
     });
@@ -356,15 +354,20 @@ describe('AdminComponent', () => {
     });
 
     it('should edit a technology process', async () => {
-      const techProcess = mockTechnologiesProcesses[0];
-      component.selectedFunctionCapabilityId = 1;
+    const techProcess = mockTechnologiesProcesses[0];
+    // Simulate starting edit
+    component.startEditTechProcess(techProcess);
+    // Set updated values as expected by the test
+    component.newTechnologyProcessName = 'Updated Name';
+    component.newTechnologyProcessDescription = 'Updated Description';
+    component.newTechnologyProcessType = 'Process';
+    component.selectedFunctionCapabilityId = 2;
+    component.selectedMaturityStageId = 3;
+    // Call unified method
+    await component.addOrEditTechnologyProcess();
 
-      component.startEditTechProcess(techProcess);
-      component.editingTechProcess = { name: 'Updated Name', description: 'Updated Description', type: 'Process', function_capability_id: 2, maturity_stage_id: 3 };
-      await component.saveEditTechProcess();
-
-      expect(mockDataService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Name', 'Updated Description', 'Process', 2, 3);
-      expect(component.loadTechnologiesProcesses).toBeDefined();
+    expect(mockDataService.editTechnologyProcess).toHaveBeenCalledWith(1, 'Updated Name', 'Updated Description', 'Process', 2, 3);
+    expect(component.loadTechnologiesProcesses).toBeDefined();
     });
 
     it('should get function capability name by id', () => {
@@ -481,7 +484,7 @@ describe('AdminComponent', () => {
       component.selectedMaturityStageId = null;
       component.newTechnologyProcessName = 'Test';
 
-      await component.addTechnologyProcess();
+  await component.addOrEditTechnologyProcess();
 
       expect(mockDataService.addTechnologyProcess).not.toHaveBeenCalled();
     });
@@ -618,7 +621,7 @@ describe('AdminComponent', () => {
         component.newTechnologyProcessName = 'Test Technology';
         component.newTechnologyProcessDescription = 'Test Technology Description';
         component.selectedMaturityStageId = 1;
-        await component.addTechnologyProcess();
+  await component.addOrEditTechnologyProcess();
 
         // Filter state should be maintained
         expect(component.selectedTechPillarId).toBe(1);

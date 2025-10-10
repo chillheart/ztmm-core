@@ -122,70 +122,13 @@ export class TestUtilsIndexedDB {
     };
   }
 
-  /**
-   * Creates a mock ZtmmDataWebService to avoid database initialization issues during testing
-   */
-  static createMockZtmmDataWebService() {
-    const mockData = TestUtilsIndexedDB.createMockData();
-
-    return {
-      // Core methods
-      getPillars: jasmine.createSpy('getPillars').and.returnValue(Promise.resolve(mockData.mockPillars)),
-      addPillar: jasmine.createSpy('addPillar').and.returnValue(Promise.resolve()),
-      removePillar: jasmine.createSpy('removePillar').and.returnValue(Promise.resolve()),
-      editPillar: jasmine.createSpy('editPillar').and.returnValue(Promise.resolve()),
-      savePillarOrder: jasmine.createSpy('savePillarOrder').and.returnValue(Promise.resolve()),
-
-      getFunctionCapabilities: jasmine.createSpy('getFunctionCapabilities').and.returnValue(Promise.resolve(mockData.mockFunctionCapabilities)),
-      addFunctionCapability: jasmine.createSpy('addFunctionCapability').and.returnValue(Promise.resolve()),
-      removeFunctionCapability: jasmine.createSpy('removeFunctionCapability').and.returnValue(Promise.resolve()),
-      editFunctionCapability: jasmine.createSpy('editFunctionCapability').and.returnValue(Promise.resolve()),
-      saveFunctionOrder: jasmine.createSpy('saveFunctionOrder').and.returnValue(Promise.resolve()),
-
-      getMaturityStages: jasmine.createSpy('getMaturityStages').and.returnValue(Promise.resolve(mockData.mockMaturityStages)),
-
-      getTechnologiesProcesses: jasmine.createSpy('getTechnologiesProcesses').and.returnValue(Promise.resolve(mockData.mockTechnologyProcesses)),
-      getAllTechnologiesProcesses: jasmine.createSpy('getAllTechnologiesProcesses').and.returnValue(Promise.resolve(mockData.mockTechnologyProcesses)),
-      getTechnologiesProcessesByFunction: jasmine.createSpy('getTechnologiesProcessesByFunction').and.returnValue(Promise.resolve(mockData.mockTechnologyProcesses.slice(0, 2))),
-      addTechnologyProcess: jasmine.createSpy('addTechnologyProcess').and.returnValue(Promise.resolve()),
-      removeTechnologyProcess: jasmine.createSpy('removeTechnologyProcess').and.returnValue(Promise.resolve()),
-      editTechnologyProcess: jasmine.createSpy('editTechnologyProcess').and.returnValue(Promise.resolve()),
-
-      saveAssessment: jasmine.createSpy('saveAssessment').and.returnValue(Promise.resolve()),
-      getAssessmentResponses: jasmine.createSpy('getAssessmentResponses').and.returnValue(Promise.resolve(mockData.mockAssessmentResponses)),
-
-      // Web-specific methods
-      exportData: jasmine.createSpy('exportData').and.returnValue(Promise.resolve({
-        data: new Uint8Array([1, 2, 3, 4]),
-        filename: 'test-backup.json'
-      })),
-      importData: jasmine.createSpy('importData').and.returnValue(Promise.resolve()),
-      createBackup: jasmine.createSpy('createBackup').and.returnValue(Promise.resolve()),
-      getBackups: jasmine.createSpy('getBackups').and.returnValue(Promise.resolve([
-        { name: 'backup1', timestamp: Date.now() }
-      ])),
-      restoreBackup: jasmine.createSpy('restoreBackup').and.returnValue(Promise.resolve()),
-      clearAllData: jasmine.createSpy('clearAllData').and.returnValue(Promise.resolve()),
-      resetDatabase: jasmine.createSpy('resetDatabase').and.returnValue(Promise.resolve()),
-      migrateFromElectronData: jasmine.createSpy('migrateFromElectronData').and.returnValue(Promise.resolve()),
-      importDataWithPreservedIds: jasmine.createSpy('importDataWithPreservedIds').and.returnValue(Promise.resolve()),
-      isDatabaseReady: jasmine.createSpy('isDatabaseReady').and.returnValue(true),
-
-      // Utility methods for testing
-      resetMockData: () => {
-        const freshData = TestUtilsIndexedDB.createMockData();
-        Object.assign(mockData, freshData);
-      }
-    };
-  }
+  // Legacy compatibility helpers removed: tests should use createMockIndexedDBService
 
   /**
    * Sets up a test environment with proper mocks
    */
   static configureTestEnvironment() {
     const mockIndexedDBService = TestUtilsIndexedDB.createMockIndexedDBService();
-    const mockZtmmDataWebService = TestUtilsIndexedDB.createMockZtmmDataWebService();
-
     TestBed.configureTestingModule({
       providers: [
         { provide: IndexedDBService, useValue: mockIndexedDBService }
@@ -193,8 +136,7 @@ export class TestUtilsIndexedDB {
     });
 
     return {
-      mockIndexedDBService,
-      mockZtmmDataWebService
+      mockIndexedDBService
     };
   }
 
