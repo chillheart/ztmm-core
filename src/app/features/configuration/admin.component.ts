@@ -161,29 +161,39 @@ export class AdminComponent implements OnInit {
       'name' in obj && typeof (obj as any).name === 'string' &&
       'description' in obj && typeof (obj as any).description === 'string' &&
       'type' in obj && typeof (obj as any).type === 'string' &&
-      'function_capability_id' in obj &&
-      'maturity_stage_id' in obj
+      (
+        ('function_capability_id' in obj && 'maturity_stage_id' in obj) ||
+        ('functionCapabilityId' in obj && 'maturityStageId' in obj)
+      )
     );
   }
 
   async addOrEditTechnologyProcess(arg?: any) {
     // If called from child, arg is the data object; if from form, arg is NgForm
+    console.log('addOrEditTechnologyProcess called with:', arg);
     if (this.isTechnologyProcessData(arg)) {
-      // Defensive check for valid function_capability_id
-      // Coerce IDs to numbers
-      const functionCapabilityId = Number(arg.function_capability_id);
-      const maturityStageId = Number(arg.maturity_stage_id);
+      console.log('Type guard passed for TechnologyProcessData:', arg);
+      // Defensive check for valid function_capability_id (snake_case or camelCase)
+      const functionCapabilityId = arg.function_capability_id !== undefined
+        ? Number(arg.function_capability_id)
+        : Number((arg as any).functionCapabilityId);
+      const maturityStageId = arg.maturity_stage_id !== undefined
+        ? Number(arg.maturity_stage_id)
+        : Number((arg as any).maturityStageId);
       if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
+        console.warn('Invalid functionCapabilityId:', functionCapabilityId);
         alert('Please select a valid function/capability before adding or editing a technology/process.');
         return;
       }
       if (!Number.isInteger(maturityStageId) || maturityStageId < 1) {
+        console.warn('Invalid maturityStageId:', maturityStageId);
         alert('Please select a valid maturity stage before adding or editing a technology/process.');
         return;
       }
       // Child event: add or edit
       if (arg.id) {
         // Edit mode
+        console.log('Editing TechnologyProcess:', arg);
         await this.data.editTechnologyProcess(
           arg.id,
           arg.name.trim(),
@@ -194,6 +204,7 @@ export class AdminComponent implements OnInit {
         );
       } else {
         // Add mode
+        console.log('Adding TechnologyProcess:', arg);
         await this.data.addTechnologyProcess(
           arg.name.trim(),
           arg.description.trim(),
@@ -210,16 +221,25 @@ export class AdminComponent implements OnInit {
     const techForm = arg as NgForm;
     this.techFormSubmitted = true;
     if (techForm && techForm.invalid) {
+      console.warn('Tech form is invalid:', techForm);
       return;
     }
     if (!this.newTechnologyProcessName.trim() || !this.newTechnologyProcessDescription.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
+      console.warn('Missing required form values:', {
+        name: this.newTechnologyProcessName,
+        description: this.newTechnologyProcessDescription,
+        functionCapabilityId: this.selectedFunctionCapabilityId,
+        maturityStageId: this.selectedMaturityStageId
+      });
       return;
     }
     if (!Number.isInteger(this.selectedFunctionCapabilityId) || this.selectedFunctionCapabilityId < 1) {
+      console.warn('Invalid selectedFunctionCapabilityId:', this.selectedFunctionCapabilityId);
       alert('Please select a valid function/capability before adding or editing a technology/process.');
       return;
     }
     if (!Number.isInteger(this.selectedMaturityStageId) || this.selectedMaturityStageId < 1) {
+      console.warn('Invalid selectedMaturityStageId:', this.selectedMaturityStageId);
       alert('Please select a valid maturity stage before adding or editing a technology/process.');
       return;
     }
@@ -227,6 +247,14 @@ export class AdminComponent implements OnInit {
     try {
       if (this.editingTechProcessId) {
         // Edit mode: pass the ID
+        console.log('Editing TechnologyProcess (form):', {
+          id: this.editingTechProcessId,
+          name: this.newTechnologyProcessName,
+          description: this.newTechnologyProcessDescription,
+          type: this.newTechnologyProcessType,
+          functionCapabilityId: this.selectedFunctionCapabilityId,
+          maturityStageId: this.selectedMaturityStageId
+        });
         await this.data.editTechnologyProcess(
           this.editingTechProcessId,
           this.newTechnologyProcessName.trim(),
@@ -238,6 +266,13 @@ export class AdminComponent implements OnInit {
         this.editingTechProcessId = null;
       } else {
         // Add mode: do NOT pass ID
+        console.log('Adding TechnologyProcess (form):', {
+          name: this.newTechnologyProcessName,
+          description: this.newTechnologyProcessDescription,
+          type: this.newTechnologyProcessType,
+          functionCapabilityId: this.selectedFunctionCapabilityId,
+          maturityStageId: this.selectedMaturityStageId
+        });
         await this.data.addTechnologyProcess(
           this.newTechnologyProcessName.trim(),
           this.newTechnologyProcessDescription.trim(),
