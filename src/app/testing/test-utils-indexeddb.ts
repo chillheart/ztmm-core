@@ -62,8 +62,13 @@ export class TestUtilsIndexedDB {
    */
   static createMockIndexedDBService() {
     const mockData = TestUtilsIndexedDB.createMockData();
-
-    return {
+      return {
+        // Raw export methods for DataExportService
+        getAllRawPillars: jasmine.createSpy('getAllRawPillars').and.returnValue(Promise.resolve(mockData.mockPillars)),
+        getAllRawFunctionCapabilities: jasmine.createSpy('getAllRawFunctionCapabilities').and.returnValue(Promise.resolve(mockData.mockFunctionCapabilities)),
+        getAllRawMaturityStages: jasmine.createSpy('getAllRawMaturityStages').and.returnValue(Promise.resolve(mockData.mockMaturityStages)),
+        getAllRawTechnologiesProcesses: jasmine.createSpy('getAllRawTechnologiesProcesses').and.returnValue(Promise.resolve(mockData.mockTechnologyProcesses)),
+        getAllRawAssessmentResponses: jasmine.createSpy('getAllRawAssessmentResponses').and.returnValue(Promise.resolve(mockData.mockAssessmentResponses)),
       // Core initialization methods
       initialize: jasmine.createSpy('initialize').and.returnValue(Promise.resolve()),
       isReady: jasmine.createSpy('isReady').and.returnValue(true),
