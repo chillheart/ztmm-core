@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { IndexedDBService } from '../../services/indexeddb.service';
@@ -69,7 +69,8 @@ export class AdminComponent implements OnInit {
   constructor(
     private data: IndexedDBService,
     private exportService: DataExportService,
-    private demoDataGenerator: DemoDataGeneratorService
+    private demoDataGenerator: DemoDataGeneratorService,
+    private cdr: ChangeDetectorRef
   ) {
     // Constructor should only set up dependencies, not call async methods
   }
@@ -90,6 +91,7 @@ export class AdminComponent implements OnInit {
 
     try {
       this.pillars = await this.data.getPillars();
+      console.log('Loaded pillars:', this.pillars);
     } catch (error) {
       console.error('Error loading pillars:', error);
       this.pillars = [];
@@ -97,12 +99,14 @@ export class AdminComponent implements OnInit {
 
     try {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
+      console.log('Loaded functionCapabilities:', this.functionCapabilities);
     } catch (error) {
       console.error('Error loading function capabilities:', error);
       this.functionCapabilities = [];
     }
 
     await this.loadTechnologiesProcesses();
+    this.cdr.detectChanges();
   }
 
   async loadTechnologiesProcesses() {

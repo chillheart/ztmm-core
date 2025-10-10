@@ -25,18 +25,22 @@ export class DataExportService {
   async exportToJson(): Promise<ExportedData> {
     try {
       const [
-        pillars,
-        functionCapabilities,
+        rawPillars,
+        rawFunctionCapabilities,
         maturityStages,
         technologiesProcesses,
         assessmentResponses
       ] = await Promise.all([
-        this.dataService.getPillars(),
-        this.dataService.getFunctionCapabilities(),
+        this.dataService.getAllRawPillars(),
+        this.dataService.getAllRawFunctionCapabilities(),
         this.dataService.getMaturityStages(),
         this.dataService.getTechnologiesProcesses(),
         this.dataService.getAssessmentResponses()
       ]);
+
+      // Ensure order_index is exported
+  const pillars = rawPillars.map((p: any) => ({ ...p }));
+  const functionCapabilities = rawFunctionCapabilities.map((fc: any) => ({ ...fc }));
 
       return {
         pillars,
@@ -59,9 +63,8 @@ export class DataExportService {
    */
   async importFromJson(data: ExportedData): Promise<void> {
     try {
-      // Completely reset the database instead of just clearing data
-      // This ensures we start with a fresh database and can preserve original IDs
-      await this.dataService.resetDatabase();
+      // Completely reset the database, skipping default data initialization
+      await this.dataService.resetDatabase(true);
 
       // Import with preserved IDs using direct SQL inserts
       await this.dataService.importDataWithPreservedIds(data);

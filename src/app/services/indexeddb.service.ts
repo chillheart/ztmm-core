@@ -213,6 +213,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
     try {
       const pillars = await this.getDatabase().getAllFromIndex('pillars', 'by-order');
+      console.log('IndexedDB raw pillars:', pillars);
       return (pillars || []).map(p => ({ id: p.id, name: p.name }));
     } catch (error) {
       console.error('Error getting pillars:', error);
@@ -341,6 +342,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
     try {
       const capabilities = await this.getDatabase().getAllFromIndex('functionCapabilities', 'by-order');
+      console.log('IndexedDB raw functionCapabilities:', capabilities);
       return (capabilities || []).map(fc => ({
         id: fc.id,
         name: fc.name,
@@ -351,6 +353,17 @@ export class IndexedDBService {
       console.error('Error getting function capabilities:', error);
       return [];
     }
+  }
+
+  // Public methods to get all raw records for export
+  public async getAllRawPillars(): Promise<any[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAll('pillars');
+  }
+
+  public async getAllRawFunctionCapabilities(): Promise<any[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAll('functionCapabilities');
   }
 
   async addFunctionCapability(name: string, type: 'Function' | 'Capability', pillarId: number): Promise<void> {
@@ -795,7 +808,7 @@ export class IndexedDBService {
     }
   }
 
-  async resetDatabase(): Promise<void> {
+  async resetDatabase(skipDefaultInit = false): Promise<void> {
     await this.ensureInitialized();
 
     try {
@@ -812,10 +825,13 @@ export class IndexedDBService {
 
       await tx.done;
 
-      // Reinitialize with default data
-      await this.initializeDefaultData();
-
-      console.log('Database completely reset and reinitialized successfully');
+      if (!skipDefaultInit) {
+        // Reinitialize with default data
+        await this.initializeDefaultData();
+        console.log('Database completely reset and reinitialized successfully');
+      } else {
+        console.log('Database completely reset (no default data initialized)');
+      }
     } catch (error) {
       console.error('Error resetting database:', error);
       throw new Error(`Failed to reset database: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -829,6 +845,16 @@ export class IndexedDBService {
     try {
       console.log('Starting import with preserved IDs...');
 
+      // Validation: check for missing or empty arrays
+      if (!data.pillars || !Array.isArray(data.pillars) || data.pillars.length === 0) {
+        alert('Import failed: The JSON file does not contain any pillars.');
+        throw new Error('Import failed: No pillars found in the imported data.');
+      }
+      if (!data.functionCapabilities || !Array.isArray(data.functionCapabilities) || data.functionCapabilities.length === 0) {
+        alert('Import failed: The JSON file does not contain any function/capabilities.');
+        throw new Error('Import failed: No function/capabilities found in the imported data.');
+      }
+
       // Import in dependency order with preserved IDs
       const tx = this.getDatabase().transaction(['maturityStages', 'pillars', 'functionCapabilities', 'technologiesProcesses', 'assessmentResponses'], 'readwrite');
 
@@ -840,17 +866,23 @@ export class IndexedDBService {
       }
 
       // 2. Pillars (independent)
-      if (data.pillars && Array.isArray(data.pillars)) {
-        for (const pillar of data.pillars) {
-          await tx.objectStore('pillars').put(pillar);
+      data.pillars.forEach((pillar: any, idx: number) => {
+        if (pillar.order_index === undefined || pillar.order_index === null) {
+          pillar.order_index = idx + 1;
         }
+      });
+      for (const pillar of data.pillars) {
+        await tx.objectStore('pillars').put(pillar);
       }
 
       // 3. Function Capabilities (depend on pillars)
-      if (data.functionCapabilities && Array.isArray(data.functionCapabilities)) {
-        for (const fc of data.functionCapabilities) {
-          await tx.objectStore('functionCapabilities').put(fc);
+      data.functionCapabilities.forEach((fc: any, idx: number) => {
+        if (fc.order_index === undefined || fc.order_index === null) {
+          fc.order_index = idx + 1;
         }
+      });
+      for (const fc of data.functionCapabilities) {
+        await tx.objectStore('functionCapabilities').put(fc);
       }
 
       // 4. Technologies/Processes (depend on function capabilities and maturity stages)
