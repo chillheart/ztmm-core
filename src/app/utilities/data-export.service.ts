@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
+import { IndexedDBService } from '../services/indexeddb.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../models/ztmm.models';
 
 export interface ExportedData {
@@ -17,7 +17,7 @@ export interface ExportedData {
 })
 export class DataExportService {
 
-  constructor(private dataService: ZtmmDataWebService) {}
+  constructor(private dataService: IndexedDBService) {}
 
   /**
    * Export all data from the current web database to a JSON file

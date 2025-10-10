@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { DemoDataGeneratorService } from './demo-data-generator.service';
-import { ZtmmDataWebService } from './ztmm-data-web.service';
+import { IndexedDBService } from './indexeddb.service';
 import { FunctionCapability, MaturityStage, TechnologyProcess } from '../models/ztmm.models';
 
 describe('DemoDataGeneratorService', () => {
   let service: DemoDataGeneratorService;
-  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
+  let mockDataService: jasmine.SpyObj<IndexedDBService>;
 
   const mockFunctionCapabilities: FunctionCapability[] = [
     { id: 1, name: 'Authentication', type: 'Function', pillar_id: 1 },
@@ -21,7 +21,7 @@ describe('DemoDataGeneratorService', () => {
   ];
 
   beforeEach(() => {
-    const spy = jasmine.createSpyObj('ZtmmDataWebService', [
+    const spy = jasmine.createSpyObj('IndexedDBService', [
       'getFunctionCapabilities',
       'getMaturityStages',
       'getAllTechnologiesProcesses',
@@ -31,12 +31,12 @@ describe('DemoDataGeneratorService', () => {
     TestBed.configureTestingModule({
       providers: [
         DemoDataGeneratorService,
-        { provide: ZtmmDataWebService, useValue: spy }
+        { provide: IndexedDBService, useValue: spy }
       ]
     });
 
     service = TestBed.inject(DemoDataGeneratorService);
-    mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
+    mockDataService = TestBed.inject(IndexedDBService) as jasmine.SpyObj<IndexedDBService>;
 
     // Setup default spy returns
     mockDataService.getFunctionCapabilities.and.returnValue(Promise.resolve(mockFunctionCapabilities));

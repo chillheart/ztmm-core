@@ -1,13 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { AssessmentComponent } from './assessment.component';
-import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { IndexedDBService } from '../../services/indexeddb.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../../models/ztmm.models';
 
 describe('AssessmentComponent', () => {
   let component: AssessmentComponent;
   let fixture: ComponentFixture<AssessmentComponent>;
-  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
+  let mockDataService: jasmine.SpyObj<IndexedDBService>;
 
   const mockPillars: Pillar[] = [
     { id: 1, name: 'Identity' },
@@ -38,7 +38,7 @@ describe('AssessmentComponent', () => {
 
   beforeEach(async () => {
     // Create a more comprehensive spy object
-    const spy = jasmine.createSpyObj('ZtmmDataWebService', [
+    const spy = jasmine.createSpyObj('IndexedDBService', [
       'getPillars',
       'getFunctionCapabilities',
       'getMaturityStages',
@@ -95,7 +95,7 @@ describe('AssessmentComponent', () => {
       imports: [AssessmentComponent, FormsModule],
       providers: [
         {
-          provide: ZtmmDataWebService,
+          provide: IndexedDBService,
           useFactory: () => spy
         }
       ]
@@ -107,9 +107,9 @@ describe('AssessmentComponent', () => {
     component = fixture.componentInstance;
 
     // Explicitly verify that the TestBed injected service is our spy
-    const injectedService = TestBed.inject(ZtmmDataWebService);
-    expect(injectedService).toBe(spy);
-    mockDataService = injectedService as jasmine.SpyObj<ZtmmDataWebService>;
+  const injectedService = TestBed.inject(IndexedDBService);
+  expect(injectedService).toBe(spy);
+  mockDataService = injectedService as jasmine.SpyObj<IndexedDBService>;
 
     // Trigger component initialization
     fixture.detectChanges();

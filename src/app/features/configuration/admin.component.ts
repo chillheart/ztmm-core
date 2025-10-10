@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { IndexedDBService } from '../../services/indexeddb.service';
 import { DataExportService } from '../../utilities/data-export.service';
 import { DemoDataGeneratorService } from '../../services/demo-data-generator.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess } from '../../models/ztmm.models';
@@ -67,7 +67,7 @@ export class AdminComponent implements OnInit {
   editingTechProcess: Partial<TechnologyProcess> = {};
 
   constructor(
-    private data: ZtmmDataWebService,
+    private data: IndexedDBService,
     private exportService: DataExportService,
     private demoDataGenerator: DemoDataGeneratorService
   ) {
@@ -154,7 +154,48 @@ export class AdminComponent implements OnInit {
     }
   }
 
-  async addTechnologyProcess(techForm?: NgForm) {
+  async addOrEditTechnologyProcess(arg?: any) {
+    // If called from child, arg is the data object; if from form, arg is NgForm
+    if (arg && arg.name && arg.description && arg.type && arg.functionCapabilityId && arg.maturityStageId) {
+      // Defensive check for valid functionCapabilityId
+      // Coerce IDs to numbers
+      const functionCapabilityId = Number(arg.functionCapabilityId);
+      const maturityStageId = Number(arg.maturityStageId);
+      if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
+        alert('Please select a valid function/capability before adding or editing a technology/process.');
+        return;
+      }
+      if (!Number.isInteger(maturityStageId) || maturityStageId < 1) {
+        alert('Please select a valid maturity stage before adding or editing a technology/process.');
+        return;
+      }
+      // Child event: add or edit
+      if (arg.id) {
+        // Edit mode
+        await this.data.editTechnologyProcess(
+          arg.id,
+          arg.name.trim(),
+          arg.description.trim(),
+          arg.type,
+          functionCapabilityId,
+          maturityStageId
+        );
+      } else {
+        // Add mode
+        await this.data.addTechnologyProcess(
+          arg.name.trim(),
+          arg.description.trim(),
+          arg.type,
+          functionCapabilityId,
+          maturityStageId
+        );
+      }
+      await this.loadTechnologiesProcesses();
+      return;
+    }
+
+    // Form-based call (from template)
+    const techForm = arg as NgForm;
     this.techFormSubmitted = true;
     if (techForm && techForm.invalid) {
       return;
@@ -162,15 +203,37 @@ export class AdminComponent implements OnInit {
     if (!this.newTechnologyProcessName.trim() || !this.newTechnologyProcessDescription.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
       return;
     }
+    if (!Number.isInteger(this.selectedFunctionCapabilityId) || this.selectedFunctionCapabilityId < 1) {
+      alert('Please select a valid function/capability before adding or editing a technology/process.');
+      return;
+    }
+    if (!Number.isInteger(this.selectedMaturityStageId) || this.selectedMaturityStageId < 1) {
+      alert('Please select a valid maturity stage before adding or editing a technology/process.');
+      return;
+    }
 
     try {
-      await this.data.addTechnologyProcess(
-        this.newTechnologyProcessName.trim(),
-        this.newTechnologyProcessDescription.trim(),
-        this.newTechnologyProcessType,
-        this.selectedFunctionCapabilityId,
-        this.selectedMaturityStageId
-      );
+      if (this.editingTechProcessId) {
+        // Edit mode: pass the ID
+        await this.data.editTechnologyProcess(
+          this.editingTechProcessId,
+          this.newTechnologyProcessName.trim(),
+          this.newTechnologyProcessDescription.trim(),
+          this.newTechnologyProcessType,
+          this.selectedFunctionCapabilityId,
+          this.selectedMaturityStageId
+        );
+        this.editingTechProcessId = null;
+      } else {
+        // Add mode: do NOT pass ID
+        await this.data.addTechnologyProcess(
+          this.newTechnologyProcessName.trim(),
+          this.newTechnologyProcessDescription.trim(),
+          this.newTechnologyProcessType,
+          this.selectedFunctionCapabilityId,
+          this.selectedMaturityStageId
+        );
+      }
 
       this.newTechnologyProcessName = '';
       this.newTechnologyProcessDescription = '';
@@ -184,7 +247,7 @@ export class AdminComponent implements OnInit {
         setTimeout(() => techForm.form.markAsPristine());
       }
     } catch (error) {
-      console.error('Error in addTechnologyProcess:', error);
+      console.error('Error in addOrEditTechnologyProcess:', error);
     }
   }
 
@@ -317,33 +380,22 @@ export class AdminComponent implements OnInit {
 
   startEditTechProcess(tp: TechnologyProcess) {
     this.editingTechProcessId = tp.id;
+    this.newTechnologyProcessName = tp.name;
+    this.newTechnologyProcessDescription = tp.description;
+    this.newTechnologyProcessType = tp.type;
+    this.selectedFunctionCapabilityId = tp.function_capability_id;
+    this.selectedMaturityStageId = tp.maturity_stage_id;
     this.editingTechProcess = { ...tp };
   }
-  async saveEditTechProcess() {
-    if (
-      this.editingTechProcessId &&
-      this.editingTechProcess.name?.trim() &&
-      this.editingTechProcess.description?.trim() &&
-      this.editingTechProcess.type &&
-      this.editingTechProcess.function_capability_id &&
-      this.editingTechProcess.maturity_stage_id
-    ) {
-      await this.data.editTechnologyProcess(
-        this.editingTechProcessId,
-        this.editingTechProcess.name.trim(),
-        this.editingTechProcess.description.trim(),
-        this.editingTechProcess.type,
-        this.editingTechProcess.function_capability_id,
-        this.editingTechProcess.maturity_stage_id
-      );
-      this.loadTechnologiesProcesses();
-    }
-    this.editingTechProcessId = null;
-    this.editingTechProcess = {};
-  }
+  // Remove saveEditTechProcess: now handled by addOrEditTechnologyProcess
   cancelEditTechProcess() {
     this.editingTechProcessId = null;
     this.editingTechProcess = {};
+    this.newTechnologyProcessName = '';
+    this.newTechnologyProcessDescription = '';
+    this.newTechnologyProcessType = 'Technology';
+    this.selectedFunctionCapabilityId = null;
+    this.selectedMaturityStageId = null;
   }
 
   // Helper for validation

@@ -8,14 +8,14 @@ import { HomeComponent } from './core/components/home.component';
 import { AssessmentComponent } from './features/assessment/assessment.component';
 import { AdminComponent } from './features/configuration/admin.component';
 import { ReportsComponent } from './features/reports/reports.component';
-import { ZtmmDataWebService } from './services/ztmm-data-web.service';
+import { IndexedDBService } from './services/indexeddb.service';
 import { DataExportService } from './utilities/data-export.service';
 // import { TestUtils } from './testing/test-utils';
 
 describe('Application Integration Tests', () => {
   let router: Router;
   let location: Location;
-  let dataService: ZtmmDataWebService;
+  let dataService: IndexedDBService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -36,14 +36,14 @@ describe('Application Integration Tests', () => {
         ])
       ],
       providers: [
-        ZtmmDataWebService,
+  IndexedDBService,
         DataExportService
       ]
     }).compileComponents();
 
     router = TestBed.inject(Router);
     location = TestBed.inject(Location);
-    dataService = TestBed.inject(ZtmmDataWebService);
+  dataService = TestBed.inject(IndexedDBService);
   });
 
   describe('Application Bootstrap', () => {
@@ -99,11 +99,12 @@ describe('Application Integration Tests', () => {
   describe('Data Service Integration', () => {
     it('should create data service with web architecture', () => {
       expect(dataService).toBeTruthy();
-      expect(dataService).toBeInstanceOf(ZtmmDataWebService);
+  expect(dataService).toBeInstanceOf(IndexedDBService);
     });
 
     it('should handle empty database gracefully', async () => {
       try {
+        await dataService.resetDatabase(); // Ensure clean state
         const pillars = await dataService.getPillars();
         // Database should contain 5 default pillars after initialization
         expect(pillars.length).toBe(5);

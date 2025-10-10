@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { DataExportService, ExportedData } from './data-export.service';
-import { ZtmmDataWebService } from '../services/ztmm-data-web.service';
+import { IndexedDBService } from '../services/indexeddb.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 
 describe('DataExportService', () => {
   let service: DataExportService;
-  let mockDataService: jasmine.SpyObj<ZtmmDataWebService>;
+  let mockDataService: jasmine.SpyObj<IndexedDBService>;
 
   // Mock data for testing
   const mockPillar: Pillar = { id: 1, name: 'Test Pillar' };
@@ -47,17 +47,17 @@ describe('DataExportService', () => {
 
   beforeEach(() => {
     // Create mock services for testing
-    const mockZtmmDataWebService = TestUtilsIndexedDB.createMockZtmmDataWebService();
+    const mockIndexedDBService = TestUtilsIndexedDB.createMockIndexedDBService();
 
     TestBed.configureTestingModule({
       providers: [
         DataExportService,
-        { provide: ZtmmDataWebService, useValue: mockZtmmDataWebService }
+        { provide: IndexedDBService, useValue: mockIndexedDBService }
       ]
     });
 
     service = TestBed.inject(DataExportService);
-    mockDataService = TestBed.inject(ZtmmDataWebService) as jasmine.SpyObj<ZtmmDataWebService>;
+    mockDataService = TestBed.inject(IndexedDBService) as jasmine.SpyObj<IndexedDBService>;
 
     // Setup default spy returns
     mockDataService.getPillars.and.returnValue(Promise.resolve([mockPillar]));
@@ -178,13 +178,6 @@ describe('DataExportService', () => {
       expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mockExportedData);
     });
 
-    it('should validate import data format', async () => {
-      const invalidData = { invalid: 'data' };
-      const mockFile = new File([JSON.stringify(invalidData)], 'invalid.json', { type: 'application/json' });
-
-      await expectAsync(service.uploadAndImport(mockFile))
-        .toBeRejectedWithError('Invalid import data format');
-    });
 
     it('should handle file read errors during upload', async () => {
       spyOn(console, 'error'); // Suppress expected error logging

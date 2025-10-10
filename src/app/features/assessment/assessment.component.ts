@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { trigger, style, transition, animate, query, stagger } from '@angular/animations';
-import { ZtmmDataWebService } from '../../services/ztmm-data-web.service';
+import { IndexedDBService } from '../../services/indexeddb.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../../models/ztmm.models';
 import { AssessmentStatus } from '../../models/ztmm.models';
 import { OverallProgressSummaryComponent, OverallPillarProgress } from './overall-progress-summary.component';
@@ -87,7 +87,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   // Make Math available to template
   Math = Math;
 
-  constructor(private data: ZtmmDataWebService) {
+  constructor(private data: IndexedDBService) {
     // Constructor should only set up dependencies, not call async methods
   }
 

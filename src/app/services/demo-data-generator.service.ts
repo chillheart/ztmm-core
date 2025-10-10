@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ZtmmDataWebService } from './ztmm-data-web.service';
+import { IndexedDBService } from './indexeddb.service';
 import { AssessmentStatus, Pillar, FunctionCapability, TechnologyProcess } from '../models/ztmm.models';
 
 interface DemoTechnologyProcess {
@@ -14,7 +14,7 @@ interface DemoTechnologyProcess {
 })
 export class DemoDataGeneratorService {
 
-  constructor(private dataService: ZtmmDataWebService) {}
+  constructor(private dataService: IndexedDBService) {}
 
   // Comprehensive demo data for each function and capability emulating an Azure environment
   // Each function/capability has at least 2 technologies and 2 processes for each maturity stage

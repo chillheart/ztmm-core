@@ -56,7 +56,7 @@ module.exports = function (config) {
         }
       }
     },
-    reporters: ['progress', 'kjhtml', 'coverage'],
+  reporters: ['progress', 'coverage'],
     browsers: ['Chrome'],
     restartOnFileChange: true,
     singleRun: false,
