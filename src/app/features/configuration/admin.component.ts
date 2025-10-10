@@ -154,9 +154,21 @@ export class AdminComponent implements OnInit {
     }
   }
 
+  // Type guard for TechnologyProcessData
+  private isTechnologyProcessData(obj: any): obj is TechnologyProcess {
+    return (
+      obj &&
+      typeof obj.name === 'string' &&
+      typeof obj.description === 'string' &&
+      typeof obj.type === 'string' &&
+      ('functionCapabilityId' in obj) &&
+      ('maturityStageId' in obj)
+    );
+  }
+
   async addOrEditTechnologyProcess(arg?: any) {
     // If called from child, arg is the data object; if from form, arg is NgForm
-    if (arg && arg.name && arg.description && arg.type && arg.functionCapabilityId && arg.maturityStageId) {
+    if (this.isTechnologyProcessData(arg)) {
       // Defensive check for valid functionCapabilityId
       // Coerce IDs to numbers
       const functionCapabilityId = Number(arg.functionCapabilityId);
