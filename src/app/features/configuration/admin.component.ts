@@ -155,24 +155,24 @@ export class AdminComponent implements OnInit {
   }
 
   // Type guard for TechnologyProcessData
-  private isTechnologyProcessData(obj: any): obj is TechnologyProcess {
+  private isTechnologyProcessData(obj: unknown): obj is TechnologyProcess {
     return (
-      obj &&
-      typeof obj.name === 'string' &&
-      typeof obj.description === 'string' &&
-      typeof obj.type === 'string' &&
-      ('functionCapabilityId' in obj) &&
-      ('maturityStageId' in obj)
+      typeof obj === 'object' && obj !== null &&
+      'name' in obj && typeof (obj as any).name === 'string' &&
+      'description' in obj && typeof (obj as any).description === 'string' &&
+      'type' in obj && typeof (obj as any).type === 'string' &&
+      'function_capability_id' in obj &&
+      'maturity_stage_id' in obj
     );
   }
 
   async addOrEditTechnologyProcess(arg?: any) {
     // If called from child, arg is the data object; if from form, arg is NgForm
     if (this.isTechnologyProcessData(arg)) {
-      // Defensive check for valid functionCapabilityId
+      // Defensive check for valid function_capability_id
       // Coerce IDs to numbers
-      const functionCapabilityId = Number(arg.functionCapabilityId);
-      const maturityStageId = Number(arg.maturityStageId);
+      const functionCapabilityId = Number(arg.function_capability_id);
+      const maturityStageId = Number(arg.maturity_stage_id);
       if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
         alert('Please select a valid function/capability before adding or editing a technology/process.');
         return;
