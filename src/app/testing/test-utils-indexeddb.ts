@@ -102,6 +102,17 @@ export class TestUtilsIndexedDB {
       saveAssessment: jasmine.createSpy('saveAssessment').and.returnValue(Promise.resolve()),
       getAssessmentResponses: jasmine.createSpy('getAssessmentResponses').and.returnValue(Promise.resolve(mockData.mockAssessmentResponses)),
 
+      // V2 Model operations
+      getProcessTechnologyGroups: jasmine.createSpy('getProcessTechnologyGroups').and.returnValue(Promise.resolve([])),
+      addProcessTechnologyGroup: jasmine.createSpy('addProcessTechnologyGroup').and.returnValue(Promise.resolve()),
+      getMaturityStageImplementations: jasmine.createSpy('getMaturityStageImplementations').and.returnValue(Promise.resolve([])),
+      addMaturityStageImplementation: jasmine.createSpy('addMaturityStageImplementation').and.returnValue(Promise.resolve()),
+      getAssessmentsV2: jasmine.createSpy('getAssessmentsV2').and.returnValue(Promise.resolve([])),
+      addAssessmentV2: jasmine.createSpy('addAssessmentV2').and.returnValue(Promise.resolve()),
+      getStageImplementationDetails: jasmine.createSpy('getStageImplementationDetails').and.returnValue(Promise.resolve([])),
+      addStageImplementationDetail: jasmine.createSpy('addStageImplementationDetail').and.returnValue(Promise.resolve()),
+      bulkImportV2Data: jasmine.createSpy('bulkImportV2Data').and.returnValue(Promise.resolve()),
+
       // Database operations
       exportDatabase: jasmine.createSpy('exportDatabase').and.returnValue(Promise.resolve(new Uint8Array([1, 2, 3, 4]))),
       importDatabase: jasmine.createSpy('importDatabase').and.returnValue(Promise.resolve()),

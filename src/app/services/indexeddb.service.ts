@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { 
-  Pillar, 
-  FunctionCapability, 
-  MaturityStage, 
-  TechnologyProcess, 
-  AssessmentResponse, 
+import {
+  Pillar,
+  FunctionCapability,
+  MaturityStage,
+  TechnologyProcess,
+  AssessmentResponse,
   AssessmentStatus,
   // V2 Models
   ProcessTechnologyGroup,
@@ -50,13 +50,13 @@ interface ZtmmDB extends DBSchema {
       timestamp: number;
     };
   };
-  
+
   // V2 Stores (New Maturity Model)
   processTechnologyGroups: {
     key: number;
     value: ProcessTechnologyGroup;
-    indexes: { 
-      'by-function-capability': number; 
+    indexes: {
+      'by-function-capability': number;
       'by-order': number;
       'by-type': string;
     };
@@ -64,8 +64,8 @@ interface ZtmmDB extends DBSchema {
   maturityStageImplementations: {
     key: number;
     value: MaturityStageImplementation;
-    indexes: { 
-      'by-group': number; 
+    indexes: {
+      'by-group': number;
       'by-stage': number;
       'by-group-stage': [number, number]; // Compound index
     };
@@ -73,7 +73,7 @@ interface ZtmmDB extends DBSchema {
   assessments: {
     key: number;
     value: Assessment;
-    indexes: { 
+    indexes: {
       'by-group': number;
       'by-achieved-stage': number;
       'by-target-stage': number;
@@ -83,7 +83,7 @@ interface ZtmmDB extends DBSchema {
   stageImplementationDetails: {
     key: number;
     value: StageImplementationDetail;
-    indexes: { 
+    indexes: {
       'by-assessment': number;
       'by-stage': number;
       'by-status': string;
@@ -1062,13 +1062,13 @@ export class IndexedDBService {
   async deleteProcessTechnologyGroup(id: number): Promise<void> {
     await this.ensureInitialized();
     const tx = this.getDatabase().transaction(['processTechnologyGroups', 'maturityStageImplementations', 'assessments', 'stageImplementationDetails'], 'readwrite');
-    
+
     // Delete related data in cascade
     const implementations = await tx.objectStore('maturityStageImplementations').index('by-group').getAll(id);
     for (const impl of implementations) {
       await tx.objectStore('maturityStageImplementations').delete(impl.id);
     }
-    
+
     const assessments = await tx.objectStore('assessments').index('by-group').getAll(id);
     for (const assessment of assessments) {
       // Delete stage implementation details
@@ -1078,7 +1078,7 @@ export class IndexedDBService {
       }
       await tx.objectStore('assessments').delete(assessment.id);
     }
-    
+
     await tx.objectStore('processTechnologyGroups').delete(id);
     await tx.done;
   }
@@ -1148,13 +1148,13 @@ export class IndexedDBService {
   async deleteAssessment(id: number): Promise<void> {
     await this.ensureInitialized();
     const tx = this.getDatabase().transaction(['assessments', 'stageImplementationDetails'], 'readwrite');
-    
+
     // Delete related stage implementation details
     const details = await tx.objectStore('stageImplementationDetails').index('by-assessment').getAll(id);
     for (const detail of details) {
       await tx.objectStore('stageImplementationDetails').delete(detail.id);
     }
-    
+
     await tx.objectStore('assessments').delete(id);
     await tx.done;
   }
@@ -1195,7 +1195,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
 
     const tx = this.getDatabase().transaction(
-      ['processTechnologyGroups', 'maturityStageImplementations', 'assessments', 'stageImplementationDetails'], 
+      ['processTechnologyGroups', 'maturityStageImplementations', 'assessments', 'stageImplementationDetails'],
       'readwrite'
     );
 

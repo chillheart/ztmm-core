@@ -66,7 +66,7 @@ export interface ProcessTechnologyMetadata {
   productName?: string;
   licenseRequired?: boolean;
   deployment?: 'Cloud' | 'On-Premise' | 'Hybrid';
-  
+
   // Process-specific fields
   frequency?: 'Continuous' | 'Periodic' | 'Event-Driven';
   ownerRole?: string;
@@ -131,16 +131,16 @@ export type DataFormatVersion = '1.0.0' | '2.0.0';
 export interface ExportedData {
   version: DataFormatVersion;
   exportDate: string;
-  
+
   // Common data (unchanged between versions)
   pillars: Pillar[];
   functionCapabilities: FunctionCapability[];
   maturityStages: MaturityStage[];
-  
+
   // V1 format (legacy) - optional for backward compatibility
   technologiesProcesses?: TechnologyProcess[];
   assessmentResponses?: AssessmentResponse[];
-  
+
   // V2 format (new) - optional, present when exporting new format
   processTechnologyGroups?: ProcessTechnologyGroup[];
   maturityStageImplementations?: MaturityStageImplementation[];
