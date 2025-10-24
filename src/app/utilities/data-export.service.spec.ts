@@ -311,7 +311,7 @@ describe('DataExportService', () => {
         function_capability_id: 1,
         order_index: 1
       }]));
-      
+
       const stats = await service.getDataStatistics();
 
       expect(mockDataService.getPillars).toHaveBeenCalled();

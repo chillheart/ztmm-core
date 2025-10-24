@@ -94,10 +94,10 @@ export class DataExportService {
    */
   private async importV1Data(data: ExportedData): Promise<void> {
     console.log('Importing V1 format data...');
-    
+
     // Step 1: Reset database and import V1 data
     await this.dataService.resetDatabase(true);
-    
+
     // Import common data
     await this.dataService.importDataWithPreservedIds({
       pillars: data.pillars,
@@ -127,7 +127,7 @@ export class DataExportService {
    */
   private async importV2Data(data: ExportedData): Promise<void> {
     console.log('Importing V2 format data...');
-    
+
     // Reset the database
     await this.dataService.resetDatabase(true);
 
@@ -159,7 +159,7 @@ export class DataExportService {
     if (data.version === '2.0.0') {
       return '2.0.0';
     }
-    
+
     if (data.version === '1.0.0') {
       return '1.0.0';
     }
