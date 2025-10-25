@@ -1,0 +1,147 @@
+// V2 Assessment Item specific styles
+.v2-assessment-card {
+  border-left: 4px solid #0d6efd;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-left-color: #0a58ca;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+.item-number .badge {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.5em 0.75em;
+
+  i {
+    margin-right: 0.25rem;
+  }
+}
+
+.stage-progression {
+  .badge {
+    cursor: help;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}
+
+.stage-details {
+  .card {
+    border: 1px solid var(--bs-gray-300);
+  }
+
+  .stage-detail-item {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--bs-gray-200);
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .badge {
+      min-width: 80px;
+      text-align: center;
+    }
+  }
+}
+
+.assessment-controls {
+  .form-label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--bs-gray-700);
+
+    i {
+      margin-right: 0.25rem;
+    }
+  }
+
+  .form-select, .form-control {
+    border-radius: 0.5rem;
+    border: 1px solid var(--bs-gray-300);
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+
+    &:focus {
+      border-color: var(--bs-primary);
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    &:disabled {
+      background-color: var(--bs-gray-100);
+      cursor: not-allowed;
+    }
+  }
+
+  .form-text {
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.auto-save-indicator {
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Stage badge color variations
+.bg-success {
+  i {
+    animation: checkmark-pop 0.3s ease-out;
+  }
+}
+
+@keyframes checkmark-pop {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .assessment-controls {
+    .row {
+      margin: 0;
+    }
+    
+    .col-md-3 {
+      margin-bottom: 1rem;
+    }
+  }
+}

@@ -1,0 +1,84 @@
+<div class="v2-progress-visualizer" [class.compact]="compact">
+  <!-- Progress bar showing overall completion -->
+  <div class="progress-bar-container mb-3" *ngIf="!compact">
+    <div class="progress" style="height: 10px;">
+      <div class="progress-bar bg-success" 
+           role="progressbar" 
+           [style.width.%]="getProgressPercentage()"
+           [attr.aria-valuenow]="getProgressPercentage()"
+           aria-valuemin="0" 
+           aria-valuemax="100">
+      </div>
+    </div>
+    <small class="text-muted mt-1 d-block">
+      {{ achievedStageId === 0 ? 'Not Started' : 'Progress: ' + getProgressPercentage().toFixed(0) + '%' }}
+    </small>
+  </div>
+
+  <!-- Stage indicators -->
+  <div class="stage-indicators" [class.compact-view]="compact">
+    <div *ngFor="let stage of availableStages; let i = index; let last = last" 
+         class="stage-indicator-wrapper">
+      <div class="stage-indicator" 
+           [class]="getStageClass(stage.id)"
+           [title]="getStageImplementation(stage.id)?.description || stage.name">
+        <div class="stage-icon">
+          <i [class]="getStageIcon(stage.id)"></i>
+        </div>
+        <div class="stage-label">
+          <span class="stage-name">{{ stage.name }}</span>
+          <span class="stage-status-text" *ngIf="!compact">
+            <ng-container [ngSwitch]="getStageStatus(stage.id)">
+              <span *ngSwitchCase="'completed'" class="text-success">
+                <i class="bi bi-check"></i> Completed
+              </span>
+              <span *ngSwitchCase="'in-progress'" class="text-warning">
+                <i class="bi bi-arrow-right"></i> In Progress
+              </span>
+              <span *ngSwitchCase="'future'" class="text-muted">
+                <i class="bi bi-circle"></i> Future
+              </span>
+              <span *ngSwitchCase="'not-available'" class="text-muted">
+                N/A
+              </span>
+            </ng-container>
+          </span>
+        </div>
+      </div>
+      
+      <!-- Connector line between stages -->
+      <div class="stage-connector" *ngIf="!last"></div>
+    </div>
+  </div>
+
+  <!-- Stage details (non-compact only) -->
+  <div class="stage-details mt-3" *ngIf="!compact && achievedStageId > 0">
+    <div class="card bg-light">
+      <div class="card-body p-2">
+        <h6 class="card-title small text-muted mb-2">
+          <i class="bi bi-info-circle"></i> Current Status
+        </h6>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <strong class="small">Achieved:</strong>
+            <span class="badge bg-success ms-1">
+              {{ getStageName(achievedStageId) }}
+            </span>
+            <p class="small text-muted mb-0 mt-1">
+              {{ getStageImplementation(achievedStageId)?.description || 'No description' }}
+            </p>
+          </div>
+          <div class="col-md-6" *ngIf="targetStageId">
+            <strong class="small">Working On:</strong>
+            <span class="badge bg-warning text-dark ms-1">
+              {{ getStageName(targetStageId) }}
+            </span>
+            <p class="small text-muted mb-0 mt-1">
+              {{ getStageImplementation(targetStageId)?.description || 'No description' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
