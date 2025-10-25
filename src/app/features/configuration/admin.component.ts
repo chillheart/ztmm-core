@@ -10,6 +10,7 @@ import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, ProcessTe
 import { PillarsTabComponent } from './pillars-tab.component';
 import { FunctionsTabComponent } from './functions-tab.component';
 import { TechnologiesTabComponent } from './technologies-tab.component';
+import { TechnologiesV2TabComponent } from './technologies-v2-tab.component';
 import { DataManagementTabComponent } from './data-management-tab.component';
 
 
@@ -18,7 +19,7 @@ import { DataManagementTabComponent } from './data-management-tab.component';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, DataManagementTabComponent]
+  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, TechnologiesV2TabComponent, DataManagementTabComponent]
 })
 export class AdminComponent implements OnInit {
   // V1 Data

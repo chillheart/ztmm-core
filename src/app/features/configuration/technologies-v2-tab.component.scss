@@ -1,0 +1,32 @@
+.technologies-v2-container {
+  .add-group-form {
+    position: sticky;
+    top: 20px;
+  }
+
+  .group-item {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+  }
+
+  .groups-list {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+  }
+
+  .btn-check:checked + label {
+    font-weight: 600;
+  }
+
+  .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+  }
+}

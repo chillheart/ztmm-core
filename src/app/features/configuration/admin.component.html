@@ -106,6 +106,7 @@
       </p>
     </div>
 
+    <!-- V1 UI -->
     <app-technologies-tab *ngIf="!useV2Model"
       [pillars]="pillars"
       [functionCapabilities]="functionCapabilities"
@@ -117,24 +118,16 @@
       (loadTechnologiesProcesses)="onLoadTechnologiesProcesses()">
     </app-technologies-tab>
 
-    <!-- V2 UI: TO BE IMPLEMENTED -->
-    <div *ngIf="useV2Model" class="card">
-      <div class="card-header bg-success text-white">
-        <h5 class="mb-0">
-          <i class="bi bi-layers-fill me-2"></i>
-          V2 Process/Technology Groups (Coming Soon)
-        </h5>
-      </div>
-      <div class="card-body">
-        <p class="text-muted">The V2 UI for managing ProcessTechnologyGroups with multi-stage implementations is under development.</p>
-        <p><strong>Current V2 Data:</strong> {{ processTechnologyGroups.length }} groups loaded</p>
-        <ul>
-          <li *ngFor="let group of processTechnologyGroups">
-            {{ group.name }} ({{ group.type }}) - Function/Capability ID: {{ group.function_capability_id }}
-          </li>
-        </ul>
-      </div>
-    </div>
+    <!-- V2 UI -->
+    <app-technologies-v2-tab *ngIf="useV2Model"
+      [pillars]="pillars"
+      [functionCapabilities]="functionCapabilities"
+      [maturityStages]="maturityStages"
+      [processTechnologyGroups]="processTechnologyGroups"
+      (addProcessTechnologyGroup)="onAddProcessTechnologyGroup($event)"
+      (removeProcessTechnologyGroup)="onRemoveProcessTechnologyGroup($event)"
+      (editProcessTechnologyGroup)="onEditProcessTechnologyGroup($event)">
+    </app-technologies-v2-tab>
   </div>
   <!-- DATA MANAGEMENT TAB -->
   <div *ngSwitchCase="'management'">
