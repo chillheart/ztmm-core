@@ -139,7 +139,7 @@ describe('CsvExportService', () => {
         }
       ]);
       const csv = service.generateCsvReport(pillarSummaries, details);
-      
+
       // Should extract base name
       expect(csv).toContain('MFA');
       // Should include stage separately
@@ -214,7 +214,7 @@ describe('CsvExportService', () => {
         }
       ]);
       const csv = service.generateCsvReport(pillarSummaries, details);
-      
+
       // Should have completion percentages
       expect(csv).toContain('100%'); // Fully Implemented
       expect(csv).toContain('50%'); // Partially Implemented
@@ -274,7 +274,7 @@ describe('CsvExportService', () => {
         }
       ]);
       const csv = service.generateCsvReport(pillarSummaries, details);
-      
+
       // Should include type
       expect(csv).toContain('Technology');
       expect(csv).toContain('Process');
@@ -322,10 +322,10 @@ describe('CsvExportService', () => {
         }
       ]);
       const csv = service.generateCsvReport(pillarSummaries, details);
-      
+
       const lines = csv.split('\n');
       expect(lines.length).toBeGreaterThan(3); // Header + Pillar + Function + Detail
-      
+
       // Each line should have 20 fields
       lines.forEach((line, index) => {
         if (line.trim()) {
@@ -377,7 +377,7 @@ describe('CsvExportService', () => {
         }
       ]);
       const csv = service.generateCsvReport(pillarSummaries, details);
-      
+
       // Should properly escape special characters
       expect(csv).toContain('"Multi-factor, using ""tokens"""');
       expect(csv).toContain('"Deployed to all users,\nincluding contractors"');
@@ -425,11 +425,11 @@ describe('CsvExportService', () => {
         }
       ]);
       const csv = service.generateCsvReport(pillarSummaries, details);
-      
+
       const lines = csv.split('\n');
       const detailLine = lines.find(line => line.startsWith('Detail'));
       expect(detailLine).toBeTruthy();
-      
+
       // Should have description and notes as separate fields
       expect(detailLine).toContain('Multi-factor authentication requirement');
       expect(detailLine).toContain('Implementation notes go here');

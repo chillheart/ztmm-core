@@ -372,7 +372,7 @@ export class MaturityCalculationService {
         // Compare achieved stage with current stage (IDs are 1-based, convert to 0-based index)
         const achievedStageIndex = assessment.achieved_maturity_stage_id - 1;
         const targetStageIndex = assessment.target_maturity_stage_id ? assessment.target_maturity_stage_id - 1 : -1;
-        
+
         if (achievedStageIndex > currentStageIndex) {
           // Already surpassed this stage
           completedItems++;
@@ -390,7 +390,7 @@ export class MaturityCalculationService {
               notStartedItems++;
               break;
           }
-        } else if (targetStageIndex === currentStageIndex || 
+        } else if (targetStageIndex === currentStageIndex ||
                    (achievedStageIndex < currentStageIndex && assessment.implementation_status !== 'Not Implemented')) {
           // Haven't achieved this stage yet, but either:
           // 1. It's the target stage being worked on, OR

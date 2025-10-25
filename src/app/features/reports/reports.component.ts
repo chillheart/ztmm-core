@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
-import { 
-  Pillar, 
-  FunctionCapability, 
-  TechnologyProcess, 
-  MaturityStage, 
+import {
+  Pillar,
+  FunctionCapability,
+  TechnologyProcess,
+  MaturityStage,
   AssessmentResponse,
   ProcessTechnologyGroup,
   MaturityStageImplementation,
@@ -65,17 +65,14 @@ import { CsvExportService } from './services/csv-export.service';
   ]
 })
 export class ReportsComponent implements OnInit {
-  // Data model version toggle
-  useV2Model = false;
-
-  // V1 Data
+  // V1 Data - kept for import/migration support only
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
   assessmentResponses: AssessmentResponse[] = [];
 
-  // V2 Data
+  // V2 Data (now the default and only UI model)
   processTechnologyGroups: ProcessTechnologyGroup[] = [];
   maturityStageImplementations: MaturityStageImplementation[] = [];
   assessmentsV2: Assessment[] = [];
@@ -105,7 +102,6 @@ export class ReportsComponent implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
-    await this.detectDataModel();
   }
 
   async loadAll() {
@@ -115,11 +111,11 @@ export class ReportsComponent implements OnInit {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
       this.maturityStages = await this.data.getMaturityStages();
 
-      // Load V1 data
+      // Load V1 data (for backwards compatibility checks only)
       this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
       this.assessmentResponses = await this.data.getAssessmentResponses();
 
-      // Load V2 data
+      // Load V2 data (primary data model)
       this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
       this.maturityStageImplementations = await this.data.getMaturityStageImplementations();
       this.assessmentsV2 = await this.data.getAssessmentsV2();
@@ -130,43 +126,16 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  /**
-   * Detects which data model to use based on available data
-   * Prefers V2 if any V2 data exists
-   */
-  async detectDataModel() {
-    if (this.processTechnologyGroups.length > 0 || this.assessmentsV2.length > 0) {
-      this.useV2Model = true;
-      console.log('📊 Reports using V2 data model');
-    } else if (this.technologiesProcesses.length > 0 || this.assessmentResponses.length > 0) {
-      this.useV2Model = false;
-      console.log('📊 Reports using V1 data model (legacy)');
-    } else {
-      // Default to V2 for new databases
-      this.useV2Model = true;
-      console.log('📊 Reports defaulting to V2 data model (no data present)');
-    }
-  }
-
   buildPillarSummaries() {
-    if (this.useV2Model) {
-      this.pillarSummaries = this.reportDataService.buildV2PillarSummaries(
-        this.pillars,
-        this.functionCapabilities,
-        this.maturityStages,
-        this.processTechnologyGroups,
-        this.maturityStageImplementations,
-        this.assessmentsV2
-      );
-    } else {
-      this.pillarSummaries = this.reportDataService.buildPillarSummaries(
-        this.pillars,
-        this.functionCapabilities,
-        this.maturityStages,
-        this.technologiesProcesses,
-        this.assessmentResponses
-      );
-    }
+    // Always use V2 data model
+    this.pillarSummaries = this.reportDataService.buildV2PillarSummaries(
+      this.pillars,
+      this.functionCapabilities,
+      this.maturityStages,
+      this.processTechnologyGroups,
+      this.maturityStageImplementations,
+      this.assessmentsV2
+    );
   }
 
   // Navigation methods
@@ -197,24 +166,15 @@ export class ReportsComponent implements OnInit {
   loadFunctionDetails() {
     if (!this.selectedFunctionSummary) return;
 
-    if (this.useV2Model) {
-      this.selectedFunctionDetails = this.reportDataService.buildV2FunctionDetails(
-        this.selectedFunctionSummary,
-        this.pillars,
-        this.maturityStages,
-        this.processTechnologyGroups,
-        this.maturityStageImplementations,
-        this.assessmentsV2
-      );
-    } else {
-      this.selectedFunctionDetails = this.reportDataService.buildFunctionDetails(
-        this.selectedFunctionSummary,
-        this.pillars,
-        this.maturityStages,
-        this.technologiesProcesses,
-        this.assessmentResponses
-      );
-    }
+    // Always use V2 data model
+    this.selectedFunctionDetails = this.reportDataService.buildV2FunctionDetails(
+      this.selectedFunctionSummary,
+      this.pillars,
+      this.maturityStages,
+      this.processTechnologyGroups,
+      this.maturityStageImplementations,
+      this.assessmentsV2
+    );
   }
 
   goBackToPillarOverview() {
@@ -261,27 +221,16 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          let details: DetailedAssessmentItem[];
-          
-          if (this.useV2Model) {
-            details = this.reportDataService.buildV2FunctionDetails(
-              functionSummary,
-              this.pillars,
-              this.maturityStages,
-              this.processTechnologyGroups,
-              this.maturityStageImplementations,
-              this.assessmentsV2
-            );
-          } else {
-            details = this.reportDataService.buildFunctionDetails(
-              functionSummary,
-              this.pillars,
-              this.maturityStages,
-              this.technologiesProcesses,
-              this.assessmentResponses
-            );
-          }
-          
+          // Always use V2 data model
+          const details = this.reportDataService.buildV2FunctionDetails(
+            functionSummary,
+            this.pillars,
+            this.maturityStages,
+            this.processTechnologyGroups,
+            this.maturityStageImplementations,
+            this.assessmentsV2
+          );
+
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
         }
       }
@@ -309,27 +258,16 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          let details: DetailedAssessmentItem[];
-          
-          if (this.useV2Model) {
-            details = this.reportDataService.buildV2FunctionDetails(
-              functionSummary,
-              this.pillars,
-              this.maturityStages,
-              this.processTechnologyGroups,
-              this.maturityStageImplementations,
-              this.assessmentsV2
-            );
-          } else {
-            details = this.reportDataService.buildFunctionDetails(
-              functionSummary,
-              this.pillars,
-              this.maturityStages,
-              this.technologiesProcesses,
-              this.assessmentResponses
-            );
-          }
-          
+          // Always use V2 data model
+          const details = this.reportDataService.buildV2FunctionDetails(
+            functionSummary,
+            this.pillars,
+            this.maturityStages,
+            this.processTechnologyGroups,
+            this.maturityStageImplementations,
+            this.assessmentsV2
+          );
+
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
         }
       }

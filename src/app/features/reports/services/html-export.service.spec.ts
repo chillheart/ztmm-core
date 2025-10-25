@@ -143,7 +143,7 @@ describe('HtmlExportService', () => {
         }
       ]);
       const html = service.generateHtmlReport(pillarSummaries, details);
-      
+
       // Should detect V2 format and show base name
       expect(html).toContain('MFA');
       // Should include V2 indicator
@@ -208,7 +208,7 @@ describe('HtmlExportService', () => {
         }
       ]);
       const html = service.generateHtmlReport(pillarSummaries, details);
-      
+
       // Should show base name only once
       expect(html).toContain('TLS');
       // Should show both stages
@@ -286,7 +286,7 @@ describe('HtmlExportService', () => {
         }
       ]);
       const html = service.generateHtmlReport(pillarSummaries, details);
-      
+
       // Should show completion counts in badges
       expect(html).toContain('Initial');
       // Check for count indicators
@@ -347,7 +347,7 @@ describe('HtmlExportService', () => {
         }
       ]);
       const html = service.generateHtmlReport(pillarSummaries, details);
-      
+
       // HTML should be generated
       expect(html).toBeTruthy();
       expect(html.length).toBeGreaterThan(0);

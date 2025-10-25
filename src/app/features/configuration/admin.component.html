@@ -6,20 +6,8 @@
           <i class="bi bi-gear-fill text-primary me-2"></i>
           Configuration
         </h2>
-        <div class="d-flex align-items-center gap-3">
-          <!-- V1/V2 Model Toggle -->
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="modelToggle"
-                   [(ngModel)]="useV2Model" (change)="toggleDataModel()">
-            <label class="form-check-label" for="modelToggle">
-              <span class="badge" [class.bg-primary]="useV2Model" [class.bg-secondary]="!useV2Model">
-                {{ useV2Model ? 'V2 Model' : 'V1 Model' }}
-              </span>
-            </label>
-          </div>
-          <div class="text-muted">
-            <small>Manage your ZTMM framework components</small>
-          </div>
+        <div class="text-muted">
+          <small>Manage your ZTMM framework components</small>
         </div>
       </div>
     </div>
@@ -54,7 +42,7 @@
                 type="button">
           <i class="bi bi-tools me-2"></i>
           <span>Technologies/Processes</span>
-          <span class="badge bg-light text-dark ms-2">{{ technologiesProcesses.length }}</span>
+          <span class="badge bg-light text-dark ms-2">{{ processTechnologyGroups.length }}</span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -90,36 +78,9 @@
       (saveFunctionOrder)="onSaveFunctionOrder($event)">
     </app-functions-tab>
   </div>
-  <!-- TECHNOLOGIES/PROCESSES TAB -->
+  <!-- TECHNOLOGIES/PROCESSES TAB (V2 Only) -->
   <div *ngSwitchCase="'tech'">
-    <!-- Show info banner about V1/V2 -->
-    <div class="alert" [class.alert-info]="!useV2Model" [class.alert-success]="useV2Model" role="alert">
-      <i class="bi" [class.bi-info-circle-fill]="!useV2Model" [class.bi-check-circle-fill]="useV2Model"></i>
-      <strong>{{ useV2Model ? 'V2 Model Active' : 'V1 Model Active' }}</strong>
-      <p class="mb-0 mt-2">
-        <span *ngIf="!useV2Model">
-          You are viewing the legacy V1 data model where each technology/process is tied to a single maturity stage.
-        </span>
-        <span *ngIf="useV2Model">
-          You are viewing the new V2 data model where technologies/processes can span multiple maturity stages with detailed implementations for each stage.
-        </span>
-      </p>
-    </div>
-
-    <!-- V1 UI -->
-    <app-technologies-tab *ngIf="!useV2Model"
-      [pillars]="pillars"
-      [functionCapabilities]="functionCapabilities"
-      [maturityStages]="maturityStages"
-      [technologiesProcesses]="technologiesProcesses"
-      (addTechnologyProcess)="addOrEditTechnologyProcess($event)"
-      (removeTechnologyProcess)="onRemoveTechnologyProcess($event)"
-      (editTechnologyProcess)="addOrEditTechnologyProcess($event)"
-      (loadTechnologiesProcesses)="onLoadTechnologiesProcesses()">
-    </app-technologies-tab>
-
-    <!-- V2 UI -->
-    <app-technologies-v2-tab *ngIf="useV2Model"
+    <app-technologies-v2-tab
       [pillars]="pillars"
       [functionCapabilities]="functionCapabilities"
       [maturityStages]="maturityStages"

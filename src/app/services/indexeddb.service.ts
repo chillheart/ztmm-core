@@ -582,7 +582,11 @@ export class IndexedDBService {
     }
   }
 
-  // Technology Process operations
+  // Technology Process operations (V1 - Legacy)
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.getTechnologies() or ProcessService.getProcesses().
+   */
   async getTechnologiesProcesses(functionCapabilityId?: number): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
 
@@ -593,6 +597,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.getTechnologies() or ProcessService.getProcesses().
+   */
   async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
     try {
@@ -604,6 +612,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.getTechnologies() or ProcessService.getProcesses().
+   */
   async getTechnologiesProcessesByFunction(functionCapabilityId: number): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
 
@@ -620,6 +632,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.addTechnology() or ProcessService.addProcess().
+   */
   async addTechnologyProcess(name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
 
@@ -656,6 +672,10 @@ export class IndexedDBService {
     await this.getDatabase().add('technologiesProcesses', newTechnologyProcess as TechnologyProcess);
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.deleteTechnology() or ProcessService.deleteProcess().
+   */
   async removeTechnologyProcess(id: number): Promise<void> {
     await this.ensureInitialized();
 
@@ -682,6 +702,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.updateTechnology() or ProcessService.updateProcess().
+   */
   async editTechnologyProcess(id: number, name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
 
@@ -724,7 +748,11 @@ export class IndexedDBService {
     await this.getDatabase().put('technologiesProcesses', techProcess);
   }
 
-  // Assessment operations
+  // Assessment operations (V1 - Legacy)
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use saveAssessmentV2() for V2 assessment data.
+   */
   async saveAssessment(techProcessId: number, status: AssessmentStatus, notes?: string): Promise<void> {
     await this.ensureInitialized();
 
@@ -767,6 +795,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use getAssessmentsV2() for V2 assessment data.
+   */
   async getAssessmentResponses(): Promise<AssessmentResponse[]> {
     await this.ensureInitialized();
     try {

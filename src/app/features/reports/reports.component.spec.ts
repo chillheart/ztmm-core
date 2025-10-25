@@ -52,19 +52,9 @@ describe('ReportsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('Model Detection', () => {
-    it('should initialize with V1 model flag as false', () => {
-      expect(component.useV2Model).toBeFalse();
-    });
-
-    it('should have detectDataModel method', () => {
-      expect(typeof (component as any).detectDataModel).toBe('function');
-    });
-  });
-
   describe('Data Loading', () => {
-    it('should load V1 and V2 data from IndexedDB on initialization', () => {
-      // This test just verifies the component initializes without errors
+    it('should load V2 data from IndexedDB on initialization', () => {
+      // Component now uses V2 data model exclusively
       expect(component).toBeTruthy();
       expect(component.pillarSummaries).toEqual([]);
       expect(component.selectedPillarId).toBeNull();

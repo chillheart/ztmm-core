@@ -117,17 +117,17 @@ export class CsvExportService {
 
   private generateDetailRow(pillar: PillarSummary, func: FunctionSummary, detail: DetailedAssessmentItem): string {
     // Enhanced V2 detection: check if the item name contains stage info
-    const isV2Format = detail.name.includes(' - ') && 
-      (detail.name.includes('Traditional') || detail.name.includes('Initial') || 
+    const isV2Format = detail.name.includes(' - ') &&
+      (detail.name.includes('Traditional') || detail.name.includes('Initial') ||
        detail.name.includes('Advanced') || detail.name.includes('Optimal'));
-    
+
     // For V2, extract the base name and stage
     const displayName = isV2Format ? detail.name.split(' - ')[0] : detail.name;
     const stageName = isV2Format ? detail.name.split(' - ')[1] : detail.maturityStageName;
-    
+
     // Determine if this is assessed (has status other than 'Not Assessed')
     const isAssessed = detail.status !== 'Not Assessed';
-    
+
     // Calculate completion percentage based on status
     let completionPercentage = '0%';
     if (detail.status === 'Fully Implemented' || detail.status === 'Superseded') {
@@ -135,7 +135,7 @@ export class CsvExportService {
     } else if (detail.status === 'Partially Implemented') {
       completionPercentage = '50%'; // Estimated
     }
-    
+
     const row = [
       'Detail',
       pillar.pillar.name,

@@ -407,7 +407,7 @@ describe('MaturityCalculationService', () => {
 
         // Test all V2 statuses
         const statuses = ['Fully Implemented', 'Partially Implemented', 'Not Implemented', 'Superseded'];
-        
+
         statuses.forEach(status => {
           const assessments = [{
             id: 1,

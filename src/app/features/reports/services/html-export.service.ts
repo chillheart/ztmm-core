@@ -311,13 +311,13 @@ export class HtmlExportService {
 
     const rows = stageItems.length > 0 ? stageItems.map(item => {
       // Enhanced V2 detection: check if the item name contains stage info (V2 format)
-      const isV2Format = item.name.includes(' - ') && 
-        (item.name.includes('Traditional') || item.name.includes('Initial') || 
+      const isV2Format = item.name.includes(' - ') &&
+        (item.name.includes('Traditional') || item.name.includes('Initial') ||
          item.name.includes('Advanced') || item.name.includes('Optimal'));
-      
+
       // For V2, extract the base name (before the " - Stage" part)
       const displayName = isV2Format ? item.name.split(' - ')[0] : item.name;
-      
+
       return `
         <tr>
             <td>

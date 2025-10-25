@@ -10,7 +10,6 @@ import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, Assessmen
 import { AssessmentStatus } from '../../models/ztmm.models';
 import { OverallProgressSummaryComponent, OverallPillarProgress } from './overall-progress-summary.component';
 import { PillarSummaryComponent, PillarSummary } from './pillar-summary.component';
-import { AssessmentOverviewComponent } from './assessment-overview.component';
 import { V2AssessmentOverviewComponent } from './v2-assessment-overview.component';
 import { AssessmentUpdate } from './v2-assessment-item.component';
 
@@ -19,7 +18,7 @@ import { AssessmentUpdate } from './v2-assessment-item.component';
   templateUrl: './assessment.component.html',
   styleUrls: ['./assessment.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, OverallProgressSummaryComponent, PillarSummaryComponent, AssessmentOverviewComponent, V2AssessmentOverviewComponent],
+  imports: [CommonModule, FormsModule, RouterModule, OverallProgressSummaryComponent, PillarSummaryComponent, V2AssessmentOverviewComponent],
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -53,17 +52,16 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
-  technologiesProcesses: TechnologyProcess[] = [];
+  technologiesProcesses: TechnologyProcess[] = []; // Legacy - kept for shared components
   assessmentResponses: AssessmentResponse[] = [];
   pillarSummary: PillarSummary[] = [];
   overallPillarProgress: OverallPillarProgress[] = [];
 
-  // V2 Model properties
-  useV2Model = false; // Toggle between V1 and V2 UI
-  processTechnologyGroups: ProcessTechnologyGroup[] = []; // V2: Combined process+technology groups
-  stageImplementations: MaturityStageImplementation[] = []; // V2: Multi-stage implementations
-  v2Assessments: Assessment[] = []; // V2: Assessment data
-  v2OverallProgress: OverallPillarProgress[] = []; // V2: Progress data
+  // V2 Model properties (now the default and only model)
+  processTechnologyGroups: ProcessTechnologyGroup[] = [];
+  stageImplementations: MaturityStageImplementation[] = [];
+  v2Assessments: Assessment[] = [];
+  v2OverallProgress: OverallPillarProgress[] = [];
 
   selectedPillarId: number | null = null;
   selectedFunctionCapabilityId: number | null = null;
@@ -74,10 +72,10 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   statusOptions: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented', 'Superseded'];
   showSuccess = false;
 
-  // Pagination properties - now stage-based
-  currentPage = 1; // 1=Traditional, 2=Initial, 3=Advanced, 4=Optimal
-  itemsPerPage = 5; // Not used in stage-based pagination
-  totalPages = 0; // Will be set to number of available stages
+  // Pagination properties - legacy, kept for potential shared components
+  currentPage = 1;
+  itemsPerPage = 5;
+  totalPages = 0;
   paginatedTechnologiesProcesses: TechnologyProcess[] = [];
 
   // Maturity stage pagination properties
@@ -118,6 +116,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.assessmentNotes = [];
       this.pillarSummary = [];
       this.overallPillarProgress = [];
+      this.v2OverallProgress = [];
       this.selectedPillarId = null;
       this.selectedFunctionCapabilityId = null;
       this.showOverallSummary = true;
@@ -217,29 +216,12 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Toggle between V1 and V2 data models
-  toggleDataModel(): void {
-    this.useV2Model = !this.useV2Model;
-    console.log('Data model toggled to:', this.useV2Model ? 'V2' : 'V1');
-
-    // Reload data based on model
-    if (this.useV2Model) {
-      this.loadV2Data();
-    } else {
-      this.loadAll();
-    }
-  }
-
   async onPillarChange() {
     if (this.selectedPillarId) {
       // Hide overall summary when a pillar is selected
       this.showOverallSummary = false;
-      // Build summary for this pillar
-      if (this.useV2Model) {
-        await this.buildV2PillarSummary();
-      } else {
-        await this.buildPillarSummary();
-      }
+      // Build V2 summary for this pillar
+      await this.buildV2PillarSummary();
     } else {
       // Show overall summary when no pillar is selected
       this.showOverallSummary = true;
@@ -263,9 +245,9 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     this.assessmentNotes = [];
   }
 
-  // Build overall progress summary for all pillars
+  // Build overall progress summary for all pillars (V2)
   async buildOverallPillarProgress(): Promise<void> {
-    this.overallPillarProgress = [];
+    this.v2OverallProgress = [];
 
     try {
       for (const pillar of this.pillars) {
@@ -405,9 +387,9 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     }
   }
 
-  // V2 Model: Load V2 data for selected function capability
+  // Load V2 data for selected function capability
   async onV2FunctionCapabilityChange() {
-    if (this.selectedFunctionCapabilityId && this.useV2Model) {
+    if (this.selectedFunctionCapabilityId) {
       // Load V2 process/technology groups for this function
       const allGroups = this.processTechnologyGroups;
       const groupsForFunction = allGroups.filter(
@@ -971,28 +953,24 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
   onFunctionCapabilitySelected(functionCapabilityId: number): void {
     this.selectedFunctionCapabilityId = functionCapabilityId;
-    if (this.useV2Model) {
-      this.onV2FunctionCapabilityChange();
-    } else {
-      this.onFunctionCapabilityChange();
-    }
+    this.onV2FunctionCapabilityChange();
   }
 
   onAssessmentChangeFromChild(event: {index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string}): void {
     this.onAssessmentChange(event.index, event.field, event.value);
   }
 
-  // Helper methods for overall statistics
+  // Helper methods for overall statistics (V2)
   getTotalFunctions(): number {
-    return this.overallPillarProgress.reduce((total, progress) => total + progress.functionCount, 0);
+    return this.v2OverallProgress.reduce((total, progress) => total + progress.functionCount, 0);
   }
 
   getTotalCompletedItems(): number {
-    return this.overallPillarProgress.reduce((total, progress) => total + progress.completedItems, 0);
+    return this.v2OverallProgress.reduce((total, progress) => total + progress.completedItems, 0);
   }
 
   getTotalItems(): number {
-    return this.overallPillarProgress.reduce((total, progress) => total + progress.totalItems, 0);
+    return this.v2OverallProgress.reduce((total, progress) => total + progress.totalItems, 0);
   }
 
   getOverallProgress(): number {

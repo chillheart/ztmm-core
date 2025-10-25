@@ -9,7 +9,6 @@ import { DemoDataGeneratorService } from '../../services/demo-data-generator.ser
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, ProcessTechnologyGroup, MaturityStageImplementation } from '../../models/ztmm.models';
 import { PillarsTabComponent } from './pillars-tab.component';
 import { FunctionsTabComponent } from './functions-tab.component';
-import { TechnologiesTabComponent } from './technologies-tab.component';
 import { TechnologiesV2TabComponent } from './technologies-v2-tab.component';
 import { DataManagementTabComponent } from './data-management-tab.component';
 
@@ -19,18 +18,17 @@ import { DataManagementTabComponent } from './data-management-tab.component';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, TechnologiesV2TabComponent, DataManagementTabComponent]
+  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesV2TabComponent, DataManagementTabComponent]
 })
 export class AdminComponent implements OnInit {
-  // V1 Data
+  // V1 Data - kept for import/migration support
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
 
-  // V2 Data
+  // V2 Data (now the default and only UI model)
   processTechnologyGroups: ProcessTechnologyGroup[] = [];
-  useV2Model = false; // Toggle between V1 and V2 UI
 
   newPillar = '';
   newFunctionCapability = '';
@@ -692,12 +690,6 @@ export class AdminComponent implements OnInit {
 
   onLoadTechnologiesProcesses() {
     this.loadTechnologiesProcesses();
-  }
-
-  // V2 Model Toggle
-  toggleDataModel() {
-    this.useV2Model = !this.useV2Model;
-    console.log('Data model toggled to:', this.useV2Model ? 'V2' : 'V1');
   }
 
   // V2 Event Handlers for ProcessTechnologyGroup

@@ -327,7 +327,7 @@ export class ReportDataService {
     return maturityStages.map(stage => {
       // Find all groups for this function
       const functionGroups = processTechnologyGroups.filter(ptg => ptg.function_capability_id === functionId);
-      
+
       // Find groups that have implementations at this maturity stage
       const groupsAtStage = functionGroups.filter(group => {
         return maturityStageImplementations.some(
@@ -361,7 +361,7 @@ export class ReportDataService {
       const pillarGroups = processTechnologyGroups.filter(ptg => {
         return pillarFunctions.some(func => func.id === ptg.function_capability_id);
       });
-      
+
       // Find groups that have implementations at this maturity stage
       const groupsAtStage = pillarGroups.filter(group => {
         return maturityStageImplementations.some(
@@ -417,7 +417,7 @@ export class ReportDataService {
 
       for (const impl of groupImplementations) {
         const maturityStage = maturityStages.find(ms => ms.id === impl.maturity_stage_id);
-        
+
         // Determine status based on achieved stage
         let status: string;
         if (!assessment) {
