@@ -214,4 +214,225 @@ describe('MaturityCalculationService', () => {
       expect(service.getAssessmentStatusClass('unknown')).toBe('bg-secondary text-white');
     });
   });
+
+  // V2 Model Tests
+  describe('V2 Model Support', () => {
+    describe('calculateV2MaturityStageBreakdown', () => {
+      const stageName = 'Initial';
+
+      it('should handle empty input', () => {
+        const result = service.calculateV2MaturityStageBreakdown(stageName, [], []);
+        expect(result.totalItems).toBe(0);
+        expect(result.assessedItems).toBe(0);
+        expect(result.status).toBe('not-assessed');
+      });
+
+      it('should return completed when achieved stage equals current stage', () => {
+        const groups = [
+          { id: 1, name: 'Group1', maturity_stage_ids: [1, 2] }
+        ];
+        const assessments = [
+          {
+            id: 1,
+            process_technology_group_id: 1,
+            maturity_stage_id: 2,
+            achieved_maturity_stage_id: 2,
+            target_maturity_stage_id: 2,
+            implementation_status: 'Fully Implemented'
+          }
+        ];
+
+        const result = service.calculateV2MaturityStageBreakdown(
+          stageName,
+          groups as any,
+          assessments as any
+        );
+
+        expect(result.completedItems).toBe(1);
+        expect(result.inProgressItems).toBe(0);
+        expect(result.notStartedItems).toBe(0);
+        expect(result.status).toBe('completed');
+      });
+
+      it('should return in-progress when achieved stage is less than current stage', () => {
+        const groups = [
+          { id: 1, name: 'Group1', maturity_stage_ids: [1, 2, 3] }
+        ];
+        const assessments = [
+          {
+            id: 1,
+            process_technology_group_id: 1,
+            maturity_stage_id: 3,
+            achieved_maturity_stage_id: 2,
+            target_maturity_stage_id: 3,
+            implementation_status: 'Partially Implemented'
+          }
+        ];
+
+        const result = service.calculateV2MaturityStageBreakdown(
+          'Advanced',
+          groups as any,
+          assessments as any
+        );
+
+        expect(result.completedItems).toBe(0);
+        expect(result.inProgressItems).toBe(1);
+        expect(result.notStartedItems).toBe(0);
+        expect(result.status).toBe('in-progress');
+      });
+
+      it('should return not-started when no assessment exists for stage', () => {
+        const groups = [
+          { id: 1, name: 'Group1', maturity_stage_ids: [1, 2] }
+        ];
+        const assessments: any[] = [];
+
+        const result = service.calculateV2MaturityStageBreakdown(
+          stageName,
+          groups as any,
+          assessments as any
+        );
+
+        // When no assessment exists, totalItems = 1 but assessedItems = 0
+        expect(result.totalItems).toBe(1);
+        expect(result.assessedItems).toBe(0);
+        expect(result.completedItems).toBe(0);
+        expect(result.inProgressItems).toBe(0);
+        expect(result.notStartedItems).toBe(0); // Not counted until assessed
+        expect(result.status).toBe('not-assessed');
+      });
+
+      it('should handle multiple groups at same stage with mixed statuses', () => {
+        const groups = [
+          { id: 1, name: 'Group1', maturity_stage_ids: [1, 2] },
+          { id: 2, name: 'Group2', maturity_stage_ids: [1, 2] },
+          { id: 3, name: 'Group3', maturity_stage_ids: [1, 2] }
+        ];
+        const assessments = [
+          {
+            id: 1,
+            process_technology_group_id: 1,
+            maturity_stage_id: 2,
+            achieved_maturity_stage_id: 2,
+            implementation_status: 'Fully Implemented'
+          },
+          {
+            id: 2,
+            process_technology_group_id: 2,
+            maturity_stage_id: 2,
+            achieved_maturity_stage_id: 1,
+            implementation_status: 'Partially Implemented'
+          }
+          // Group3 has no assessment
+        ];
+
+        const result = service.calculateV2MaturityStageBreakdown(
+          stageName,
+          groups as any,
+          assessments as any
+        );
+
+        expect(result.totalItems).toBe(3);
+        expect(result.assessedItems).toBe(2); // Only Group1 and Group2 have assessments
+        expect(result.completedItems).toBe(1); // Group1 is fully implemented
+        expect(result.inProgressItems).toBe(1); // Group2 is partially implemented
+        expect(result.notStartedItems).toBe(0); // Group3 has no assessment, not counted
+        expect(result.status).toBe('in-progress');
+      });
+
+      it('should handle Superseded status as completed', () => {
+        const groups = [
+          { id: 1, name: 'Group1', maturity_stage_ids: [1] }
+        ];
+        const assessments = [
+          {
+            id: 1,
+            process_technology_group_id: 1,
+            maturity_stage_id: 1,
+            achieved_maturity_stage_id: 1,
+            implementation_status: 'Fully Implemented'
+          }
+        ];
+
+        const result = service.calculateV2MaturityStageBreakdown(
+          'Traditional',
+          groups as any,
+          assessments as any
+        );
+
+        expect(result.completedItems).toBe(1);
+        expect(result.status).toBe('completed');
+      });
+
+      it('should calculate correct percentages for V2 breakdown', () => {
+        const groups = [
+          { id: 1, name: 'Group1', maturity_stage_ids: [1] },
+          { id: 2, name: 'Group2', maturity_stage_ids: [1] },
+          { id: 3, name: 'Group3', maturity_stage_ids: [1] },
+          { id: 4, name: 'Group4', maturity_stage_ids: [1] }
+        ];
+        const assessments = [
+          {
+            id: 1,
+            process_technology_group_id: 1,
+            maturity_stage_id: 1,
+            achieved_maturity_stage_id: 1,
+            implementation_status: 'Fully Implemented'
+          },
+          {
+            id: 2,
+            process_technology_group_id: 2,
+            maturity_stage_id: 1,
+            achieved_maturity_stage_id: 1,
+            implementation_status: 'Fully Implemented'
+          }
+        ];
+
+        const result = service.calculateV2MaturityStageBreakdown(
+          'Traditional',
+          groups as any,
+          assessments as any
+        );
+
+        expect(result.totalItems).toBe(4);
+        expect(result.assessedItems).toBe(2);
+        expect(result.percentage).toBe(50); // 2/4 = 50%
+        expect(result.completionPercentage).toBe(50); // 2 completed out of 4 total
+      });
+    });
+
+    describe('V2 Model Integration', () => {
+      it('should handle V2 assessment status mapping correctly', () => {
+        const groups = [{ id: 1, name: 'Group1', maturity_stage_ids: [1] }];
+
+        // Test all V2 statuses
+        const statuses = ['Fully Implemented', 'Partially Implemented', 'Not Implemented', 'Superseded'];
+        
+        statuses.forEach(status => {
+          const assessments = [{
+            id: 1,
+            process_technology_group_id: 1,
+            maturity_stage_id: 1,
+            achieved_maturity_stage_id: status === 'Not Implemented' ? null : 1,
+            implementation_status: status
+          }];
+
+          const result = service.calculateV2MaturityStageBreakdown(
+            'Traditional',
+            groups as any,
+            assessments as any
+          );
+
+          expect(result.assessedItems).toBe(1);
+          if (status === 'Fully Implemented' || status === 'Superseded') {
+            expect(result.completedItems).toBe(1);
+          } else if (status === 'Partially Implemented') {
+            expect(result.inProgressItems).toBe(1);
+          } else {
+            expect(result.notStartedItems).toBe(1);
+          }
+        });
+      });
+    });
+  });
 });

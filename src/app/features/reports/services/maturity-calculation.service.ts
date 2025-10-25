@@ -369,14 +369,32 @@ export class MaturityCalculationService {
       if (assessment) {
         assessedItems++;
 
-        // Compare achieved stage with current stage
-        const achievedStageIndex = stageOrder.indexOf(stageOrder[assessment.achieved_maturity_stage_id - 1] || 'Traditional');
+        // Compare achieved stage with current stage (IDs are 1-based, convert to 0-based index)
+        const achievedStageIndex = assessment.achieved_maturity_stage_id - 1;
+        const targetStageIndex = assessment.target_maturity_stage_id ? assessment.target_maturity_stage_id - 1 : -1;
         
         if (achievedStageIndex > currentStageIndex) {
           // Already surpassed this stage
           completedItems++;
         } else if (achievedStageIndex === currentStageIndex) {
-          // Currently at this stage
+          // Currently at this stage - check implementation status
+          switch (assessment.implementation_status) {
+            case 'Fully Implemented':
+            case 'Superseded':
+              completedItems++;
+              break;
+            case 'Partially Implemented':
+              inProgressItems++;
+              break;
+            case 'Not Implemented':
+              notStartedItems++;
+              break;
+          }
+        } else if (targetStageIndex === currentStageIndex || 
+                   (achievedStageIndex < currentStageIndex && assessment.implementation_status !== 'Not Implemented')) {
+          // Haven't achieved this stage yet, but either:
+          // 1. It's the target stage being worked on, OR
+          // 2. They're below this stage but showing progress (Partially/Fully Implemented means working on next stage)
           switch (assessment.implementation_status) {
             case 'Fully Implemented':
             case 'Superseded':
@@ -390,14 +408,14 @@ export class MaturityCalculationService {
               break;
           }
         } else {
-          // Haven't reached this stage yet
+          // Haven't reached this stage yet and not working on it
           notStartedItems++;
         }
       }
     }
 
     const percentage = totalItems > 0 ? Math.round((assessedItems / totalItems) * 100) : 0;
-    const completionPercentage = assessedItems > 0 ? Math.round((completedItems / assessedItems) * 100) : 0;
+    const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
     const breakdown: MaturityStageBreakdown = {
       stageName,
