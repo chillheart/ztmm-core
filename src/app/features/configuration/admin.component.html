@@ -6,8 +6,20 @@
           <i class="bi bi-gear-fill text-primary me-2"></i>
           Configuration
         </h2>
-        <div class="text-muted">
-          <small>Manage your ZTMM framework components</small>
+        <div class="d-flex align-items-center gap-3">
+          <!-- V1/V2 Model Toggle -->
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="modelToggle" 
+                   [(ngModel)]="useV2Model" (change)="toggleDataModel()">
+            <label class="form-check-label" for="modelToggle">
+              <span class="badge" [class.bg-primary]="useV2Model" [class.bg-secondary]="!useV2Model">
+                {{ useV2Model ? 'V2 Model' : 'V1 Model' }}
+              </span>
+            </label>
+          </div>
+          <div class="text-muted">
+            <small>Manage your ZTMM framework components</small>
+          </div>
         </div>
       </div>
     </div>
@@ -80,7 +92,21 @@
   </div>
   <!-- TECHNOLOGIES/PROCESSES TAB -->
   <div *ngSwitchCase="'tech'">
-    <app-technologies-tab
+    <!-- Show info banner about V1/V2 -->
+    <div class="alert" [class.alert-info]="!useV2Model" [class.alert-success]="useV2Model" role="alert">
+      <i class="bi" [class.bi-info-circle-fill]="!useV2Model" [class.bi-check-circle-fill]="useV2Model"></i>
+      <strong>{{ useV2Model ? 'V2 Model Active' : 'V1 Model Active' }}</strong>
+      <p class="mb-0 mt-2">
+        <span *ngIf="!useV2Model">
+          You are viewing the legacy V1 data model where each technology/process is tied to a single maturity stage.
+        </span>
+        <span *ngIf="useV2Model">
+          You are viewing the new V2 data model where technologies/processes can span multiple maturity stages with detailed implementations for each stage.
+        </span>
+      </p>
+    </div>
+
+    <app-technologies-tab *ngIf="!useV2Model"
       [pillars]="pillars"
       [functionCapabilities]="functionCapabilities"
       [maturityStages]="maturityStages"
@@ -90,6 +116,25 @@
       (editTechnologyProcess)="addOrEditTechnologyProcess($event)"
       (loadTechnologiesProcesses)="onLoadTechnologiesProcesses()">
     </app-technologies-tab>
+
+    <!-- V2 UI: TO BE IMPLEMENTED -->
+    <div *ngIf="useV2Model" class="card">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-layers-fill me-2"></i>
+          V2 Process/Technology Groups (Coming Soon)
+        </h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">The V2 UI for managing ProcessTechnologyGroups with multi-stage implementations is under development.</p>
+        <p><strong>Current V2 Data:</strong> {{ processTechnologyGroups.length }} groups loaded</p>
+        <ul>
+          <li *ngFor="let group of processTechnologyGroups">
+            {{ group.name }} ({{ group.type }}) - Function/Capability ID: {{ group.function_capability_id }}
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
   <!-- DATA MANAGEMENT TAB -->
   <div *ngSwitchCase="'management'">
