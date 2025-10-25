@@ -9,7 +9,7 @@
         <div class="d-flex align-items-center gap-3">
           <!-- V1/V2 Model Toggle -->
           <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" role="switch" id="modelToggle" 
+            <input class="form-check-input" type="checkbox" role="switch" id="modelToggle"
                    [(ngModel)]="useV2Model" (change)="toggleDataModel()">
             <label class="form-check-label" for="modelToggle">
               <span class="badge" [class.bg-primary]="useV2Model" [class.bg-secondary]="!useV2Model">

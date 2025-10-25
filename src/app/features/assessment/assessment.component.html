@@ -8,16 +8,35 @@
     </p>
   </div>
 
+  <!-- V2 Model Toggle Button -->
+  <div class="mb-3 d-flex justify-content-end">
+    <button
+      class="btn btn-sm"
+      [class.btn-primary]="useV2Model"
+      [class.btn-outline-primary]="!useV2Model"
+      (click)="toggleDataModel()">
+      <i class="bi" [class.bi-toggle-on]="useV2Model" [class.bi-toggle-off]="!useV2Model"></i>
+      {{ useV2Model ? 'V2 Model Active' : 'Switch to V2 Model' }}
+    </button>
+  </div>
+
   <!-- Overall Progress Summary (show when no pillar is selected) -->
   <app-overall-progress-summary
-    *ngIf="showOverallSummary && overallPillarProgress.length > 0"
+    *ngIf="showOverallSummary && !useV2Model && overallPillarProgress.length > 0"
     [overallPillarProgress]="overallPillarProgress"
+    (pillarSelected)="onPillarSelected($event)">
+  </app-overall-progress-summary>
+
+  <!-- V2 Overall Progress Summary -->
+  <app-overall-progress-summary
+    *ngIf="showOverallSummary && useV2Model && v2OverallProgress.length > 0"
+    [overallPillarProgress]="v2OverallProgress"
     (pillarSelected)="onPillarSelected($event)">
   </app-overall-progress-summary>
 
   <!-- Pillar Summary (only show when pillar is selected) -->
   <app-pillar-summary
-    *ngIf="selectedPillarId"
+    *ngIf="selectedPillarId && !useV2Model"
     [pillarSummary]="pillarSummary"
     [selectedFunctionCapabilityId]="selectedFunctionCapabilityId"
     [selectedPillarName]="getSelectedPillarName()"
@@ -27,7 +46,7 @@
 
   <!-- Assessment Overview (only show when both pillar and function/capability are selected) -->
   <app-assessment-overview
-    *ngIf="selectedPillarId && selectedFunctionCapabilityId"
+    *ngIf="selectedPillarId && selectedFunctionCapabilityId && !useV2Model"
     [technologiesProcesses]="technologiesProcesses"
     [paginatedTechnologiesProcesses]="paginatedTechnologiesProcesses"
     [assessmentStatuses]="assessmentStatuses"
@@ -55,4 +74,34 @@
     (saveAll)="saveAll()"
     (toggleDescriptions)="toggleTechnologyDescriptions()">
   </app-assessment-overview>
+
+  <!-- V2 Assessment View (Placeholder - to be implemented) -->
+  <div *ngIf="selectedPillarId && useV2Model" class="card shadow-sm">
+    <div class="card-body">
+      <!-- V2 Pillar Summary (using V1 for now) -->
+      <app-pillar-summary
+        *ngIf="!selectedFunctionCapabilityId"
+        [pillarSummary]="pillarSummary"
+        [selectedFunctionCapabilityId]="selectedFunctionCapabilityId"
+        [selectedPillarName]="getSelectedPillarName()"
+        (backToOverview)="goBackToOverallSummary()"
+        (functionCapabilitySelected)="onFunctionCapabilitySelected($event)">
+      </app-pillar-summary>
+
+      <!-- V2 Assessment Overview -->
+      <app-v2-assessment-overview
+        *ngIf="selectedFunctionCapabilityId"
+        [processTechnologyGroups]="processTechnologyGroups"
+        [stageImplementations]="stageImplementations"
+        [assessments]="v2Assessments"
+        [functionCapabilities]="functionCapabilities"
+        [selectedFunctionCapabilityName]="getSelectedFunctionCapabilityName()"
+        [selectedFunctionCapabilityType]="getSelectedFunctionCapabilityType()"
+        [isAutoSaving]="isAutoSaving"
+        [showSuccess]="showSuccess"
+        (assessmentUpdate)="onV2AssessmentUpdate($event)"
+        (saveAll)="saveAllV2Assessments()">
+      </app-v2-assessment-overview>
+    </div>
+  </div>
 </div>

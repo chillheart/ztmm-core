@@ -104,7 +104,7 @@ export class TechnologiesV2TabComponent {
 
   onAddGroup(form: NgForm): void {
     this.formSubmitted = true;
-    
+
     if (!form.valid || !this.newName.trim() || !this.newDescription.trim() ||
         !this.selectedFunctionCapabilityId || this.selectedMaturityStageIds.length === 0) {
       return;
@@ -147,12 +147,12 @@ export class TechnologiesV2TabComponent {
     this.newDescription = group.description;
     this.newType = group.type;
     this.selectedFunctionCapabilityId = group.function_capability_id;
-    
+
     // TODO: Load MaturityStageImplementations for this group to populate selectedMaturityStageIds
     // For now, we'll need to query them separately or pass them in
     // This is a limitation we'll address when we add stage management
     this.selectedMaturityStageIds = [];
-    
+
     // Scroll to form
     setTimeout(() => {
       document.querySelector('.add-group-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });

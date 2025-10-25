@@ -1014,7 +1014,7 @@ export class DemoDataGeneratorService {
 
       const functionCapabilities = await this.dataService.getFunctionCapabilities();
       const maturityStages = await this.dataService.getMaturityStages();
-      
+
       // Maturity stages are expected to have IDs 1-4 for Traditional, Initial, Advanced, Optimal
       const stageMap = new Map<string, number>();
       maturityStages.forEach(stage => {
@@ -1231,7 +1231,7 @@ export class DemoDataGeneratorService {
       // Generate V2 groups for each function/capability
       for (const fc of functionCapabilities) {
         const groups = v2DemoGroups[fc.name];
-        
+
         if (!groups || groups.length === 0) {
           console.log(`No V2 demo data defined for: ${fc.name}`);
           continue;
@@ -1268,21 +1268,21 @@ export class DemoDataGeneratorService {
             for (let i = 0; i < group.stages.length; i++) {
               const stageName = group.stages[i];
               const stageId = stageMap.get(stageName);
-              
+
               if (!stageId) {
                 console.warn(`  Could not find stage ID for: ${stageName}`);
                 continue;
               }
 
               const implementationDesc = group.implementations[i];
-              
+
               await this.dataService.addMaturityStageImplementation({
                 process_technology_group_id: groupId,
                 maturity_stage_id: stageId,
                 description: implementationDesc,
                 order_index: i
               });
-              
+
               totalImplementations++;
             }
 

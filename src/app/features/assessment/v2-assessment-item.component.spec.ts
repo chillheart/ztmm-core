@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { V2AssessmentItemComponent } from './v2-assessment-item.component';
-import { 
-  ProcessTechnologyGroup, 
-  MaturityStageImplementation, 
+import {
+  ProcessTechnologyGroup,
+  MaturityStageImplementation,
   Assessment,
   AssessmentStatus,
   FunctionCapability,

@@ -62,14 +62,14 @@ export class V2ProgressVisualizerComponent implements OnInit {
 
   getProgressPercentage(): number {
     if (this.availableStages.length === 0 || this.achievedStageId === 0) return 0;
-    
+
     const maxStageId = Math.max(...this.availableStages.map(s => s.id));
     const minStageId = Math.min(...this.availableStages.map(s => s.id));
     const range = maxStageId - minStageId;
-    
+
     if (range === 0) return this.achievedStageId > 0 ? 100 : 0;
     if (this.achievedStageId <= minStageId) return 0;
-    
+
     return Math.min(100, ((this.achievedStageId - minStageId) / range) * 100);
   }
 

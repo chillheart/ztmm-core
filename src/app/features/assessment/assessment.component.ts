@@ -4,18 +4,22 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { trigger, style, transition, animate, query, stagger } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../../models/ztmm.models';
+import { ProcessService } from '../../services/process.service';
+import { TechnologyService } from '../../services/technology.service';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, ProcessTechnologyGroup, MaturityStageImplementation, Assessment } from '../../models/ztmm.models';
 import { AssessmentStatus } from '../../models/ztmm.models';
 import { OverallProgressSummaryComponent, OverallPillarProgress } from './overall-progress-summary.component';
 import { PillarSummaryComponent, PillarSummary } from './pillar-summary.component';
 import { AssessmentOverviewComponent } from './assessment-overview.component';
+import { V2AssessmentOverviewComponent } from './v2-assessment-overview.component';
+import { AssessmentUpdate } from './v2-assessment-item.component';
 
 @Component({
   selector: 'app-assessment',
   templateUrl: './assessment.component.html',
   styleUrls: ['./assessment.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, OverallProgressSummaryComponent, PillarSummaryComponent, AssessmentOverviewComponent],
+  imports: [CommonModule, FormsModule, RouterModule, OverallProgressSummaryComponent, PillarSummaryComponent, AssessmentOverviewComponent, V2AssessmentOverviewComponent],
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -54,6 +58,13 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   pillarSummary: PillarSummary[] = [];
   overallPillarProgress: OverallPillarProgress[] = [];
 
+  // V2 Model properties
+  useV2Model = false; // Toggle between V1 and V2 UI
+  processTechnologyGroups: ProcessTechnologyGroup[] = []; // V2: Combined process+technology groups
+  stageImplementations: MaturityStageImplementation[] = []; // V2: Multi-stage implementations
+  v2Assessments: Assessment[] = []; // V2: Assessment data
+  v2OverallProgress: OverallPillarProgress[] = []; // V2: Progress data
+
   selectedPillarId: number | null = null;
   selectedFunctionCapabilityId: number | null = null;
   showOverallSummary = true; // Controls visibility of overall summary
@@ -87,7 +98,11 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   // Make Math available to template
   Math = Math;
 
-  constructor(private data: IndexedDBService) {
+  constructor(
+    private data: IndexedDBService,
+    private processService: ProcessService,
+    private technologyService: TechnologyService
+  ) {
     // Constructor should only set up dependencies, not call async methods
   }
 
@@ -144,12 +159,87 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     }
   }
 
+  // V2 Model: Load V2 data structures
+  async loadV2Data(resetUIState = true): Promise<void> {
+    if (resetUIState) {
+      this.processTechnologyGroups = [];
+      this.stageImplementations = [];
+      this.v2Assessments = [];
+      this.v2OverallProgress = [];
+      this.selectedPillarId = null;
+      this.selectedFunctionCapabilityId = null;
+      this.showOverallSummary = true;
+    }
+
+    // Load pillars, function capabilities (shared with V1)
+    try {
+      this.pillars = await this.data.getPillars();
+    } catch (error) {
+      console.error('❌ Error loading pillars:', error);
+      this.pillars = [];
+    }
+
+    try {
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+    } catch (error) {
+      console.error('❌ Error loading function capabilities:', error);
+      this.functionCapabilities = [];
+    }
+
+    // Load V2-specific data
+    try {
+      this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
+      console.log(`Loaded ${this.processTechnologyGroups.length} V2 process/technology groups`);
+    } catch (error) {
+      console.error('❌ Error loading V2 process/technology groups:', error);
+      this.processTechnologyGroups = [];
+    }
+
+    try {
+      this.stageImplementations = await this.data.getMaturityStageImplementations();
+      console.log(`Loaded ${this.stageImplementations.length} V2 maturity stage implementations`);
+    } catch (error) {
+      console.error('❌ Error loading V2 stage implementations:', error);
+      this.stageImplementations = [];
+    }
+
+    try {
+      this.v2Assessments = await this.data.getAssessmentsV2();
+      console.log(`Loaded ${this.v2Assessments.length} V2 assessments`);
+    } catch (error) {
+      console.error('❌ Error loading V2 assessments:', error);
+      this.v2Assessments = [];
+    }
+
+    // Build V2 overall progress
+    if (this.pillars.length > 0 && this.functionCapabilities.length > 0) {
+      await this.buildV2OverallProgress();
+    }
+  }
+
+  // Toggle between V1 and V2 data models
+  toggleDataModel(): void {
+    this.useV2Model = !this.useV2Model;
+    console.log('Data model toggled to:', this.useV2Model ? 'V2' : 'V1');
+
+    // Reload data based on model
+    if (this.useV2Model) {
+      this.loadV2Data();
+    } else {
+      this.loadAll();
+    }
+  }
+
   async onPillarChange() {
     if (this.selectedPillarId) {
       // Hide overall summary when a pillar is selected
       this.showOverallSummary = false;
       // Build summary for this pillar
-      await this.buildPillarSummary();
+      if (this.useV2Model) {
+        await this.buildV2PillarSummary();
+      } else {
+        await this.buildPillarSummary();
+      }
     } else {
       // Show overall summary when no pillar is selected
       this.showOverallSummary = true;
@@ -214,6 +304,61 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     }
   }
 
+  // V2 Model: Build overall progress summary using V2 data structures
+  async buildV2OverallProgress(): Promise<void> {
+    this.v2OverallProgress = [];
+
+    try {
+      for (const pillar of this.pillars) {
+        const pillarFunctions = this.functionCapabilities.filter(fc => fc.pillar_id === pillar.id);
+        let totalItems = 0;
+        let completedItems = 0; // Items with achieved stage > 0
+        let fullyImplementedItems = 0; // Items with target stage achieved
+
+        for (const func of pillarFunctions) {
+          try {
+            // Get all V2 groups for this function
+            const groupsInFunction = this.processTechnologyGroups.filter(
+              ptg => ptg.function_capability_id === func.id
+            );
+            totalItems += groupsInFunction.length;
+
+            // Count progress based on V2 assessments
+            for (const group of groupsInFunction) {
+              const assessment = this.v2Assessments.find(a => a.process_technology_group_id === group.id);
+              if (assessment) {
+                // Count as "completed" if any achieved stage
+                if (assessment.achieved_maturity_stage_id && assessment.achieved_maturity_stage_id > 0) {
+                  completedItems++;
+                }
+                // Count as "fully implemented" if target stage is achieved
+                if (assessment.target_maturity_stage_id &&
+                    assessment.achieved_maturity_stage_id >= assessment.target_maturity_stage_id) {
+                  fullyImplementedItems++;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error loading V2 groups for function', func.id, ':', error);
+          }
+        }
+
+        // Calculate progress based on achieved stages (not just fully implemented)
+        const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+        this.v2OverallProgress.push({
+          pillar,
+          totalItems,
+          completedItems,
+          progressPercentage,
+          functionCount: pillarFunctions.length
+        });
+      }
+    } catch (error) {
+      console.error('Error building V2 overall progress:', error);
+    }
+  }
+
   async onFunctionCapabilityChange() {
     if (this.selectedFunctionCapabilityId) {
       // Use specialized method for loading technologies/processes by function capability
@@ -257,6 +402,122 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.availableStages = [];
       this.totalPages = 0;
       this.currentPage = 1;
+    }
+  }
+
+  // V2 Model: Load V2 data for selected function capability
+  async onV2FunctionCapabilityChange() {
+    if (this.selectedFunctionCapabilityId && this.useV2Model) {
+      // Load V2 process/technology groups for this function
+      const allGroups = this.processTechnologyGroups;
+      const groupsForFunction = allGroups.filter(
+        ptg => ptg.function_capability_id === this.selectedFunctionCapabilityId
+      );
+
+      // Store filtered groups (reusing processTechnologyGroups array)
+      this.processTechnologyGroups = groupsForFunction;
+
+      // Load stage implementations for these groups
+      const groupIds = groupsForFunction.map(g => g.id);
+      this.stageImplementations = (await this.data.getMaturityStageImplementations())
+        .filter(si => groupIds.includes(si.process_technology_group_id));
+
+      // Load assessments for these groups
+      this.v2Assessments = (await this.data.getAssessmentsV2())
+        .filter(a => groupIds.includes(a.process_technology_group_id));
+
+      console.log(`Loaded ${groupsForFunction.length} V2 groups, ${this.stageImplementations.length} stage implementations, ${this.v2Assessments.length} assessments`);
+    } else {
+      // Reset
+      this.processTechnologyGroups = [];
+      this.stageImplementations = [];
+      this.v2Assessments = [];
+    }
+  }
+
+  // V2 Model: Handle assessment update from V2 child component
+  async onV2AssessmentUpdate(event: {groupId: number, update: AssessmentUpdate}) {
+    console.log('V2 Assessment update:', event);
+
+    // Find or create assessment
+    let assessment = this.v2Assessments.find(a => a.process_technology_group_id === event.groupId);
+
+    if (assessment) {
+      // Update existing
+      assessment.achieved_maturity_stage_id = event.update.achieved_maturity_stage_id;
+      assessment.target_maturity_stage_id = event.update.target_maturity_stage_id;
+      assessment.implementation_status = event.update.implementation_status;
+      assessment.notes = event.update.notes;
+      assessment.last_updated = new Date().toISOString();
+    } else {
+      // Create new
+      assessment = {
+        id: Date.now(), // Temporary ID
+        process_technology_group_id: event.groupId,
+        achieved_maturity_stage_id: event.update.achieved_maturity_stage_id,
+        target_maturity_stage_id: event.update.target_maturity_stage_id,
+        implementation_status: event.update.implementation_status,
+        notes: event.update.notes,
+        last_updated: new Date().toISOString()
+      };
+      this.v2Assessments.push(assessment);
+    }
+
+    // Save to database
+    try {
+      if (assessment.id && assessment.id > 1000000000000) {
+        // Has a real ID (not temporary), update
+        await this.data.updateAssessment(assessment);
+      } else {
+        // New assessment, add it
+        const newId = await this.data.addAssessment(assessment);
+        assessment.id = newId;
+        // Update in array
+        const index = this.v2Assessments.findIndex(a => a.process_technology_group_id === event.groupId);
+        if (index >= 0) {
+          this.v2Assessments[index] = assessment;
+        }
+      }
+      console.log('V2 assessment saved successfully');
+
+      // Show success indicator
+      this.showSuccess = true;
+      setTimeout(() => {
+        this.showSuccess = false;
+      }, 2000);
+
+      // Rebuild progress
+      await this.buildV2OverallProgress();
+    } catch (error) {
+      console.error('Error saving V2 assessment:', error);
+    }
+  }
+
+  // V2 Model: Save all V2 assessments
+  async saveAllV2Assessments() {
+    console.log('Saving all V2 assessments...');
+    this.isAutoSaving = true;
+
+    try {
+      for (const assessment of this.v2Assessments) {
+        if (assessment.id && assessment.id > 1000000000000) {
+          await this.data.updateAssessment(assessment);
+        } else {
+          const newId = await this.data.addAssessment(assessment);
+          assessment.id = newId;
+        }
+      }
+
+      this.showSuccess = true;
+      setTimeout(() => {
+        this.showSuccess = false;
+      }, 2000);
+
+      console.log('All V2 assessments saved successfully');
+    } catch (error) {
+      console.error('Error saving V2 assessments:', error);
+    } finally {
+      this.isAutoSaving = false;
     }
   }
 
@@ -371,6 +632,60 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       }
     } catch (error) {
       console.error('Error building pillar summary:', error);
+      this.pillarSummary = [];
+    }
+  }
+
+  // V2 Model: Build pillar summary using V2 data
+  async buildV2PillarSummary() {
+    this.pillarSummary = [];
+
+    try {
+      // Get all function capabilities for this pillar
+      const filteredFunctionCapabilities = this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedPillarId);
+
+      if (filteredFunctionCapabilities.length === 0) {
+        return;
+      }
+
+      // Load all V2 data if not already loaded
+      if (this.processTechnologyGroups.length === 0) {
+        this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
+        this.v2Assessments = await this.data.getAssessmentsV2();
+      }
+
+      for (const fc of filteredFunctionCapabilities) {
+        try {
+          // Get V2 groups for this function capability
+          const groups = this.processTechnologyGroups.filter(ptg => ptg.function_capability_id === fc.id);
+
+          // Count completed assessments (achieved stage > 0)
+          const completedCount = groups.filter(group => {
+            const assessment = this.v2Assessments.find(a => a.process_technology_group_id === group.id);
+            return assessment && assessment.achieved_maturity_stage_id > 0;
+          }).length;
+
+          const summary = {
+            functionCapability: fc,
+            totalCount: groups.length,
+            completedCount: completedCount,
+            completionPercentage: groups.length > 0 ? Math.round((completedCount / groups.length) * 100) : 0
+          };
+
+          this.pillarSummary.push(summary);
+        } catch (fcError) {
+          console.error('Error processing function capability', fc.id, ':', fcError);
+          // Still add the function capability with 0 count to show it exists
+          this.pillarSummary.push({
+            functionCapability: fc,
+            totalCount: 0,
+            completedCount: 0,
+            completionPercentage: 0
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error building V2 pillar summary:', error);
       this.pillarSummary = [];
     }
   }
@@ -656,7 +971,11 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
   onFunctionCapabilitySelected(functionCapabilityId: number): void {
     this.selectedFunctionCapabilityId = functionCapabilityId;
-    this.onFunctionCapabilityChange();
+    if (this.useV2Model) {
+      this.onV2FunctionCapabilityChange();
+    } else {
+      this.onFunctionCapabilityChange();
+    }
   }
 
   onAssessmentChangeFromChild(event: {index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string}): void {

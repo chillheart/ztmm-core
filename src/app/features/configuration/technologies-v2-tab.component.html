@@ -15,13 +15,13 @@
             <div class="mb-3">
               <label class="form-label fw-bold">Type <span class="text-danger">*</span></label>
               <div class="btn-group w-100" role="group">
-                <input type="radio" class="btn-check" name="type" id="typeTech" 
+                <input type="radio" class="btn-check" name="type" id="typeTech"
                        [(ngModel)]="newType" value="Technology" [disabled]="editingId !== null">
                 <label class="btn btn-outline-primary" for="typeTech">
                   <i class="bi bi-cpu"></i> Technology
                 </label>
-                
-                <input type="radio" class="btn-check" name="type" id="typeProc" 
+
+                <input type="radio" class="btn-check" name="type" id="typeProc"
                        [(ngModel)]="newType" value="Process" [disabled]="editingId !== null">
                 <label class="btn btn-outline-primary" for="typeProc">
                   <i class="bi bi-diagram-3"></i> Process
@@ -81,13 +81,13 @@
 
               <!-- Selection Mode Toggle -->
               <div class="btn-group w-100 mb-3" role="group">
-                <input type="radio" class="btn-check" name="selectionMode" id="modeRange" 
+                <input type="radio" class="btn-check" name="selectionMode" id="modeRange"
                        [(ngModel)]="stageSelectionMode" value="range" (change)="onStageSelectionModeChange()">
                 <label class="btn btn-outline-secondary btn-sm" for="modeRange">
                   <i class="bi bi-arrow-left-right"></i> Range
                 </label>
-                
-                <input type="radio" class="btn-check" name="selectionMode" id="modeIndividual" 
+
+                <input type="radio" class="btn-check" name="selectionMode" id="modeIndividual"
                        [(ngModel)]="stageSelectionMode" value="individual" (change)="onStageSelectionModeChange()">
                 <label class="btn btn-outline-secondary btn-sm" for="modeIndividual">
                   <i class="bi bi-check2-square"></i> Individual
@@ -98,7 +98,7 @@
               <div *ngIf="stageSelectionMode === 'range'" class="row g-2 mb-3">
                 <div class="col-6">
                   <label class="form-label small">From:</label>
-                  <select class="form-select form-select-sm" [(ngModel)]="rangeStartStageId" 
+                  <select class="form-select form-select-sm" [(ngModel)]="rangeStartStageId"
                           (change)="onRangeChange()" name="rangeStart">
                     <option [ngValue]="null">Select start...</option>
                     <option *ngFor="let stage of sortedMaturityStages" [ngValue]="stage.id">
@@ -108,7 +108,7 @@
                 </div>
                 <div class="col-6">
                   <label class="form-label small">To:</label>
-                  <select class="form-select form-select-sm" [(ngModel)]="rangeEndStageId" 
+                  <select class="form-select form-select-sm" [(ngModel)]="rangeEndStageId"
                           (change)="onRangeChange()" name="rangeEnd">
                     <option [ngValue]="null">Select end...</option>
                     <option *ngFor="let stage of sortedMaturityStages" [ngValue]="stage.id">
@@ -122,7 +122,7 @@
               <div *ngIf="stageSelectionMode === 'individual'" class="mb-3">
                 <div class="d-flex flex-wrap gap-2">
                   <div *ngFor="let stage of sortedMaturityStages" class="form-check">
-                    <input class="form-check-input" type="checkbox" 
+                    <input class="form-check-input" type="checkbox"
                            [id]="'stage-' + stage.id"
                            [checked]="isStageSelected(stage.id)"
                            (change)="toggleStageSelection(stage.id)">
@@ -147,7 +147,7 @@
 
             <!-- Action Buttons -->
             <div class="d-grid gap-2">
-              <button type="submit" class="btn" 
+              <button type="submit" class="btn"
                       [class.btn-primary]="!editingId"
                       [class.btn-warning]="editingId">
                 <i class="bi" [class.bi-plus-lg]="!editingId" [class.bi-save]="editingId"></i>
@@ -194,7 +194,7 @@
 
           <!-- Groups List -->
           <div class="groups-list">
-            <div *ngFor="let group of filteredProcessTechnologyGroups; let i = index" 
+            <div *ngFor="let group of filteredProcessTechnologyGroups; let i = index"
                  class="group-item card mb-3"
                  [class.border-primary]="group.type === 'Technology'"
                  [class.border-success]="group.type === 'Process'">
@@ -203,7 +203,7 @@
                   <div class="flex-grow-1">
                     <!-- Header -->
                     <div class="d-flex align-items-center mb-2">
-                      <span class="badge me-2" 
+                      <span class="badge me-2"
                             [class.bg-primary]="group.type === 'Technology'"
                             [class.bg-success]="group.type === 'Process'">
                         <i class="bi" [class.bi-cpu]="group.type === 'Technology'"
@@ -226,12 +226,12 @@
 
                   <!-- Actions -->
                   <div class="btn-group-vertical btn-group-sm ms-3">
-                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                    <button type="button" class="btn btn-outline-primary btn-sm"
                             (click)="startEdit(group)"
                             title="Edit">
                       <i class="bi bi-pencil"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm" 
+                    <button type="button" class="btn btn-outline-danger btn-sm"
                             (click)="onRemoveGroup(group)"
                             title="Delete">
                       <i class="bi bi-trash"></i>

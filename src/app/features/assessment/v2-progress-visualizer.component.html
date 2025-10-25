@@ -2,11 +2,11 @@
   <!-- Progress bar showing overall completion -->
   <div class="progress-bar-container mb-3" *ngIf="!compact">
     <div class="progress" style="height: 10px;">
-      <div class="progress-bar bg-success" 
-           role="progressbar" 
+      <div class="progress-bar bg-success"
+           role="progressbar"
            [style.width.%]="getProgressPercentage()"
            [attr.aria-valuenow]="getProgressPercentage()"
-           aria-valuemin="0" 
+           aria-valuemin="0"
            aria-valuemax="100">
       </div>
     </div>
@@ -17,9 +17,9 @@
 
   <!-- Stage indicators -->
   <div class="stage-indicators" [class.compact-view]="compact">
-    <div *ngFor="let stage of availableStages; let i = index; let last = last" 
+    <div *ngFor="let stage of availableStages; let i = index; let last = last"
          class="stage-indicator-wrapper">
-      <div class="stage-indicator" 
+      <div class="stage-indicator"
            [class]="getStageClass(stage.id)"
            [title]="getStageImplementation(stage.id)?.description || stage.name">
         <div class="stage-icon">
@@ -45,7 +45,7 @@
           </span>
         </div>
       </div>
-      
+
       <!-- Connector line between stages -->
       <div class="stage-connector" *ngIf="!last"></div>
     </div>

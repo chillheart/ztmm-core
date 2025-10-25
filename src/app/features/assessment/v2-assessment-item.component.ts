@@ -1,16 +1,16 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  ProcessTechnologyGroup, 
-  MaturityStageImplementation, 
-  Assessment, 
-  AssessmentStatus, 
-  FunctionCapability, 
-  MaturityStage 
+import {
+  ProcessTechnologyGroup,
+  MaturityStageImplementation,
+  Assessment,
+  AssessmentStatus,
+  FunctionCapability,
+  MaturityStage
 } from '../../models/ztmm.models';
 
-interface AssessmentUpdate {
+export interface AssessmentUpdate {
   achieved_maturity_stage_id: number;
   target_maturity_stage_id: number | null;
   implementation_status: AssessmentStatus;
@@ -69,7 +69,7 @@ export class V2AssessmentItemComponent implements OnInit {
 
   getAvailableStages(): MaturityStage[] {
     // Return stages that have implementations for this group
-    return this.maturityStages.filter(stage => 
+    return this.maturityStages.filter(stage =>
       this.stageImplementations.some(si => si.maturity_stage_id === stage.id)
     );
   }
@@ -81,7 +81,7 @@ export class V2AssessmentItemComponent implements OnInit {
 
   onAchievedStageChange(stageId: number): void {
     this.achievedStageId = stageId;
-    
+
     // If target is now <= achieved, clear it
     if (this.targetStageId !== null && this.targetStageId <= this.achievedStageId) {
       this.targetStageId = null;
