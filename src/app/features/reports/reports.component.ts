@@ -3,7 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
-import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from '../../models/ztmm.models';
+import { 
+  Pillar, 
+  FunctionCapability, 
+  TechnologyProcess, 
+  MaturityStage, 
+  AssessmentResponse,
+  ProcessTechnologyGroup,
+  MaturityStageImplementation,
+  Assessment
+} from '../../models/ztmm.models';
 
 // Import new components and services
 import { PillarOverviewComponent } from './components/pillar-overview.component';
@@ -56,12 +65,20 @@ import { CsvExportService } from './services/csv-export.service';
   ]
 })
 export class ReportsComponent implements OnInit {
-  // Data
+  // Data model version toggle
+  useV2Model = false;
+
+  // V1 Data
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
   assessmentResponses: AssessmentResponse[] = [];
+
+  // V2 Data
+  processTechnologyGroups: ProcessTechnologyGroup[] = [];
+  maturityStageImplementations: MaturityStageImplementation[] = [];
+  assessmentsV2: Assessment[] = [];
 
   // UI State
   currentView: ViewLevel = 'pillar-overview';
@@ -88,15 +105,24 @@ export class ReportsComponent implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    await this.detectDataModel();
   }
 
   async loadAll() {
     try {
+      // Load common data
       this.pillars = await this.data.getPillars();
       this.functionCapabilities = await this.data.getFunctionCapabilities();
       this.maturityStages = await this.data.getMaturityStages();
+
+      // Load V1 data
       this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
       this.assessmentResponses = await this.data.getAssessmentResponses();
+
+      // Load V2 data
+      this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
+      this.maturityStageImplementations = await this.data.getMaturityStageImplementations();
+      this.assessmentsV2 = await this.data.getAssessmentsV2();
 
       this.buildPillarSummaries();
     } catch (error) {
@@ -104,14 +130,43 @@ export class ReportsComponent implements OnInit {
     }
   }
 
+  /**
+   * Detects which data model to use based on available data
+   * Prefers V2 if any V2 data exists
+   */
+  async detectDataModel() {
+    if (this.processTechnologyGroups.length > 0 || this.assessmentsV2.length > 0) {
+      this.useV2Model = true;
+      console.log('📊 Reports using V2 data model');
+    } else if (this.technologiesProcesses.length > 0 || this.assessmentResponses.length > 0) {
+      this.useV2Model = false;
+      console.log('📊 Reports using V1 data model (legacy)');
+    } else {
+      // Default to V2 for new databases
+      this.useV2Model = true;
+      console.log('📊 Reports defaulting to V2 data model (no data present)');
+    }
+  }
+
   buildPillarSummaries() {
-    this.pillarSummaries = this.reportDataService.buildPillarSummaries(
-      this.pillars,
-      this.functionCapabilities,
-      this.maturityStages,
-      this.technologiesProcesses,
-      this.assessmentResponses
-    );
+    if (this.useV2Model) {
+      this.pillarSummaries = this.reportDataService.buildV2PillarSummaries(
+        this.pillars,
+        this.functionCapabilities,
+        this.maturityStages,
+        this.processTechnologyGroups,
+        this.maturityStageImplementations,
+        this.assessmentsV2
+      );
+    } else {
+      this.pillarSummaries = this.reportDataService.buildPillarSummaries(
+        this.pillars,
+        this.functionCapabilities,
+        this.maturityStages,
+        this.technologiesProcesses,
+        this.assessmentResponses
+      );
+    }
   }
 
   // Navigation methods
@@ -142,13 +197,24 @@ export class ReportsComponent implements OnInit {
   loadFunctionDetails() {
     if (!this.selectedFunctionSummary) return;
 
-    this.selectedFunctionDetails = this.reportDataService.buildFunctionDetails(
-      this.selectedFunctionSummary,
-      this.pillars,
-      this.maturityStages,
-      this.technologiesProcesses,
-      this.assessmentResponses
-    );
+    if (this.useV2Model) {
+      this.selectedFunctionDetails = this.reportDataService.buildV2FunctionDetails(
+        this.selectedFunctionSummary,
+        this.pillars,
+        this.maturityStages,
+        this.processTechnologyGroups,
+        this.maturityStageImplementations,
+        this.assessmentsV2
+      );
+    } else {
+      this.selectedFunctionDetails = this.reportDataService.buildFunctionDetails(
+        this.selectedFunctionSummary,
+        this.pillars,
+        this.maturityStages,
+        this.technologiesProcesses,
+        this.assessmentResponses
+      );
+    }
   }
 
   goBackToPillarOverview() {
@@ -195,13 +261,27 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          const details = this.reportDataService.buildFunctionDetails(
-            functionSummary,
-            this.pillars,
-            this.maturityStages,
-            this.technologiesProcesses,
-            this.assessmentResponses
-          );
+          let details: DetailedAssessmentItem[];
+          
+          if (this.useV2Model) {
+            details = this.reportDataService.buildV2FunctionDetails(
+              functionSummary,
+              this.pillars,
+              this.maturityStages,
+              this.processTechnologyGroups,
+              this.maturityStageImplementations,
+              this.assessmentsV2
+            );
+          } else {
+            details = this.reportDataService.buildFunctionDetails(
+              functionSummary,
+              this.pillars,
+              this.maturityStages,
+              this.technologiesProcesses,
+              this.assessmentResponses
+            );
+          }
+          
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
         }
       }
@@ -229,13 +309,27 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          const details = this.reportDataService.buildFunctionDetails(
-            functionSummary,
-            this.pillars,
-            this.maturityStages,
-            this.technologiesProcesses,
-            this.assessmentResponses
-          );
+          let details: DetailedAssessmentItem[];
+          
+          if (this.useV2Model) {
+            details = this.reportDataService.buildV2FunctionDetails(
+              functionSummary,
+              this.pillars,
+              this.maturityStages,
+              this.processTechnologyGroups,
+              this.maturityStageImplementations,
+              this.assessmentsV2
+            );
+          } else {
+            details = this.reportDataService.buildFunctionDetails(
+              functionSummary,
+              this.pillars,
+              this.maturityStages,
+              this.technologiesProcesses,
+              this.assessmentResponses
+            );
+          }
+          
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
         }
       }

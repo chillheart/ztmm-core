@@ -1,7 +1,11 @@
 import { Injectable } from '@angular/core';
 import {
   TechnologyProcess,
-  AssessmentResponse
+  AssessmentResponse,
+  ProcessTechnologyGroup,
+  MaturityStageImplementation,
+  Assessment,
+  AssessmentStatus as V2AssessmentStatus
 } from '../../../models/ztmm.models';
 import {
   MaturityStageBreakdown,
@@ -335,5 +339,80 @@ export class MaturityCalculationService {
       case 'Superseded': return 'bg-info text-white';
       default: return 'bg-secondary text-white';
     }
+  }
+
+  // ============================================================================
+  // V2 DATA MODEL METHODS
+  // ============================================================================
+
+  /**
+   * Calculates breakdown for a specific maturity stage using V2 data
+   */
+  calculateV2MaturityStageBreakdown(
+    stageName: string,
+    groupsAtStage: ProcessTechnologyGroup[],
+    assessments: Assessment[]
+  ): MaturityStageBreakdown {
+    const totalItems = groupsAtStage.length;
+    let assessedItems = 0;
+    let completedItems = 0;
+    let inProgressItems = 0;
+    let notStartedItems = 0;
+
+    // Get the stage ID based on name for comparison
+    const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
+    const currentStageIndex = stageOrder.indexOf(stageName);
+
+    for (const group of groupsAtStage) {
+      const assessment = assessments.find(a => a.process_technology_group_id === group.id);
+
+      if (assessment) {
+        assessedItems++;
+
+        // Compare achieved stage with current stage
+        const achievedStageIndex = stageOrder.indexOf(stageOrder[assessment.achieved_maturity_stage_id - 1] || 'Traditional');
+        
+        if (achievedStageIndex > currentStageIndex) {
+          // Already surpassed this stage
+          completedItems++;
+        } else if (achievedStageIndex === currentStageIndex) {
+          // Currently at this stage
+          switch (assessment.implementation_status) {
+            case 'Fully Implemented':
+            case 'Superseded':
+              completedItems++;
+              break;
+            case 'Partially Implemented':
+              inProgressItems++;
+              break;
+            case 'Not Implemented':
+              notStartedItems++;
+              break;
+          }
+        } else {
+          // Haven't reached this stage yet
+          notStartedItems++;
+        }
+      }
+    }
+
+    const percentage = totalItems > 0 ? Math.round((assessedItems / totalItems) * 100) : 0;
+    const completionPercentage = assessedItems > 0 ? Math.round((completedItems / assessedItems) * 100) : 0;
+
+    const breakdown: MaturityStageBreakdown = {
+      stageName,
+      assessedItems,
+      totalItems,
+      completedItems,
+      inProgressItems,
+      notStartedItems,
+      percentage,
+      completionPercentage,
+      status: 'not-assessed'
+    };
+
+    breakdown.status = this.calculateMaturityStatus(breakdown);
+
+    return breakdown;
   }
 }

@@ -102,7 +102,7 @@
         [itemNumber]="i + 1"
         [assessment]="getAssessmentForGroup(group.id) || null"
         [stageImplementations]="getStagesForGroup(group.id)"
-        (assessmentUpdate)="onAssessmentUpdate(group.id, $event)">
+        (assessmentChange)="onAssessmentUpdate(group.id, $event)">
       </app-v2-assessment-item>
     </div>
   </div>
