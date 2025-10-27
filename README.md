@@ -60,8 +60,13 @@ Navigate to the Configuration section to set up your ZTMM framework:
 
 - **Pillars**: Define Zero Trust pillars (e.g., Identity, Device, Network, Data, Applications, Infrastructure)
 - **Functions/Capabilities**: Add specific functions and capabilities for each pillar
-- **Maturity Stages**: Define maturity levels (typically Initial, Advanced, Optimal)
+- **Maturity Stages**: Define maturity levels (typically Traditional, Initial, Advanced, Optimal)
 - **Process/Technology Groups**: Define groupings of related processes and technologies
+  - **Range (Multiple Stages)**: Select when a technology/process evolves through consecutive maturity stages
+    - Example: Identity Platform spanning Traditional → Initial → Advanced → Optimal
+  - **Single Stage**: Select when a technology/process only exists at one maturity level
+    - Example: Manual legacy process that only exists at Traditional stage
+  - Note: All stage progressions must be continuous - there's no logical scenario where something exists at non-consecutive stages
 - **Maturity Stage Implementations**: Define how each group implements specific maturity stages
 - **V2 Assessments**: Configure detailed assessments for each implementation
 
