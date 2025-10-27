@@ -61,7 +61,10 @@ describe('AssessmentComponent', () => {
       'exportData',
       'importData',
       'clearAllData',
-      'resetDatabase'
+      'resetDatabase',
+      'getProcessTechnologyGroups',
+      'getMaturityStageImplementations',
+      'getAssessmentsV2'
     ]);
 
     // Setup default spy returns BEFORE component creation
@@ -73,6 +76,11 @@ describe('AssessmentComponent', () => {
     spy.getTechnologiesProcessesByFunction.and.returnValue(Promise.resolve([...mockTechnologiesProcesses]));
     spy.getAssessmentResponses.and.returnValue(Promise.resolve([...mockAssessmentResponses]));
     spy.saveAssessment.and.returnValue(Promise.resolve());
+
+    // Setup V2 methods
+    spy.getProcessTechnologyGroups.and.returnValue(Promise.resolve([]));
+    spy.getMaturityStageImplementations.and.returnValue(Promise.resolve([]));
+    spy.getAssessmentsV2.and.returnValue(Promise.resolve([]));
 
     // Setup additional spy returns for admin operations
     spy.addPillar.and.returnValue(Promise.resolve());
@@ -181,11 +189,11 @@ describe('AssessmentComponent', () => {
     component.functionCapabilities = mockFunctionCapabilities;
     component.selectedPillarId = 1;
 
-    spyOn(component, 'buildPillarSummary').and.returnValue(Promise.resolve());
+    spyOn(component, 'buildV2PillarSummary').and.returnValue(Promise.resolve());
 
     await component.onPillarChange();
 
-    expect(component.buildPillarSummary).toHaveBeenCalled();
+    expect(component.buildV2PillarSummary).toHaveBeenCalled();
   });
 
   it('should clear summary when no pillar is selected', async () => {

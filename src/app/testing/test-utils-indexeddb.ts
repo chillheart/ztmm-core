@@ -2,7 +2,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { IndexedDBService } from '../services/indexeddb.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../models/ztmm.models';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, ProcessTechnologyGroup, Assessment } from '../models/ztmm.models';
 
 /**
  * Test utilities for ZTMM Assessment application with IndexedDB
@@ -48,12 +48,29 @@ export class TestUtilsIndexedDB {
       { id: 3, tech_process_id: 3, status: 'Fully Implemented', notes: 'Comprehensive identity management in place' }
     ];
 
+    // V2 Model Data
+    const mockProcessTechnologyGroups: ProcessTechnologyGroup[] = [
+      { id: 1, name: 'Multi-factor Authentication', description: 'MFA for access control', type: 'Technology', function_capability_id: 1, order_index: 1 },
+      { id: 2, name: 'Single Sign-On', description: 'SSO implementation', type: 'Technology', function_capability_id: 1, order_index: 2 },
+      { id: 3, name: 'Identity Verification', description: 'Identity verification process', type: 'Process', function_capability_id: 2, order_index: 1 },
+      { id: 4, name: 'Device Compliance', description: 'Device compliance checking', type: 'Technology', function_capability_id: 4, order_index: 1 },
+      { id: 5, name: 'Asset Discovery', description: 'Automated asset discovery', type: 'Process', function_capability_id: 5, order_index: 1 }
+    ];
+
+    const mockAssessmentsV2: Assessment[] = [
+      { id: 1, process_technology_group_id: 1, achieved_maturity_stage_id: 2, target_maturity_stage_id: 3, implementation_status: 'Partially Implemented', notes: 'MFA for admins', last_updated: new Date().toISOString() },
+      { id: 2, process_technology_group_id: 2, achieved_maturity_stage_id: 0, target_maturity_stage_id: 2, implementation_status: 'Not Implemented', notes: 'Planning SSO', last_updated: new Date().toISOString() },
+      { id: 3, process_technology_group_id: 3, achieved_maturity_stage_id: 3, target_maturity_stage_id: null, implementation_status: 'Fully Implemented', notes: 'Complete', last_updated: new Date().toISOString() }
+    ];
+
     return {
       mockPillars,
       mockFunctionCapabilities,
       mockMaturityStages,
       mockTechnologyProcesses,
-      mockAssessmentResponses
+      mockAssessmentResponses,
+      mockProcessTechnologyGroups,
+      mockAssessmentsV2
     };
   }
 
@@ -103,11 +120,11 @@ export class TestUtilsIndexedDB {
       getAssessmentResponses: jasmine.createSpy('getAssessmentResponses').and.returnValue(Promise.resolve(mockData.mockAssessmentResponses)),
 
       // V2 Model operations
-      getProcessTechnologyGroups: jasmine.createSpy('getProcessTechnologyGroups').and.returnValue(Promise.resolve([])),
+      getProcessTechnologyGroups: jasmine.createSpy('getProcessTechnologyGroups').and.returnValue(Promise.resolve(mockData.mockProcessTechnologyGroups)),
       addProcessTechnologyGroup: jasmine.createSpy('addProcessTechnologyGroup').and.returnValue(Promise.resolve()),
       getMaturityStageImplementations: jasmine.createSpy('getMaturityStageImplementations').and.returnValue(Promise.resolve([])),
       addMaturityStageImplementation: jasmine.createSpy('addMaturityStageImplementation').and.returnValue(Promise.resolve()),
-      getAssessmentsV2: jasmine.createSpy('getAssessmentsV2').and.returnValue(Promise.resolve([])),
+      getAssessmentsV2: jasmine.createSpy('getAssessmentsV2').and.returnValue(Promise.resolve(mockData.mockAssessmentsV2)),
       addAssessmentV2: jasmine.createSpy('addAssessmentV2').and.returnValue(Promise.resolve()),
       getStageImplementationDetails: jasmine.createSpy('getStageImplementationDetails').and.returnValue(Promise.resolve([])),
       addStageImplementationDetail: jasmine.createSpy('addStageImplementationDetail').and.returnValue(Promise.resolve()),
@@ -335,6 +352,16 @@ export class TestUtilsIndexedDB {
     }
     if (spy.saveAssessment) {
       spy.saveAssessment.and.returnValue(Promise.resolve());
+    }
+    // V2 method defaults
+    if (spy.getProcessTechnologyGroups) {
+      spy.getProcessTechnologyGroups.and.returnValue(Promise.resolve(mockData.mockProcessTechnologyGroups));
+    }
+    if (spy.getMaturityStageImplementations) {
+      spy.getMaturityStageImplementations.and.returnValue(Promise.resolve([]));
+    }
+    if (spy.getAssessmentsV2) {
+      spy.getAssessmentsV2.and.returnValue(Promise.resolve(mockData.mockAssessmentsV2));
     }
 
     return spy;

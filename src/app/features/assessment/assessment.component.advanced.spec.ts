@@ -23,7 +23,9 @@ describe('AssessmentComponent - Advanced Tests', () => {
       'getAllTechnologiesProcesses',
       'getTechnologiesProcessesByFunction',
       'getAssessmentResponses',
-      'saveAssessment'
+      'saveAssessment',
+      'getProcessTechnologyGroups',
+      'getAssessmentsV2'
     ]);
 
     await TestBed.configureTestingModule({

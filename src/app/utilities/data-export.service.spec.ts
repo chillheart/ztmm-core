@@ -333,7 +333,7 @@ describe('DataExportService', () => {
         assessmentResponses: 1,
         processTechnologyGroups: 1,
         maturityStageImplementations: 0,
-        assessments: 0,
+        assessments: 3, // TestUtilsIndexedDB now provides 3 mock assessments
         stageImplementationDetails: 0
       });
     });
@@ -371,11 +371,16 @@ describe('DataExportService', () => {
       mockDataService.getMaturityStages.and.returnValue(Promise.resolve([]));
       mockDataService.getTechnologiesProcesses.and.returnValue(Promise.resolve([]));
       mockDataService.getAssessmentResponses.and.returnValue(Promise.resolve([]));
+      // Override V2 data to be empty as well
+      mockDataService.getProcessTechnologyGroups.and.returnValue(Promise.resolve([]));
+      mockDataService.getMaturityStageImplementations.and.returnValue(Promise.resolve([]));
+      mockDataService.getAssessmentsV2.and.returnValue(Promise.resolve([]));
+      mockDataService.getStageImplementationDetails.and.returnValue(Promise.resolve([]));
 
       const stats = await service.getDataStatistics();
 
       expect(stats).toEqual({
-        version: '1.0.0',
+        version: '2.0.0', // Updated to V2 format
         pillars: 0,
         functionCapabilities: 0,
         maturityStages: 0,

@@ -314,9 +314,9 @@ export class DataExportService {
         this.dataService.getStageImplementationDetails()
       ]);
 
-      // Determine active version based on data
-      const hasV2Data = processTechnologyGroups.length > 0;
-      const version: DataFormatVersion = hasV2Data ? '2.0.0' : '1.0.0';
+      // Version is always 2.0.0 since V1 is deprecated (operational code removed in Phase 6)
+      // V1 data can still be imported but the active model is always V2
+      const version: DataFormatVersion = '2.0.0';
 
       return {
         version,

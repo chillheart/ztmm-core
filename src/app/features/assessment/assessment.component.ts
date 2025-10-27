@@ -117,6 +117,9 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.pillarSummary = [];
       this.overallPillarProgress = [];
       this.v2OverallProgress = [];
+      this.processTechnologyGroups = [];
+      this.stageImplementations = [];
+      this.v2Assessments = [];
       this.selectedPillarId = null;
       this.selectedFunctionCapabilityId = null;
       this.showOverallSummary = true;
@@ -142,6 +145,31 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('❌ Error loading maturity stages:', error);
       this.maturityStages = [];
+    }
+
+    // Load V2 data structures
+    try {
+      this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
+      console.log(`Loaded ${this.processTechnologyGroups.length} V2 process/technology groups`);
+    } catch (error) {
+      console.error('❌ Error loading V2 process/technology groups:', error);
+      this.processTechnologyGroups = [];
+    }
+
+    try {
+      this.stageImplementations = await this.data.getMaturityStageImplementations();
+      console.log(`Loaded ${this.stageImplementations.length} V2 maturity stage implementations`);
+    } catch (error) {
+      console.error('❌ Error loading V2 stage implementations:', error);
+      this.stageImplementations = [];
+    }
+
+    try {
+      this.v2Assessments = await this.data.getAssessmentsV2();
+      console.log(`Loaded ${this.v2Assessments.length} V2 assessments`);
+    } catch (error) {
+      console.error('❌ Error loading V2 assessments:', error);
+      this.v2Assessments = [];
     }
 
     try {
