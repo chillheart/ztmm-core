@@ -84,13 +84,13 @@
                 <input type="radio" class="btn-check" name="selectionMode" id="modeRange"
                        [(ngModel)]="stageSelectionMode" value="range" (change)="onStageSelectionModeChange()">
                 <label class="btn btn-outline-secondary btn-sm" for="modeRange">
-                  <i class="bi bi-arrow-left-right"></i> Range
+                  <i class="bi bi-arrow-left-right"></i> Range (Multiple Stages)
                 </label>
 
                 <input type="radio" class="btn-check" name="selectionMode" id="modeIndividual"
                        [(ngModel)]="stageSelectionMode" value="individual" (change)="onStageSelectionModeChange()">
                 <label class="btn btn-outline-secondary btn-sm" for="modeIndividual">
-                  <i class="bi bi-check2-square"></i> Individual
+                  <i class="bi bi-1-circle"></i> Single Stage
                 </label>
               </div>
 
@@ -122,10 +122,12 @@
               <div *ngIf="stageSelectionMode === 'individual'" class="mb-3">
                 <div class="d-flex flex-wrap gap-2">
                   <div *ngFor="let stage of sortedMaturityStages" class="form-check">
-                    <input class="form-check-input" type="checkbox"
+                    <input class="form-check-input" type="radio"
+                           name="singleStageSelection"
                            [id]="'stage-' + stage.id"
+                           [value]="stage.id"
                            [checked]="isStageSelected(stage.id)"
-                           (change)="toggleStageSelection(stage.id)">
+                           (change)="selectSingleStage(stage.id)">
                     <label class="form-check-label small" [for]="'stage-' + stage.id">
                       {{ stage.name }}
                     </label>
@@ -135,7 +137,7 @@
 
               <!-- Selected Stages Display -->
               <div *ngIf="selectedMaturityStageIds.length > 0" class="alert alert-info small py-2">
-                <strong>Selected stages:</strong>
+                <strong>Selected {{ selectedMaturityStageIds.length === 1 ? 'stage' : 'stages' }}:</strong>
                 <span *ngFor="let stageId of selectedMaturityStageIds; let last = last">
                   {{ getMaturityStageName(stageId) }}<span *ngIf="!last">, </span>
                 </span>

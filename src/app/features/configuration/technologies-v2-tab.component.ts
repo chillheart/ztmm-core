@@ -86,6 +86,11 @@ export class TechnologiesV2TabComponent {
     this.selectedMaturityStageIds.sort((a, b) => a - b);
   }
 
+  selectSingleStage(stageId: number): void {
+    // For single stage selection (radio button), only one stage can be selected
+    this.selectedMaturityStageIds = [stageId];
+  }
+
   onStageSelectionModeChange(): void {
     this.selectedMaturityStageIds = [];
     this.rangeStartStageId = null;
