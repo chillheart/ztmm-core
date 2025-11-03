@@ -3,7 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
-import { Pillar, FunctionCapability, TechnologyProcess, MaturityStage, AssessmentResponse } from '../../models/ztmm.models';
+import {
+  Pillar,
+  FunctionCapability,
+  TechnologyProcess,
+  MaturityStage,
+  AssessmentResponse,
+  ProcessTechnologyGroup,
+  MaturityStageImplementation,
+  Assessment,
+  StageImplementationDetail
+} from '../../models/ztmm.models';
 
 // Import new components and services
 import { PillarOverviewComponent } from './components/pillar-overview.component';
@@ -56,12 +66,18 @@ import { CsvExportService } from './services/csv-export.service';
   ]
 })
 export class ReportsComponent implements OnInit {
-  // Data
+  // V1 Data - kept for import/migration support only
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
   assessmentResponses: AssessmentResponse[] = [];
+
+  // V2 Data (now the default and only UI model)
+  processTechnologyGroups: ProcessTechnologyGroup[] = [];
+  maturityStageImplementations: MaturityStageImplementation[] = [];
+  assessmentsV2: Assessment[] = [];
+  stageImplementationDetails: StageImplementationDetail[] = [];
 
   // UI State
   currentView: ViewLevel = 'pillar-overview';
@@ -92,11 +108,22 @@ export class ReportsComponent implements OnInit {
 
   async loadAll() {
     try {
+      // Load common data
       this.pillars = await this.data.getPillars();
       this.functionCapabilities = await this.data.getFunctionCapabilities();
       this.maturityStages = await this.data.getMaturityStages();
+
+      // Load V1 data (for backwards compatibility checks only)
       this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
       this.assessmentResponses = await this.data.getAssessmentResponses();
+
+      // Load V2 data (primary data model)
+      this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
+      this.maturityStageImplementations = await this.data.getMaturityStageImplementations();
+      this.assessmentsV2 = await this.data.getAssessmentsV2();
+      this.stageImplementationDetails = await this.data.getStageImplementationDetails();
+
+      console.log(`Reports loaded: ${this.processTechnologyGroups.length} groups, ${this.assessmentsV2.length} assessments, ${this.stageImplementationDetails.length} stage details`);
 
       this.buildPillarSummaries();
     } catch (error) {
@@ -105,12 +132,15 @@ export class ReportsComponent implements OnInit {
   }
 
   buildPillarSummaries() {
-    this.pillarSummaries = this.reportDataService.buildPillarSummaries(
+    // Always use V2 data model
+    this.pillarSummaries = this.reportDataService.buildV2PillarSummaries(
       this.pillars,
       this.functionCapabilities,
       this.maturityStages,
-      this.technologiesProcesses,
-      this.assessmentResponses
+      this.processTechnologyGroups,
+      this.maturityStageImplementations,
+      this.assessmentsV2,
+      this.stageImplementationDetails
     );
   }
 
@@ -142,12 +172,15 @@ export class ReportsComponent implements OnInit {
   loadFunctionDetails() {
     if (!this.selectedFunctionSummary) return;
 
-    this.selectedFunctionDetails = this.reportDataService.buildFunctionDetails(
+    // Always use V2 data model with stage implementation details
+    this.selectedFunctionDetails = this.reportDataService.buildV2FunctionDetails(
       this.selectedFunctionSummary,
       this.pillars,
       this.maturityStages,
-      this.technologiesProcesses,
-      this.assessmentResponses
+      this.processTechnologyGroups,
+      this.maturityStageImplementations,
+      this.assessmentsV2,
+      this.stageImplementationDetails
     );
   }
 
@@ -195,13 +228,17 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          const details = this.reportDataService.buildFunctionDetails(
+          // Always use V2 data model with stage implementation details
+          const details = this.reportDataService.buildV2FunctionDetails(
             functionSummary,
             this.pillars,
             this.maturityStages,
-            this.technologiesProcesses,
-            this.assessmentResponses
+            this.processTechnologyGroups,
+            this.maturityStageImplementations,
+            this.assessmentsV2,
+            this.stageImplementationDetails
           );
+
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
         }
       }
@@ -229,13 +266,17 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          const details = this.reportDataService.buildFunctionDetails(
+          // Always use V2 data model with stage implementation details
+          const details = this.reportDataService.buildV2FunctionDetails(
             functionSummary,
             this.pillars,
             this.maturityStages,
-            this.technologiesProcesses,
-            this.assessmentResponses
+            this.processTechnologyGroups,
+            this.maturityStageImplementations,
+            this.assessmentsV2,
+            this.stageImplementationDetails
           );
+
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
         }
       }

@@ -66,7 +66,7 @@
               </div>
 
               <!-- Sequential Maturity Blocking Warning -->
-              <div *ngIf="!breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages && breakdown.blockedByPreviousStages.length > 0"
+              <div *ngIf="breakdown.status === 'completed' && !breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages && breakdown.blockedByPreviousStages.length > 0"
                    class="mt-2 p-2 border border-warning rounded bg-light">
                 <div class="d-flex align-items-start">
                   <i class="bi bi-lock-fill text-warning me-2 mt-1" style="font-size: 0.8rem;"></i>

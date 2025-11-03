@@ -1,177 +1,107 @@
-<!-- Assessment Overview Container -->
-<div *ngIf="technologiesProcesses.length > 0">
-  <!-- Currently Assessing Header -->
-  <div class="row justify-content-center mb-4">
-    <div class="col-lg-10">
-      <div class="card border-success shadow-sm current-assessment-header">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <div class="d-flex align-items-center">
-                <div class="text-success me-3">
-                  <i class="bi bi-clipboard-check-fill" style="font-size: 2rem;"></i>
-                </div>
-                <div>
-                  <h5 class="mb-1 text-success">Currently Assessing</h5>
-                  <h4 class="mb-1 text-dark">{{ selectedFunctionCapabilityName }}</h4>
-                  <span class="badge bg-success">{{ selectedFunctionCapabilityType }}</span>
-                </div>
+<div class="assessment-overview-container">
+  <!-- Header -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <!-- Back Button -->
+          <button type="button" class="btn btn-sm btn-outline-light" (click)="onBackToPillarSummary()">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <div>
+            <h5 class="mb-0">
+              <i class="bi bi-list-check"></i>
+              {{ selectedFunctionCapabilityType }}: {{ selectedFunctionCapabilityName }}
+            </h5>
+            <small class="text-white-50">Multi-Stage Assessment</small>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <!-- Progress Badge -->
+          <div class="badge bg-light text-dark fs-6">
+            <i class="bi bi-graph-up"></i>
+            {{ getCurrentProgress() }}% Complete
+          </div>
+          <!-- Auto-save Indicator -->
+          <span *ngIf="isAutoSaving" class="text-white-50">
+            <i class="bi bi-cloud-upload spinning"></i>
+            Saving...
+          </span>
+          <span *ngIf="showSuccess" class="text-success">
+            <i class="bi bi-check-circle-fill"></i>
+            Saved
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <!-- Summary Stats -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-collection fs-4 text-primary me-2"></i>
+            <div>
+              <div class="text-muted small">Total Items</div>
+              <div class="fw-bold">{{ processTechnologyGroups.length }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-check-circle fs-4 text-success me-2"></i>
+            <div>
+              <div class="text-muted small">Assessed</div>
+              <div class="fw-bold">
+                {{ getAssessedCount() }}
               </div>
             </div>
-            <div class="col-md-4 text-end">
-              <div class="assessment-progress">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <div class="text-muted small">Overall Progress</div>
-                </div>
-                <div class="progress mb-2" style="height: 24px;">
-                  <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
-                       [style.width.%]="getCurrentProgress()"
-                       role="progressbar">
-                    <strong>{{ getCurrentProgress() }}%</strong>
-                  </div>
-                </div>
-                <small class="text-muted">{{ technologiesProcesses.length }} items to assess</small>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-hourglass-split fs-4 text-warning me-2"></i>
+            <div>
+              <div class="text-muted small">In Progress</div>
+              <div class="fw-bold">
+                {{ getInProgressCount() }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-circle fs-4 text-secondary me-2"></i>
+            <div>
+              <div class="text-muted small">Not Started</div>
+              <div class="fw-bold">
+                {{ getNotStartedCount() }}
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Pagination Header -->
-  <div class="row justify-content-center" *ngIf="totalPages > 1">
-    <div class="col-lg-10">
-      <app-pagination
-        [currentPage]="currentPage"
-        [totalPages]="totalPages"
-        [itemsPerPage]="itemsPerPage"
-        [totalItems]="technologiesProcesses.length"
-        [showSaveButton]="true"
-        [availableStages]="availableStages"
-        [currentStageName]="currentStageName"
-        [currentStageItemCount]="currentStageItemCount"
-        (pageChange)="onPageChange($event)"
-        (previousPage)="onPreviousPage()"
-        (nextPage)="onNextPage()"
-        (saveCurrentPage)="onSaveCurrentPage()">
-      </app-pagination>
-    </div>
-  </div>
 
   <!-- Assessment Items -->
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      <form (ngSubmit)="onSaveAll()">
-        <!-- Show current stage only (stage-based pagination) -->
-        <div *ngIf="shouldShowCurrentStage(); else flatView">
-          <div class="maturity-stage-group mb-4">
-            <!-- Stage Header -->
-            <div class="card mb-3">
-              <div class="card-header d-flex align-items-center justify-content-between" [class]="getStageColorClass(currentStageName)">
-                <h5 class="mb-0 text-white">
-                  <i class="bi bi-ladder me-2"></i>
-                  {{ currentStageName }} Maturity Stage
-                </h5>
-                <span class="badge bg-light text-dark">
-                  {{ currentStageItemCount }} items
-                </span>
-              </div>
-            </div>
-
-            <!-- All Items for current stage -->
-            <div *ngFor="let tp of getCurrentStageItems(); let i = index">
-              <app-assessment-item
-                [technologyProcess]="tp"
-                [itemNumber]="getItemNumber(tp)"
-                [status]="getStatusForItem(tp)"
-                [notes]="getNotesForItem(tp)"
-                [statusOptions]="statusOptions"
-                [functionCapabilities]="functionCapabilities"
-                [maturityStages]="maturityStages"
-                [isAutoSaving]="isAutoSaving"
-                [showDescription]="showTechnologyDescriptions"
-                (statusChange)="onStatusChangeForItem(tp, $event)"
-                (notesChange)="onNotesChangeForItem(tp, $event)">
-              </app-assessment-item>
-            </div>
-          </div>
-        </div>
-
-        <!-- Fallback flat view for traditional pagination -->
-        <ng-template #flatView>
-          <div *ngFor="let tp of paginatedTechnologiesProcesses; let i = index">
-            <app-assessment-item
-              [technologyProcess]="tp"
-              [itemNumber]="getGlobalItemIndex(i) + 1"
-              [status]="assessmentStatuses[getGlobalItemIndex(i)]"
-              [notes]="assessmentNotes[getGlobalItemIndex(i)] || ''"
-              [statusOptions]="statusOptions"
-              [functionCapabilities]="functionCapabilities"
-              [maturityStages]="maturityStages"
-              [isAutoSaving]="isAutoSaving"
-              [showDescription]="showTechnologyDescriptions"
-              (statusChange)="onStatusChange(i, $event)"
-              (notesChange)="onNotesChange(i, $event)">
-            </app-assessment-item>
-          </div>
-        </ng-template>
-
-        <!-- Bottom Pagination Navigation -->
-        <div *ngIf="totalPages > 1">
-          <app-pagination
-            [currentPage]="currentPage"
-            [totalPages]="totalPages"
-            [itemsPerPage]="itemsPerPage"
-            [totalItems]="technologiesProcesses.length"
-            [showSaveButton]="false"
-            [availableStages]="availableStages"
-            [currentStageName]="currentStageName"
-            [currentStageItemCount]="currentStageItemCount"
-            (pageChange)="onPageChange($event)"
-            (previousPage)="onPreviousPage()"
-            (nextPage)="onNextPage()">
-          </app-pagination>
-        </div>
-
-        <!-- Auto-save Status -->
-        <div class="text-center mt-4">
-          <div class="auto-save-status">
-            <small class="text-muted">
-              <i class="bi bi-shield-check text-success"></i>
-              Auto-save enabled - Your progress is automatically saved as you work
-            </small>
-            <div *ngIf="isAutoSaving" class="mt-2">
-              <small class="text-info">
-                <i class="bi bi-arrow-clockwise spin"></i> Saving...
-              </small>
-            </div>
-          </div>
-        </div>
-      </form>
+  <div class="assessment-items p-3">
+    <div *ngIf="processTechnologyGroups.length === 0" class="alert alert-info">
+      <i class="bi bi-info-circle"></i>
+      No process/technology groups found for this function/capability.
     </div>
-  </div>
-</div>
 
-<!-- Message when no technologies/processes exist -->
-<div *ngIf="technologiesProcesses.length === 0" class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="alert alert-info text-center">
-      <i class="bi bi-info-circle fs-2 mb-3"></i>
-      <h5>No Technologies or Processes Found</h5>
-      <p class="mb-3">No technologies or processes have been defined for this function/capability yet.</p>
-      <a routerLink="/configuration" class="btn btn-outline-primary">
-        <i class="bi bi-gear"></i> Configure Technologies & Processes
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- Auto-save success message -->
-<div *ngIf="showSuccess" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-  <div class="toast show" role="alert">
-    <div class="toast-body bg-success text-white rounded">
-      <i class="bi bi-check-circle me-2"></i> Assessment auto-saved successfully!
+    <div *ngFor="let group of processTechnologyGroups; let i = index" class="mb-3">
+      <app-assessment-item
+        [group]="group"
+        [itemNumber]="i + 1"
+        [assessment]="getAssessment(group.id)"
+        [stageImplementations]="getStageImplementations(group.id)"
+        [stageImplementationDetails]="getStageDetails(group.id)"
+        [functionCapabilities]="functionCapabilities"
+        [maturityStages]="maturityStages"
+        [statusOptions]="statusOptions"
+        (assessmentChange)="onAssessmentUpdate(group.id, $event)">
+      </app-assessment-item>
     </div>
   </div>
 </div>

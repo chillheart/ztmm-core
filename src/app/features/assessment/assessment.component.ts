@@ -1,14 +1,17 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { trigger, style, transition, animate, query, stagger } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse } from '../../models/ztmm.models';
+import { ProcessService } from '../../services/process.service';
+import { TechnologyService } from '../../services/technology.service';
+import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, ProcessTechnologyGroup, MaturityStageImplementation, Assessment, StageImplementationDetail, StageImplementationStatus } from '../../models/ztmm.models';
 import { AssessmentStatus } from '../../models/ztmm.models';
 import { OverallProgressSummaryComponent, OverallPillarProgress } from './overall-progress-summary.component';
 import { PillarSummaryComponent, PillarSummary } from './pillar-summary.component';
 import { AssessmentOverviewComponent } from './assessment-overview.component';
+import { AssessmentUpdate } from './assessment-item.component';
 
 @Component({
   selector: 'app-assessment',
@@ -45,14 +48,22 @@ import { AssessmentOverviewComponent } from './assessment-overview.component';
     ])
   ]
 })
-export class AssessmentComponent implements OnInit, OnDestroy {
+export class AssessmentComponent implements OnInit {
   pillars: Pillar[] = [];
   functionCapabilities: FunctionCapability[] = [];
   maturityStages: MaturityStage[] = [];
-  technologiesProcesses: TechnologyProcess[] = [];
+  technologiesProcesses: TechnologyProcess[] = []; // Legacy - kept for shared components
   assessmentResponses: AssessmentResponse[] = [];
   pillarSummary: PillarSummary[] = [];
   overallPillarProgress: OverallPillarProgress[] = [];
+
+  // Model properties (current implementation)
+  allProcessTechnologyGroups: ProcessTechnologyGroup[] = []; // Store all groups
+  processTechnologyGroups: ProcessTechnologyGroup[] = []; // Filtered groups for current function
+  stageImplementations: MaturityStageImplementation[] = [];
+  assessments: Assessment[] = [];
+  stageImplementationDetails: StageImplementationDetail[] = []; // Individual stage selections
+  overallProgress: OverallPillarProgress[] = [];
 
   selectedPillarId: number | null = null;
   selectedFunctionCapabilityId: number | null = null;
@@ -63,10 +74,10 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   statusOptions: AssessmentStatus[] = ['Not Implemented', 'Partially Implemented', 'Fully Implemented', 'Superseded'];
   showSuccess = false;
 
-  // Pagination properties - now stage-based
-  currentPage = 1; // 1=Traditional, 2=Initial, 3=Advanced, 4=Optimal
-  itemsPerPage = 5; // Not used in stage-based pagination
-  totalPages = 0; // Will be set to number of available stages
+  // Pagination properties - legacy, kept for potential shared components
+  currentPage = 1;
+  itemsPerPage = 5;
+  totalPages = 0;
   paginatedTechnologiesProcesses: TechnologyProcess[] = [];
 
   // Maturity stage pagination properties
@@ -75,10 +86,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   availableStages: string[] = [];
   currentStageName = '';
 
-  // Auto-save properties
-  private autoSaveTimeout: number | null = null;
-  private readonly autoSaveDelay = 300; // 300ms debounce delay
-  private activeSaves = new Set<number>(); // Track active saves by index
+  // Auto-save indicator
   isAutoSaving = false;
 
   // Display options
@@ -87,7 +95,11 @@ export class AssessmentComponent implements OnInit, OnDestroy {
   // Make Math available to template
   Math = Math;
 
-  constructor(private data: IndexedDBService) {
+  constructor(
+    private data: IndexedDBService,
+    private processService: ProcessService,
+    private technologyService: TechnologyService
+  ) {
     // Constructor should only set up dependencies, not call async methods
   }
 
@@ -103,6 +115,10 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.assessmentNotes = [];
       this.pillarSummary = [];
       this.overallPillarProgress = [];
+      this.overallProgress = [];
+      this.processTechnologyGroups = [];
+      this.stageImplementations = [];
+      this.assessments = [];
       this.selectedPillarId = null;
       this.selectedFunctionCapabilityId = null;
       this.showOverallSummary = true;
@@ -130,6 +146,41 @@ export class AssessmentComponent implements OnInit, OnDestroy {
       this.maturityStages = [];
     }
 
+    // Load data structures
+    try {
+      this.allProcessTechnologyGroups = await this.data.getProcessTechnologyGroups();
+      this.processTechnologyGroups = [...this.allProcessTechnologyGroups]; // Copy for filtering
+      console.log(`Loaded ${this.allProcessTechnologyGroups.length} process/technology groups`);
+    } catch (error) {
+      console.error('❌ Error loading process/technology groups:', error);
+      this.allProcessTechnologyGroups = [];
+      this.processTechnologyGroups = [];
+    }
+
+    try {
+      this.stageImplementations = await this.data.getMaturityStageImplementations();
+      console.log(`Loaded ${this.stageImplementations.length} maturity stage implementations`);
+    } catch (error) {
+      console.error('❌ Error loading stage implementations:', error);
+      this.stageImplementations = [];
+    }
+
+    try {
+      this.assessments = await this.data.getAssessmentsV2();
+      console.log(`Loaded ${this.assessments.length} assessments`);
+    } catch (error) {
+      console.error('❌ Error loading assessments:', error);
+      this.assessments = [];
+    }
+
+    try {
+      this.stageImplementationDetails = await this.data.getStageImplementationDetails();
+      console.log(`Loaded ${this.stageImplementationDetails.length} stage implementation details`);
+    } catch (error) {
+      console.error('❌ Error loading stage implementation details:', error);
+      this.stageImplementationDetails = [];
+    }
+
     try {
       this.assessmentResponses = await this.data.getAssessmentResponses();
       console.log(`Loaded ${this.assessmentResponses.length} assessment responses during initialization`);
@@ -140,7 +191,79 @@ export class AssessmentComponent implements OnInit, OnDestroy {
 
     // Build overall progress summary after loading all data
     if (this.pillars.length > 0 && this.functionCapabilities.length > 0) {
-      await this.buildOverallPillarProgress();
+      await this.buildOverallProgress();
+      console.log('📊 Overall Progress built:', this.overallProgress);
+      console.log('🎯 showOverallSummary:', this.showOverallSummary);
+    }
+  }
+
+  // Model: Load data structures
+  async loadData(resetUIState = true): Promise<void> {
+    if (resetUIState) {
+      this.processTechnologyGroups = [];
+      this.stageImplementations = [];
+      this.assessments = [];
+      this.overallProgress = [];
+      this.selectedPillarId = null;
+      this.selectedFunctionCapabilityId = null;
+      this.showOverallSummary = true;
+    }
+
+    // Load pillars, function capabilities (shared with V1)
+    try {
+      this.pillars = await this.data.getPillars();
+    } catch (error) {
+      console.error('❌ Error loading pillars:', error);
+      this.pillars = [];
+    }
+
+    try {
+      this.functionCapabilities = await this.data.getFunctionCapabilities();
+    } catch (error) {
+      console.error('❌ Error loading function capabilities:', error);
+      this.functionCapabilities = [];
+    }
+
+    // Load specific data
+    try {
+      this.allProcessTechnologyGroups = await this.data.getProcessTechnologyGroups();
+      this.processTechnologyGroups = [...this.allProcessTechnologyGroups]; // Copy for initial display
+      console.log(`Loaded ${this.allProcessTechnologyGroups.length} process/technology groups`);
+    } catch (error) {
+      console.error('❌ Error loading process/technology groups:', error);
+      this.allProcessTechnologyGroups = [];
+      this.processTechnologyGroups = [];
+    }
+
+    try {
+      this.stageImplementations = await this.data.getMaturityStageImplementations();
+      console.log(`Loaded ${this.stageImplementations.length} maturity stage implementations`);
+    } catch (error) {
+      console.error('❌ Error loading stage implementations:', error);
+      this.stageImplementations = [];
+    }
+
+    try {
+      this.assessments = await this.data.getAssessmentsV2();
+      console.log(`Loaded ${this.assessments.length} assessments`);
+    } catch (error) {
+      console.error('❌ Error loading assessments:', error);
+      this.assessments = [];
+    }
+
+    try {
+      this.stageImplementationDetails = await this.data.getStageImplementationDetails();
+      console.log(`Loaded ${this.stageImplementationDetails.length} stage implementation details`);
+    } catch (error) {
+      console.error('❌ Error loading stage implementation details:', error);
+      this.stageImplementationDetails = [];
+    }
+
+    // Build overall progress
+    if (this.pillars.length > 0 && this.functionCapabilities.length > 0) {
+      await this.buildOverallProgress();
+      console.log('📊 Overall Progress built:', this.overallProgress);
+      console.log('🎯 showOverallSummary:', this.showOverallSummary);
     }
   }
 
@@ -173,9 +296,17 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     this.assessmentNotes = [];
   }
 
-  // Build overall progress summary for all pillars
+  // Method to go back to pillar summary (from assessment overview)
+  goBackToPillarSummary(): void {
+    this.selectedFunctionCapabilityId = null;
+    this.processTechnologyGroups = [];
+    this.stageImplementations = [];
+    this.assessments = [];
+  }
+
+  // Build overall progress summary for all pillars (V2)
   async buildOverallPillarProgress(): Promise<void> {
-    this.overallPillarProgress = [];
+    this.overallProgress = [];
 
     try {
       for (const pillar of this.pillars) {
@@ -214,51 +345,246 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Model: Build overall progress summary using data structures
+  async buildOverallProgress(): Promise<void> {
+    this.overallProgress = [];
+
+    try {
+      for (const pillar of this.pillars) {
+        const pillarFunctions = this.functionCapabilities.filter(fc => fc.pillar_id === pillar.id);
+        let totalItems = 0;
+        let completedItems = 0; // Items with achieved stage > 0
+
+        for (const func of pillarFunctions) {
+          try {
+            // Get all groups for this function
+            const groupsInFunction = this.allProcessTechnologyGroups.filter(
+              ptg => ptg.function_capability_id === func.id
+            );
+            totalItems += groupsInFunction.length;
+
+            // Count progress based on assessments
+            for (const group of groupsInFunction) {
+              const assessment = this.assessments.find(a => a.process_technology_group_id === group.id);
+              if (assessment) {
+                // Count as "completed" if any achieved stage
+                if (assessment.achieved_maturity_stage_id && assessment.achieved_maturity_stage_id > 0) {
+                  completedItems++;
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error loading groups for function', func.id, ':', error);
+          }
+        }
+
+        // Calculate progress based on achieved stages (not just fully implemented)
+        const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+        this.overallProgress.push({
+          pillar,
+          totalItems,
+          completedItems,
+          progressPercentage,
+          functionCount: pillarFunctions.length
+        });
+      }
+    } catch (error) {
+      console.error('Error building overall progress:', error);
+    }
+  }
+
+  // Load data for selected function capability
   async onFunctionCapabilityChange() {
     if (this.selectedFunctionCapabilityId) {
-      // Use specialized method for loading technologies/processes by function capability
-      this.technologiesProcesses = await this.data.getTechnologiesProcessesByFunction(this.selectedFunctionCapabilityId);
+      // Load process/technology groups for this function
+      const groupsForFunction = this.allProcessTechnologyGroups.filter(
+        ptg => ptg.function_capability_id === this.selectedFunctionCapabilityId
+      );
 
-      // Ensure we have the latest assessment responses before populating the arrays
-      this.assessmentResponses = await this.data.getAssessmentResponses();
+      // Store filtered groups
+      this.processTechnologyGroups = groupsForFunction;
 
-      this.assessmentStatuses = Array(this.technologiesProcesses.length).fill(null);
-      this.assessmentNotes = Array(this.technologiesProcesses.length).fill('');
+      // Load stage implementations for these groups
+      const groupIds = groupsForFunction.map(g => g.id);
+      this.stageImplementations = (await this.data.getMaturityStageImplementations())
+        .filter(si => groupIds.includes(si.process_technology_group_id));
 
-      // Load existing assessment data if available
-      console.log(`Loading existing responses for ${this.technologiesProcesses.length} technologies/processes`);
-      let loadedResponsesCount = 0;
+      // Load assessments for these groups
+      this.assessments = (await this.data.getAssessmentsV2())
+        .filter(a => groupIds.includes(a.process_technology_group_id));
 
-      for (let i = 0; i < this.technologiesProcesses.length; i++) {
-        const tp = this.technologiesProcesses[i];
-        const existingAssessment = this.assessmentResponses.find(ar => ar.tech_process_id === tp.id);
-        if (existingAssessment) {
-          this.assessmentStatuses[i] = existingAssessment.status;
-          this.assessmentNotes[i] = existingAssessment.notes || '';
-          loadedResponsesCount++;
-          console.log(`Loaded existing response for ${tp.name}: status="${existingAssessment.status}" (type: ${typeof existingAssessment.status}), notes="${existingAssessment.notes}"`);
+      // Load stage implementation details for these assessments
+      const assessmentIds = this.assessments.map(a => a.id);
+      this.stageImplementationDetails = (await this.data.getStageImplementationDetails())
+        .filter(d => assessmentIds.includes(d.assessment_id));
+
+      console.log(`Loaded ${groupsForFunction.length} groups, ${this.stageImplementations.length} stage implementations, ${this.assessments.length} assessments, ${this.stageImplementationDetails.length} stage details`);
+    } else {
+      // Reset
+      this.processTechnologyGroups = [];
+      this.stageImplementations = [];
+      this.assessments = [];
+      this.stageImplementationDetails = [];
+    }
+  }
+
+  // Model: Handle assessment update from child component
+  async onAssessmentUpdate(event: {groupId: number, update: AssessmentUpdate}) {
+    console.log('V2 Assessment update:', event);
+
+    // Show saving indicator
+    this.isAutoSaving = true;
+
+    // Find or create assessment
+    let assessment = this.assessments.find(a => a.process_technology_group_id === event.groupId);
+
+    if (assessment) {
+      // Update existing
+      assessment.achieved_maturity_stage_id = event.update.achieved_maturity_stage_id;
+      assessment.target_maturity_stage_id = event.update.target_maturity_stage_id;
+      assessment.implementation_status = event.update.implementation_status;
+      assessment.notes = event.update.notes;
+      assessment.last_updated = new Date().toISOString();
+    } else {
+      // Create new
+      assessment = {
+        id: Date.now(), // Temporary ID
+        process_technology_group_id: event.groupId,
+        achieved_maturity_stage_id: event.update.achieved_maturity_stage_id,
+        target_maturity_stage_id: event.update.target_maturity_stage_id,
+        implementation_status: event.update.implementation_status,
+        notes: event.update.notes,
+        last_updated: new Date().toISOString()
+      };
+      this.assessments.push(assessment);
+    }
+
+    // Save to database immediately
+    try {
+      if (assessment.id && assessment.id > 1000000000000) {
+        // Has a real ID (not temporary), update
+        await this.data.updateAssessment(assessment);
+      } else {
+        // New assessment, add it
+        const newId = await this.data.addAssessment(assessment);
+        assessment.id = newId;
+        // Update in array
+        const index = this.assessments.findIndex(a => a.process_technology_group_id === event.groupId);
+        if (index >= 0) {
+          this.assessments[index] = assessment;
         }
       }
 
-      console.log(`Loaded ${loadedResponsesCount} existing assessment responses out of ${this.technologiesProcesses.length} items`);
+      // Save individual stage implementation details
+      await this.saveStageDetails(assessment.id, event.update.stageDetails);
 
-      // Group technologies/processes by maturity stage
-      this.groupTechnologiesProcessesByStage();
+      console.log('V2 assessment saved successfully');
 
-      // Reset pagination to first page and update pagination
-      this.currentPage = 1;
-      this.updatePagination();
-    } else {
-      this.technologiesProcesses = [];
-      this.assessmentStatuses = [];
-      this.assessmentNotes = [];
-      this.paginatedTechnologiesProcesses = [];
-      this.technologiesProcessesByStage = {};
-      this.availableStages = [];
-      this.totalPages = 0;
-      this.currentPage = 1;
+      // Hide saving indicator and show success
+      this.isAutoSaving = false;
+      this.showSuccess = true;
+      setTimeout(() => {
+        this.showSuccess = false;
+      }, 1500);
+
+      // Rebuild progress in background
+      await this.buildOverallProgress();
+    } catch (error) {
+      console.error('Error saving assessment:', error);
+      this.isAutoSaving = false;
+      // Could show error indicator here
     }
   }
+
+  // Save individual stage implementation details
+  private async saveStageDetails(assessmentId: number, stageDetails: Map<number, AssessmentStatus | null>): Promise<void> {
+    try {
+      // Get existing stage details for this assessment
+      const existingDetails = this.stageImplementationDetails.filter(d => d.assessment_id === assessmentId);
+
+      // Process each stage selection
+      for (const [stageId, status] of stageDetails.entries()) {
+        if (status === null) {
+          // User hasn't selected this stage - remove any existing detail
+          const existingDetail = existingDetails.find(d => d.maturity_stage_id === stageId);
+          if (existingDetail && existingDetail.id) {
+            await this.data.deleteStageImplementationDetail(existingDetail.id);
+            // Remove from local array
+            const index = this.stageImplementationDetails.findIndex(d => d.id === existingDetail.id);
+            if (index >= 0) {
+              this.stageImplementationDetails.splice(index, 1);
+            }
+          }
+        } else {
+          // User has selected a status for this stage
+          const detailStatus = this.mapAssessmentStatusToDetailStatus(status);
+          const completionPercentage = this.getCompletionPercentage(status);
+
+          const existingDetail = existingDetails.find(d => d.maturity_stage_id === stageId);
+
+          if (existingDetail) {
+            // Update existing detail
+            existingDetail.status = detailStatus;
+            existingDetail.completion_percentage = completionPercentage;
+            await this.data.updateStageImplementationDetail(existingDetail);
+          } else {
+            // Create new detail
+            const newDetail: Omit<StageImplementationDetail, 'id'> = {
+              assessment_id: assessmentId,
+              maturity_stage_id: stageId,
+              status: detailStatus,
+              completion_percentage: completionPercentage,
+              notes: undefined
+            };
+            const newId = await this.data.addStageImplementationDetail(newDetail);
+            // Add to local array
+            this.stageImplementationDetails.push({
+              ...newDetail,
+              id: newId
+            });
+          }
+        }
+      }
+
+      console.log(`Saved stage details for assessment ${assessmentId}`);
+    } catch (error) {
+      console.error('Error saving stage details:', error);
+      throw error;
+    }
+  }
+
+  // Map AssessmentStatus to StageImplementationStatus
+  private mapAssessmentStatusToDetailStatus(status: AssessmentStatus): StageImplementationStatus {
+    switch (status) {
+      case 'Not Implemented':
+        return 'Not Started';
+      case 'Partially Implemented':
+        return 'In Progress';
+      case 'Fully Implemented':
+      case 'Superseded':
+        return 'Completed';
+      default:
+        return 'Not Started';
+    }
+  }
+
+  // Get completion percentage based on status
+  private getCompletionPercentage(status: AssessmentStatus): number {
+    switch (status) {
+      case 'Not Implemented':
+        return 0;
+      case 'Partially Implemented':
+        return 50;
+      case 'Fully Implemented':
+      case 'Superseded':
+        return 100;
+      default:
+        return 0;
+    }
+  }
+
+  // Note: saveAllV2Assessments() method removed - assessments now auto-save on change in onAssessmentUpdate()
 
   getMaturityStageName(id: number) {
     return this.maturityStages.find(ms => ms.id === id)?.name || 'Unknown';
@@ -330,6 +656,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Model: Build pillar summary using data
   async buildPillarSummary() {
     this.pillarSummary = [];
 
@@ -341,20 +668,28 @@ export class AssessmentComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Load all data if not already loaded
+      if (this.allProcessTechnologyGroups.length === 0) {
+        this.allProcessTechnologyGroups = await this.data.getProcessTechnologyGroups();
+        this.assessments = await this.data.getAssessmentsV2();
+      }
+
       for (const fc of filteredFunctionCapabilities) {
         try {
-          // Use specialized method for loading technologies/processes by function capability
-          const techProcesses = await this.data.getTechnologiesProcessesByFunction(fc.id);
-          // Count completed assessments
-          const completedCount = techProcesses.filter(tp =>
-            this.assessmentResponses.some(ar => ar.tech_process_id === tp.id)
-          ).length;
+          // Get groups for this function capability
+          const groups = this.allProcessTechnologyGroups.filter(ptg => ptg.function_capability_id === fc.id);
+
+          // Count completed assessments (achieved stage > 0)
+          const completedCount = groups.filter(group => {
+            const assessment = this.assessments.find(a => a.process_technology_group_id === group.id);
+            return assessment && assessment.achieved_maturity_stage_id > 0;
+          }).length;
 
           const summary = {
             functionCapability: fc,
-            totalCount: techProcesses.length,
+            totalCount: groups.length,
             completedCount: completedCount,
-            completionPercentage: techProcesses.length > 0 ? Math.round((completedCount / techProcesses.length) * 100) : 0
+            completionPercentage: groups.length > 0 ? Math.round((completedCount / groups.length) * 100) : 0
           };
 
           this.pillarSummary.push(summary);
@@ -435,34 +770,7 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     setTimeout(() => (this.showSuccess = false), 2000);
   }
 
-  // Force save all pending changes immediately (useful before navigation)
-  async saveAllPendingChanges(): Promise<void> {
-    // Clear any pending timeout
-    if (this.autoSaveTimeout) {
-      window.clearTimeout(this.autoSaveTimeout);
-      this.autoSaveTimeout = null;
-    }
-
-    // Save all items that have data but aren't currently being saved
-    const savePromises: Promise<void>[] = [];
-
-    for (let i = 0; i < this.technologiesProcesses.length; i++) {
-      const status = this.assessmentStatuses[i];
-      const notes = this.assessmentNotes[i];
-
-      // Only save if there's meaningful data and it's not already being saved
-      if ((status || (notes && notes.trim())) && !this.activeSaves.has(i)) {
-        savePromises.push(this.saveAssessmentItem(i));
-      }
-    }
-
-    // Wait for all saves to complete
-    if (savePromises.length > 0) {
-      console.log(`Force saving ${savePromises.length} pending assessment changes...`);
-      await Promise.all(savePromises);
-      console.log('✅ All pending changes saved successfully');
-    }
-  }
+  // Note: Legacy V1 saveAllPendingChanges method removed - uses immediate auto-save in onAssessmentUpdate
 
   // Pagination methods - now stage-based
   updatePagination() {
@@ -545,102 +853,11 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     return (this.currentPage - 1) * this.itemsPerPage + localIndex;
   }
 
-  // Auto-save functionality - immediately save on change with debouncing
-  onAssessmentChange(index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string) {
-    console.log(`Assessment change detected: index=${index}, field=${field}, value="${value}"`);
+  // Note: Legacy V1 timer-based auto-save methods removed (onAssessmentChange, saveAssessmentItem, ngOnDestroy)
+  // uses immediate auto-save in onAssessmentUpdate
 
-    // Update the appropriate array immediately
-    if (field === 'status') {
-      this.assessmentStatuses[index] = value as AssessmentStatus | null;
-    } else {
-      this.assessmentNotes[index] = value as string;
-    }
-
-    // Clear existing timeout for this item
-    if (this.autoSaveTimeout) {
-      window.clearTimeout(this.autoSaveTimeout);
-    }
-
-    // Debounce the save operation to prevent too many rapid saves
-    this.autoSaveTimeout = window.setTimeout(() => {
-      this.saveAssessmentItem(index);
-    }, this.autoSaveDelay) as number;
-  }
-
-  private async saveAssessmentItem(index: number): Promise<void> {
-    // Prevent multiple saves for the same item
-    if (this.activeSaves.has(index)) {
-      console.log(`Save already in progress for item ${index}, skipping...`);
-      return;
-    }
-
-    const tp = this.technologiesProcesses[index];
-    const status = this.assessmentStatuses[index];
-    const notes = this.assessmentNotes[index] || '';
-
-    if (!tp) {
-      console.warn(`No technology process found at index ${index}`);
-      return;
-    }
-
-    this.activeSaves.add(index);
-    this.isAutoSaving = true;
-
-    try {
-      console.log(`Saving assessment for ${tp.name}: status="${status}", notes="${notes}"`);
-
-      if (status) {
-        // Save the assessment with the current status and notes
-        await this.data.saveAssessment(tp.id, status, notes);
-        console.log(`✅ Successfully saved assessment for ${tp.name}`);
-      } else {
-        // If status is null, we might want to delete the assessment
-        // For now, just log as the API doesn't support deletion
-        console.log(`⚠️ Status is null for ${tp.name}, notes: "${notes}" - TODO: implement delete/clear assessment`);
-        // TODO: Implement deleteAssessment method in the service
-        // await this.data.deleteAssessment(tp.id);
-      }
-
-      // Reload assessment responses and rebuild summary after successful save
-      this.assessmentResponses = await this.data.getAssessmentResponses();
-      await this.buildPillarSummary();
-
-    } catch (error) {
-      console.error(`❌ Error saving assessment for ${tp.name}:`, error);
-      // TODO: Show user-friendly error message
-    } finally {
-      this.activeSaves.delete(index);
-
-      // Only set isAutoSaving to false if no other saves are active
-      if (this.activeSaves.size === 0) {
-        this.isAutoSaving = false;
-      }
-    }
-  }
-
-  ngOnDestroy() {
-    // Clean up timeout on component destruction
-    if (this.autoSaveTimeout) {
-      window.clearTimeout(this.autoSaveTimeout);
-    }
-
-    // Clear active saves tracking
-    this.activeSaves.clear();
-  }
-
-  // Helper methods for event handling
-  onStatusChange(event: Event, index: number) {
-    const target = event.target as HTMLSelectElement;
-    const value = target.value === '' ? null : target.value as AssessmentStatus;
-    console.log(`Status change from select: "${target.value}" -> ${value}`);
-    this.onAssessmentChange(index, 'status', value);
-  }
-
-  onNotesChange(event: Event, index: number) {
-    const target = event.target as HTMLTextAreaElement;
-    console.log(`Notes change: "${target.value}"`);
-    this.onAssessmentChange(index, 'notes', target.value);
-  }
+  // Note: Legacy V1 event handlers removed (onStatusChange, onNotesChange, onAssessmentChangeFromChild)
+  // uses direct event binding from child components
 
   // Helper method for getting selected pillar name
   getSelectedPillarName(): string {
@@ -659,21 +876,17 @@ export class AssessmentComponent implements OnInit, OnDestroy {
     this.onFunctionCapabilityChange();
   }
 
-  onAssessmentChangeFromChild(event: {index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string}): void {
-    this.onAssessmentChange(event.index, event.field, event.value);
-  }
-
-  // Helper methods for overall statistics
+  // Helper methods for overall statistics (V2)
   getTotalFunctions(): number {
-    return this.overallPillarProgress.reduce((total, progress) => total + progress.functionCount, 0);
+    return this.overallProgress.reduce((total, progress) => total + progress.functionCount, 0);
   }
 
   getTotalCompletedItems(): number {
-    return this.overallPillarProgress.reduce((total, progress) => total + progress.completedItems, 0);
+    return this.overallProgress.reduce((total, progress) => total + progress.completedItems, 0);
   }
 
   getTotalItems(): number {
-    return this.overallPillarProgress.reduce((total, progress) => total + progress.totalItems, 0);
+    return this.overallProgress.reduce((total, progress) => total + progress.totalItems, 0);
   }
 
   getOverallProgress(): number {

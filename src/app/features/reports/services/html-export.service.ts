@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { PillarSummary, FunctionSummary, DetailedAssessmentItem } from '../models/report.models';
+import { PillarSummary, FunctionSummary, DetailedAssessmentItem, MaturityStageBreakdown } from '../models/report.models';
 import { MaturityCalculationService } from './maturity-calculation.service';
 
 @Injectable({
@@ -306,24 +306,49 @@ export class HtmlExportService {
     </div>`;
   }
 
-  private generateStageTable(breakdown: any, functionDetails: DetailedAssessmentItem[]): string {
+  private generateStageTable(breakdown: MaturityStageBreakdown, functionDetails: DetailedAssessmentItem[]): string {
     const stageItems = functionDetails.filter(item => item.maturityStageName === breakdown.stageName);
 
-    const rows = stageItems.length > 0 ? stageItems.map(item => `
+    const rows = stageItems.length > 0 ? stageItems.map(item => {
+      // Enhanced V2 detection: check if the item name contains stage info (V2 format)
+      const isV2Format = item.name.includes(' - ') &&
+        (item.name.includes('Traditional') || item.name.includes('Initial') ||
+         item.name.includes('Advanced') || item.name.includes('Optimal'));
+
+      // For V2, extract the base name (before the " - Stage" part)
+      const displayName = isV2Format ? item.name.split(' - ')[0] : item.name;
+
+      return `
         <tr>
             <td>
-                <div class="fw-bold">${item.name}</div>
+                <div class="fw-bold">${displayName}</div>
                 <div class="text-muted small">${item.description}</div>
+                ${isV2Format ? `
+                <div class="mt-1">
+                    <small class="text-primary">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>V2 Model:</strong> Stage-specific implementation
+                    </small>
+                </div>
+                ` : ''}
             </td>
             <td class="text-center">
                 <span class="badge ${item.type === 'Technology' ? 'bg-info' : 'bg-secondary'}">${item.type}</span>
             </td>
             <td class="text-center">
                 <span class="badge ${this.maturityCalc.getAssessmentStatusClass(item.status)}">${item.status}</span>
+                ${isV2Format && (item.status === 'Fully Implemented' || item.status === 'Partially Implemented') ? `
+                <div class="mt-1">
+                    <small class="badge bg-success" style="font-size: 0.65rem;">
+                        <i class="bi bi-check-circle me-1"></i>Achieved
+                    </small>
+                </div>
+                ` : ''}
             </td>
             <td><small class="text-muted">${item.notes || 'No notes'}</small></td>
         </tr>
-    `).join('') : `
+    `;
+    }).join('') : `
         <tr>
             <td colspan="4" class="text-center text-muted py-3">
                 <i class="bi bi-info-circle me-2"></i>No technologies defined for this stage
@@ -339,17 +364,29 @@ export class HtmlExportService {
                     <i class="bi ${this.maturityCalc.getStatusIcon(breakdown.status)} me-2"></i>
                     ${breakdown.stageName} Stage
                 </h5>
-                <span class="badge ${this.maturityCalc.getStatusClass(breakdown.status)}">
-                    ${breakdown.completionPercentage}% Complete
-                </span>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="badge ${this.maturityCalc.getStatusClass(breakdown.status)}">
+                        ${breakdown.completionPercentage}% Complete
+                    </span>
+                    ${breakdown.completedItems > 0 ? `
+                    <span class="badge bg-success" title="Items fully implemented at this stage">
+                        <i class="bi bi-check-circle-fill me-1"></i>${breakdown.completedItems} Completed
+                    </span>
+                    ` : ''}
+                    ${breakdown.inProgressItems > 0 ? `
+                    <span class="badge bg-warning text-dark" title="Items partially implemented">
+                        <i class="bi bi-hourglass-split me-1"></i>${breakdown.inProgressItems} In Progress
+                    </span>
+                    ` : ''}
+                </div>
             </div>
-            ${!breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages?.length > 0 ? `
+            ${breakdown.status === 'completed' && !breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages && breakdown.blockedByPreviousStages.length > 0 ? `
             <div class="mt-2 p-2 border border-warning rounded bg-light">
                 <div class="d-flex align-items-start">
                     <i class="bi bi-lock-fill text-warning me-2 mt-1"></i>
                     <div>
                         <div class="small text-warning fw-bold">Blocked by Prerequisites</div>
-                        <div class="small text-muted">Complete ${breakdown.blockedByPreviousStages.join(', ')} stage first</div>
+                        <div class="small text-muted">Complete ${breakdown.blockedByPreviousStages?.join(', ') || ''} stage first</div>
                     </div>
                 </div>
             </div>

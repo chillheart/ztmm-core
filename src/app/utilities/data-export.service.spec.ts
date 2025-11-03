@@ -1,7 +1,16 @@
 import { TestBed } from '@angular/core/testing';
-import { DataExportService, ExportedData } from './data-export.service';
+import { DataExportService } from './data-export.service';
 import { IndexedDBService } from '../services/indexeddb.service';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
+import { DataMigrationService } from '../services/data-migration.service';
+import {
+  Pillar,
+  FunctionCapability,
+  MaturityStage,
+  TechnologyProcess,
+  AssessmentResponse,
+  AssessmentStatus,
+  ExportedData
+} from '../models/ztmm.models';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 
 describe('DataExportService', () => {
@@ -48,11 +57,17 @@ describe('DataExportService', () => {
   beforeEach(() => {
     // Create mock services for testing
     const mockIndexedDBService = TestUtilsIndexedDB.createMockIndexedDBService();
+    const mockMigrationService = jasmine.createSpyObj('DataMigrationService', ['migrateV1ToV2']);
+    mockMigrationService.migrateV1ToV2.and.returnValue(Promise.resolve({
+      success: true,
+      message: 'Migration successful'
+    }));
 
     TestBed.configureTestingModule({
       providers: [
         DataExportService,
-        { provide: IndexedDBService, useValue: mockIndexedDBService }
+        { provide: IndexedDBService, useValue: mockIndexedDBService },
+        { provide: DataMigrationService, useValue: mockMigrationService }
       ]
     });
 
@@ -79,14 +94,16 @@ describe('DataExportService', () => {
   });
 
   describe('Export Operations', () => {
-    it('should export all data to JSON format', async () => {
+    it('should export all data to JSON format in V2 format', async () => {
       const result = await service.exportToJson();
 
       expect(mockDataService.getAllRawPillars).toHaveBeenCalled();
       expect(mockDataService.getAllRawFunctionCapabilities).toHaveBeenCalled();
       expect(mockDataService.getMaturityStages).toHaveBeenCalled();
-      expect(mockDataService.getTechnologiesProcesses).toHaveBeenCalled();
-      expect(mockDataService.getAssessmentResponses).toHaveBeenCalled();
+      expect(mockDataService.getProcessTechnologyGroups).toHaveBeenCalled();
+      expect(mockDataService.getMaturityStageImplementations).toHaveBeenCalled();
+      expect(mockDataService.getAssessmentsV2).toHaveBeenCalled();
+      expect(mockDataService.getStageImplementationDetails).toHaveBeenCalled();
 
       mockDataService.getAllRawPillars.and.returnValue(Promise.resolve([mockPillar]));
       mockDataService.getAllRawFunctionCapabilities.and.returnValue(Promise.resolve([mockFunctionCapability]));
@@ -94,9 +111,12 @@ describe('DataExportService', () => {
       expect(result.functionCapabilities.length).toBeGreaterThan(0);
       expect(result.functionCapabilities[0].name).toBeDefined();
       expect(result.maturityStages).toEqual([mockMaturityStage]);
-      expect(result.technologiesProcesses).toEqual([mockTechnologyProcess]);
-      expect(result.assessmentResponses).toEqual([mockAssessmentResponse]);
-      expect(result.version).toBe('1.0.0');
+      expect(result.version).toBe('2.0.0');
+      // V2 fields should be present (even if empty from mock)
+      expect(result.processTechnologyGroups).toBeDefined();
+      expect(result.maturityStageImplementations).toBeDefined();
+      expect(result.assessments).toBeDefined();
+      expect(result.stageImplementationDetails).toBeDefined();
       expect(result.exportDate).toMatch(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/);
     });
 
@@ -118,7 +138,7 @@ describe('DataExportService', () => {
 
       // Mock URL static methods
       const createObjectURLSpy = spyOn(URL, 'createObjectURL').and.returnValue('blob:mock-url');
-      const revokeObjectURLSpy = spyOn(URL, 'revokeObjectURL');
+      spyOn(URL, 'revokeObjectURL');
 
       spyOn(document, 'createElement').and.returnValue(mockLink);
       await service.downloadExport();
@@ -145,7 +165,14 @@ describe('DataExportService', () => {
 
       // Verify correct order of operations
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mockExportedData);
+      // V1 import only passes data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: mockExportedData.pillars,
+        functionCapabilities: mockExportedData.functionCapabilities,
+        maturityStages: mockExportedData.maturityStages,
+        technologiesProcesses: mockExportedData.technologiesProcesses || [],
+        assessmentResponses: mockExportedData.assessmentResponses || []
+      });
     });
 
     it('should handle empty data arrays during import', async () => {
@@ -162,7 +189,14 @@ describe('DataExportService', () => {
       await service.importFromJson(emptyData);
 
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(emptyData);
+      // V1 import only passes data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: [],
+        functionCapabilities: [],
+        maturityStages: [],
+        technologiesProcesses: [],
+        assessmentResponses: []
+      });
     });
 
     it('should handle import errors and propagate them', async () => {
@@ -180,7 +214,14 @@ describe('DataExportService', () => {
       await service.uploadAndImport(mockFile);
 
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mockExportedData);
+      // V1 import only passes data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: mockExportedData.pillars,
+        functionCapabilities: mockExportedData.functionCapabilities,
+        maturityStages: mockExportedData.maturityStages,
+        technologiesProcesses: mockExportedData.technologiesProcesses || [],
+        assessmentResponses: mockExportedData.assessmentResponses || []
+      });
     });
 
 
@@ -257,6 +298,16 @@ describe('DataExportService', () => {
 
   describe('Data Statistics', () => {
     it('should return correct data statistics', async () => {
+      // Setup mocks to return some V2 data
+      mockDataService.getProcessTechnologyGroups.and.returnValue(Promise.resolve([{
+        id: 1,
+        name: 'Test PTG',
+        description: 'Test description',
+        type: 'Technology',
+        function_capability_id: 1,
+        order_index: 1
+      }]));
+
       const stats = await service.getDataStatistics();
 
       expect(mockDataService.getPillars).toHaveBeenCalled();
@@ -264,13 +315,22 @@ describe('DataExportService', () => {
       expect(mockDataService.getMaturityStages).toHaveBeenCalled();
       expect(mockDataService.getTechnologiesProcesses).toHaveBeenCalled();
       expect(mockDataService.getAssessmentResponses).toHaveBeenCalled();
+      expect(mockDataService.getProcessTechnologyGroups).toHaveBeenCalled();
+      expect(mockDataService.getMaturityStageImplementations).toHaveBeenCalled();
+      expect(mockDataService.getAssessmentsV2).toHaveBeenCalled();
+      expect(mockDataService.getStageImplementationDetails).toHaveBeenCalled();
 
       expect(stats).toEqual({
+        version: '2.0.0',
         pillars: 1,
         functionCapabilities: 1,
         maturityStages: 1,
         technologiesProcesses: 1,
-        assessmentResponses: 1
+        assessmentResponses: 1,
+        processTechnologyGroups: 1,
+        maturityStageImplementations: 0,
+        assessments: 3, // TestUtilsIndexedDB now provides 3 mock assessments
+        stageImplementationDetails: 0
       });
     });
 
@@ -287,11 +347,16 @@ describe('DataExportService', () => {
       const stats = await service.getDataStatistics();
 
       expect(stats).toEqual({
+        version: '2.0.0',
         pillars: 0,
         functionCapabilities: 0,
         maturityStages: 0,
         technologiesProcesses: 0,
-        assessmentResponses: 0
+        assessmentResponses: 0,
+        processTechnologyGroups: 0,
+        maturityStageImplementations: 0,
+        assessments: 0,
+        stageImplementationDetails: 0
       });
       expect(console.error).toHaveBeenCalledWith('Error getting data statistics:', error);
     });
@@ -302,15 +367,25 @@ describe('DataExportService', () => {
       mockDataService.getMaturityStages.and.returnValue(Promise.resolve([]));
       mockDataService.getTechnologiesProcesses.and.returnValue(Promise.resolve([]));
       mockDataService.getAssessmentResponses.and.returnValue(Promise.resolve([]));
+      // Override V2 data to be empty as well
+      mockDataService.getProcessTechnologyGroups.and.returnValue(Promise.resolve([]));
+      mockDataService.getMaturityStageImplementations.and.returnValue(Promise.resolve([]));
+      mockDataService.getAssessmentsV2.and.returnValue(Promise.resolve([]));
+      mockDataService.getStageImplementationDetails.and.returnValue(Promise.resolve([]));
 
       const stats = await service.getDataStatistics();
 
       expect(stats).toEqual({
+        version: '2.0.0', // Updated to V2 format
         pillars: 0,
         functionCapabilities: 0,
         maturityStages: 0,
         technologiesProcesses: 0,
-        assessmentResponses: 0
+        assessmentResponses: 0,
+        processTechnologyGroups: 0,
+        maturityStageImplementations: 0,
+        assessments: 0,
+        stageImplementationDetails: 0
       });
     });
   });
@@ -329,7 +404,14 @@ describe('DataExportService', () => {
       await service.importFromJson(multiPillarData);
 
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(multiPillarData);
+      // V1 import only passes the data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: multiPillarData.pillars,
+        functionCapabilities: multiPillarData.functionCapabilities,
+        maturityStages: multiPillarData.maturityStages,
+        technologiesProcesses: multiPillarData.technologiesProcesses || [],
+        assessmentResponses: multiPillarData.assessmentResponses || []
+      });
     });
 
     it('should handle multiple function capabilities in import', async () => {
@@ -344,7 +426,14 @@ describe('DataExportService', () => {
       await service.importFromJson(multiFunctionData);
 
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(multiFunctionData);
+      // V1 import only passes data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: multiFunctionData.pillars,
+        functionCapabilities: multiFunctionData.functionCapabilities,
+        maturityStages: multiFunctionData.maturityStages,
+        technologiesProcesses: multiFunctionData.technologiesProcesses || [],
+        assessmentResponses: multiFunctionData.assessmentResponses || []
+      });
     });
 
     it('should handle technology and process types in import', async () => {
@@ -359,7 +448,14 @@ describe('DataExportService', () => {
       await service.importFromJson(mixedTechProcessData);
 
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(mixedTechProcessData);
+      // V1 import only passes data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: mixedTechProcessData.pillars,
+        functionCapabilities: mixedTechProcessData.functionCapabilities,
+        maturityStages: mixedTechProcessData.maturityStages,
+        technologiesProcesses: mixedTechProcessData.technologiesProcesses || [],
+        assessmentResponses: mixedTechProcessData.assessmentResponses || []
+      });
     });
 
     it('should handle different assessment statuses in import', async () => {
@@ -375,7 +471,14 @@ describe('DataExportService', () => {
       await service.importFromJson(multiAssessmentData);
 
       expect(mockDataService.resetDatabase).toHaveBeenCalled();
-      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith(multiAssessmentData);
+      // V1 import only passes data fields, not exportDate/version
+      expect(mockDataService.importDataWithPreservedIds).toHaveBeenCalledWith({
+        pillars: multiAssessmentData.pillars,
+        functionCapabilities: multiAssessmentData.functionCapabilities,
+        maturityStages: multiAssessmentData.maturityStages,
+        technologiesProcesses: multiAssessmentData.technologiesProcesses || [],
+        assessmentResponses: multiAssessmentData.assessmentResponses || []
+      });
     });
   });
 

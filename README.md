@@ -1,15 +1,24 @@
 # ZTMM Assessment Tool
 
-A compreensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars and technologies.
+A comprehensive Zero Trust Maturity Model (ZTMM) assessment application built with Angular. This web-based application helps organizations evaluate their Zero Trust implementation maturity across different pillars and technologies using a hierarchical maturity model.
+
+## 📌 Current Version: V2 Hierarchical Model
+
+This application now uses the **V2 hierarchical maturity model** which provides:
+- **Enhanced structure**: Process/Technology Groups → Maturity Stage Implementations → detailed assessments
+- **Improved tracking**: Better visibility into maturity progression across stages
+- **Legacy support**: Full backward compatibility with V1 data imports (auto-migration included)
+
+> **Note**: V1 data can be imported and will automatically migrate to the V2 format. See [Data Management](#-data-management) section for details.
 
 ## 🚀 Features
 
 ### Core Functionality
-- **📊 Assessment Management**: Conduct maturity assessments against the Zero Trust framework
-- **🏗️ Configuration Management**: Define and manage Zero Trust pillars, functions/capabilities, and technologies/processes
-- **📈 Progress Tracking**: Visual progress indicators and completion tracking
+- **📊 Assessment Management**: Conduct hierarchical maturity assessments with the V2 model
+- **🏗️ Configuration Management**: Define pillars, functions/capabilities, process/technology groups, and maturity stage implementations
+- **📈 Progress Tracking**: Visual progress indicators with pillar summaries and overall completion tracking
 - **📋 Reports Dashboard**: View and analyze assessment results with detailed reporting and PDF export
-- **📁 Data Management**: Import/export functionality for backup and data migration
+- **📁 Data Management**: Import/export functionality with V1-to-V2 auto-migration support
 
 ### Privacy & Security
 - **🔒 Local Data Storage**: All data stored locally in your browser using IndexedDB
@@ -46,21 +55,31 @@ A compreensive Zero Trust Maturity Model (ZTMM) assessment application built wit
 2. **Read the Privacy Notice**: All your data stays local - nothing is sent to external servers
 3. **Follow the Getting Started Guide**: The home page provides step-by-step instructions
 
-### 1. Configuration Setup
+### 1. Configuration Setup (V2 Model)
 Navigate to the Configuration section to set up your ZTMM framework:
 
 - **Pillars**: Define Zero Trust pillars (e.g., Identity, Device, Network, Data, Applications, Infrastructure)
 - **Functions/Capabilities**: Add specific functions and capabilities for each pillar
-- **Maturity Stages**: Define maturity levels (typically Initial, Advanced, Optimal)
-- **Technologies/Processes**: Define specific technologies and processes for assessment
+- **Maturity Stages**: Define maturity levels (typically Traditional, Initial, Advanced, Optimal)
+- **Process/Technology Groups**: Define groupings of related processes and technologies
+  - **Range (Multiple Stages)**: Select when a technology/process evolves through consecutive maturity stages
+    - Example: Identity Platform spanning Traditional → Initial → Advanced → Optimal
+  - **Single Stage**: Select when a technology/process only exists at one maturity level
+    - Example: Manual legacy process that only exists at Traditional stage
+  - Note: All stage progressions must be continuous - there's no logical scenario where something exists at non-consecutive stages
+- **Maturity Stage Implementations**: Define how each group implements specific maturity stages
+- **V2 Assessments**: Configure detailed assessments for each implementation
 
-### 2. Conducting Assessments
+### 2. Conducting Assessments (V2 Workflow)
 1. Go to the Assessment section
 2. Select a pillar to assess
-3. Review the progress summary table
+3. Review the progress summary showing maturity stage implementation progress
 4. Click "Assess" for each function/capability
-5. Rate each technology/process implementation status
-6. Add optional notes for context and future reference
+5. For each process/technology group:
+   - View maturity stage implementations (Initial → Advanced → Optimal)
+   - Rate implementation status for each stage
+   - Add optional notes for context
+6. Track overall progress with visual indicators
 
 ### 3. Viewing Reports
 Access the Reports section to:
@@ -70,6 +89,20 @@ Access the Reports section to:
 - Track progress over time
 
 **Note**: The `/results` route automatically redirects to `/reports` for consistency and improved navigation.
+
+### 4. Importing Legacy V1 Data
+If you have data from the previous V1 model:
+
+1. Go to **Configuration → Data Management**
+2. Click **"Import Data"** and select your V1 JSON file
+3. The application will:
+   - ✅ Automatically detect V1 format
+   - ✅ Migrate data to V2 structure
+   - ✅ Preserve all assessment responses
+   - ✅ Transform V1 technologies/processes into V2 process groups
+4. Your data is now ready to use with the V2 model
+
+**Migration Details**: V1 data is automatically transformed to V2 format using the built-in DataMigrationService. All assessment history is preserved. See [V2_MIGRATION_PLAN.md](./V2_MIGRATION_PLAN.md) for technical details.
 
 ## 🔧 Development
 
@@ -187,17 +220,27 @@ src/
 ## 🗄️ Data Storage
 
 The application uses **IndexedDB** (browser-native database) with the following object stores:
+
+### V2 Model Stores (Active)
 - `pillars` - Zero Trust pillars with ordering
 - `functionCapabilities` - Functions and capabilities linked to pillars
 - `maturityStages` - Maturity level definitions (Initial, Advanced, Optimal)
-- `technologiesProcesses` - Technologies and processes for assessment
-- `assessmentResponses` - Assessment results and user responses
+- `processTechnologyGroups` - Process/technology groupings for hierarchical assessment
+- `maturityStageImplementations` - Implementation definitions for each maturity stage
+- `assessmentsV2` - V2 assessment results with hierarchical structure
+
+### V1 Model Stores (Legacy Import Only)
+- `technologiesProcesses` - ⚠️ Deprecated: Only used for V1 data imports
+- `assessmentResponses` - ⚠️ Deprecated: Only used for V1 data imports
+
+> **Note**: When importing V1 data, the application automatically migrates it to V2 stores while preserving the original V1 data for reference.
 
 ### Data Privacy
 - **Local Storage Only**: All data is stored in your browser's IndexedDB
 - **No External Servers**: No data is transmitted to external servers
 - **Complete Privacy**: Your assessment data never leaves your device
-- **Backup/Restore**: Export your data as JSON for backup or migration
+- **Backup/Restore**: Export your data as JSON (V2 format) for backup or migration
+- **Legacy Support**: Import V1 data files with automatic migration to V2 format
 
 ### Building for Production
 
@@ -229,6 +272,15 @@ Run the test suite:
 ```bash
 npm test
 ```
+
+**Current Test Coverage**: 491/491 tests passing ✅ (100%)
+
+## 📚 Documentation
+
+For detailed technical information:
+- **[V2_MIGRATION_PLAN.md](./V2_MIGRATION_PLAN.md)**: Complete migration documentation including V1-to-V2 migration guide
+- **[SECURITY.md](./SECURITY.md)**: Security policies and vulnerability reporting
+- **Architecture**: See [Project Structure](#-project-structure) section above
 
 ## 📝 Contributing
 

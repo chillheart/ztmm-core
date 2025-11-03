@@ -1,153 +1,172 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AssessmentItemComponent } from './assessment-item.component';
-import { PaginationComponent } from './pagination.component';
-import { TechnologyProcess, AssessmentStatus, FunctionCapability, MaturityStage } from '../../models/ztmm.models';
+import { AssessmentItemComponent, AssessmentUpdate } from './assessment-item.component';
+import { ProcessTechnologyGroup, MaturityStageImplementation, Assessment, FunctionCapability, AssessmentStatus, StageImplementationDetail } from '../../models/ztmm.models';
 
 @Component({
   selector: 'app-assessment-overview',
   templateUrl: './assessment-overview.component.html',
   styleUrls: ['./assessment-overview.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, AssessmentItemComponent, PaginationComponent]
+  imports: [CommonModule, FormsModule, RouterModule, AssessmentItemComponent]
 })
-export class AssessmentOverviewComponent {
-  @Input() technologiesProcesses: TechnologyProcess[] = [];
-  @Input() paginatedTechnologiesProcesses: TechnologyProcess[] = [];
-  @Input() assessmentStatuses: (AssessmentStatus | null)[] = [];
-  @Input() assessmentNotes: string[] = [];
-  @Input() statusOptions: AssessmentStatus[] = [];
+export class AssessmentOverviewComponent implements OnInit, OnChanges {
+  @Input() processTechnologyGroups: ProcessTechnologyGroup[] = [];
+  @Input() stageImplementations: MaturityStageImplementation[] = [];
+  @Input() assessments: Assessment[] = [];
+  @Input() stageImplementationDetails: StageImplementationDetail[] = [];
   @Input() functionCapabilities: FunctionCapability[] = [];
-  @Input() maturityStages: MaturityStage[] = [];
+  @Input() maturityStages: any[] = []; // MaturityStage[] but using any to avoid import issues
   @Input() selectedFunctionCapabilityName = '';
   @Input() selectedFunctionCapabilityType = '';
   @Input() isAutoSaving = false;
   @Input() showSuccess = false;
-  @Input() showTechnologyDescriptions = true;
 
-  // Pagination inputs
-  @Input() currentPage = 1;
-  @Input() totalPages = 1;
-  @Input() itemsPerPage = 5;
+  @Output() assessmentUpdate = new EventEmitter<{groupId: number, update: AssessmentUpdate}>();
+  @Output() backToPillarSummary = new EventEmitter<void>();
 
-  // Maturity stage grouping inputs
-  @Input() technologiesProcessesByStage: Record<string, TechnologyProcess[]> = {};
-  @Input() availableStages: string[] = [];
-  @Input() currentStageName = '';
-  @Input() currentStageItemCount = 0;
+  // Track assessment progress for each group (stages assessed / total stages)
+  private assessmentProgress = new Map<number, {assessed: number, total: number}>();
 
-  @Output() assessmentChange = new EventEmitter<{index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string}>();
-  @Output() pageChange = new EventEmitter<number>();
-  @Output() previousPage = new EventEmitter<void>();
-  @Output() nextPage = new EventEmitter<void>();
-  @Output() saveCurrentPage = new EventEmitter<void>();
-  @Output() saveAll = new EventEmitter<void>();
-  @Output() toggleDescriptions = new EventEmitter<void>();
+  // Assessment status options
+  statusOptions: AssessmentStatus[] = [
+    'Not Implemented',
+    'Partially Implemented',
+    'Fully Implemented',
+    'Superseded'
+  ];
 
   // Make Math available to template
   Math = Math;
 
-  onAssessmentChange(index: number, field: 'status' | 'notes', value: AssessmentStatus | null | string): void {
-    this.assessmentChange.emit({ index, field, value });
+  ngOnInit(): void {
+    this.calculateInitialProgress();
   }
 
-  onStatusChange(localIndex: number, status: AssessmentStatus | null): void {
-    this.onAssessmentChange(localIndex, 'status', status);
+  ngOnChanges(changes: SimpleChanges): void {
+    // Recalculate progress when input data changes
+    if (changes['processTechnologyGroups'] || changes['stageImplementationDetails'] || changes['stageImplementations']) {
+      this.calculateInitialProgress();
+    }
   }
 
-  onNotesChange(localIndex: number, notes: string): void {
-    this.onAssessmentChange(localIndex, 'notes', notes);
+  // Calculate initial progress from existing data
+  private calculateInitialProgress(): void {
+    this.assessmentProgress.clear();
+
+    for (const group of this.processTechnologyGroups) {
+      const groupStages = this.getStageImplementations(group.id);
+      const totalStages = groupStages.length;
+
+      // Count how many stages have details (user has made selections)
+      const assessment = this.getAssessmentForGroup(group.id);
+      let assessedStages = 0;
+
+      if (assessment) {
+        const details = this.getStageDetailsForAssessment(assessment.id);
+        assessedStages = details.length;
+      }
+
+      this.assessmentProgress.set(group.id, {
+        assessed: assessedStages,
+        total: totalStages
+      });
+    }
+
+    console.log('Initial progress calculated:', Array.from(this.assessmentProgress.entries()));
   }
 
-  onPageChange(page: number): void {
-    this.pageChange.emit(page);
+  onBackToPillarSummary(): void {
+    this.backToPillarSummary.emit();
   }
 
-  onPreviousPage(): void {
-    this.previousPage.emit();
-  }
+  onAssessmentUpdate(groupId: number, update: AssessmentUpdate): void {
+    // Store assessment progress for this group
+    this.assessmentProgress.set(groupId, {
+      assessed: update.assessed_stages_count,
+      total: update.total_stages_count
+    });
 
-  onNextPage(): void {
-    this.nextPage.emit();
-  }
-
-  onSaveCurrentPage(): void {
-    this.saveCurrentPage.emit();
-  }
-
-  onSaveAll(): void {
-    this.saveAll.emit();
-  }
-
-  onToggleDescriptions(): void {
-    this.toggleDescriptions.emit();
-  }
-
-  getGlobalItemIndex(localIndex: number): number {
-    return (this.currentPage - 1) * this.itemsPerPage + localIndex;
+    this.assessmentUpdate.emit({ groupId, update });
   }
 
   getCurrentProgress(): number {
-    if (this.technologiesProcesses.length === 0) return 0;
-    const completedCount = this.assessmentStatuses.filter(status => status !== null).length;
-    return Math.round((completedCount / this.technologiesProcesses.length) * 100);
-  }
+    // Calculate progress based on assessed stages vs total stages
+    let totalAssessedStages = 0;
+    let totalStages = 0;
 
-  getMaturityStageName(id: number): string {
-    return this.maturityStages.find(ms => ms.id === id)?.name || 'Unknown';
-  }
-
-  getStageColorClass(stageName: string): string {
-    switch (stageName) {
-      case 'Traditional': return 'bg-secondary';
-      case 'Initial': return 'bg-warning';
-      case 'Advanced': return 'bg-info';
-      case 'Optimal': return 'bg-success';
-      default: return 'bg-light';
+    // Use the assessment progress map if available (tracks real-time updates)
+    for (const group of this.processTechnologyGroups) {
+      const progress = this.assessmentProgress.get(group.id);
+      if (progress) {
+        totalAssessedStages += progress.assessed;
+        totalStages += progress.total;
+      } else {
+        // Fallback: count stages for this group
+        const groupStages = this.getStageImplementations(group.id);
+        totalStages += groupStages.length;
+        // If no progress tracked yet, assume 0 assessed
+      }
     }
+
+    if (totalStages === 0) return 0;
+    return Math.round((totalAssessedStages / totalStages) * 100);
   }
 
-  shouldShowItem(_tp: TechnologyProcess): boolean {
-    // Show all items when using stage grouping (pagination happens at stage level)
-    return true;
+  getAssessedCount(): number {
+    // Count groups where all stages have been assessed
+    return this.processTechnologyGroups.filter(group => {
+      const progress = this.assessmentProgress.get(group.id);
+      if (!progress) return false;
+      // All stages assessed = assessed count equals total count
+      return progress.assessed === progress.total && progress.total > 0;
+    }).length;
   }
 
-  getItemNumber(tp: TechnologyProcess): number {
-    const index = this.technologiesProcesses.findIndex(item => item.id === tp.id);
-    return index + 1;
+  getInProgressCount(): number {
+    // Count groups where at least one stage is assessed but not all
+    return this.processTechnologyGroups.filter(group => {
+      const progress = this.assessmentProgress.get(group.id);
+      if (!progress) return false;
+      // In progress = some stages assessed but not all
+      return progress.assessed > 0 && progress.assessed < progress.total;
+    }).length;
   }
 
-  getStatusForItem(tp: TechnologyProcess): AssessmentStatus | null {
-    const index = this.technologiesProcesses.findIndex(item => item.id === tp.id);
-    return index >= 0 ? this.assessmentStatuses[index] : null;
+  getNotStartedCount(): number {
+    // Count groups where no stages have been assessed yet
+    return this.processTechnologyGroups.filter(group => {
+      const progress = this.assessmentProgress.get(group.id);
+      // Not started = no progress data OR assessed count is 0
+      return !progress || progress.assessed === 0;
+    }).length;
   }
 
-  getNotesForItem(tp: TechnologyProcess): string {
-    const index = this.technologiesProcesses.findIndex(item => item.id === tp.id);
-    return index >= 0 ? (this.assessmentNotes[index] || '') : '';
+  getStagesForGroup(groupId: number): MaturityStageImplementation[] {
+    return this.stageImplementations.filter(si => si.process_technology_group_id === groupId);
   }
 
-  onStatusChangeForItem(tp: TechnologyProcess, status: AssessmentStatus | null): void {
-    const index = this.technologiesProcesses.findIndex(item => item.id === tp.id);
-    if (index >= 0) {
-      this.assessmentChange.emit({ index, field: 'status', value: status });
-    }
+  getAssessmentForGroup(groupId: number): Assessment | undefined {
+    return this.assessments.find(a => a.process_technology_group_id === groupId);
   }
 
-  onNotesChangeForItem(tp: TechnologyProcess, notes: string): void {
-    const index = this.technologiesProcesses.findIndex(item => item.id === tp.id);
-    if (index >= 0) {
-      this.assessmentChange.emit({ index, field: 'notes', value: notes });
-    }
+  getStageDetailsForAssessment(assessmentId: number): StageImplementationDetail[] {
+    return this.stageImplementationDetails.filter(d => d.assessment_id === assessmentId);
   }
 
-  getCurrentStageItems(): TechnologyProcess[] {
-    return this.currentStageName ? (this.technologiesProcessesByStage[this.currentStageName] || []) : [];
+  // Alias methods for template compatibility
+  getAssessment(groupId: number): Assessment | null {
+    return this.getAssessmentForGroup(groupId) || null;
   }
 
-  shouldShowCurrentStage(): boolean {
-    return !!this.currentStageName && this.getCurrentStageItems().length > 0;
+  getStageImplementations(groupId: number): MaturityStageImplementation[] {
+    return this.getStagesForGroup(groupId);
+  }
+
+  getStageDetails(groupId: number): StageImplementationDetail[] {
+    const assessment = this.getAssessmentForGroup(groupId);
+    return assessment ? this.getStageDetailsForAssessment(assessment.id) : [];
   }
 }

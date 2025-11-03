@@ -1,9 +1,22 @@
 import { Injectable } from '@angular/core';
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, AssessmentStatus } from '../models/ztmm.models';
+import {
+  Pillar,
+  FunctionCapability,
+  MaturityStage,
+  TechnologyProcess,
+  AssessmentResponse,
+  AssessmentStatus,
+  // V2 Models
+  ProcessTechnologyGroup,
+  MaturityStageImplementation,
+  Assessment,
+  StageImplementationDetail
+} from '../models/ztmm.models';
 
 // IndexedDB schema for the ZTMM Assessment application
 interface ZtmmDB extends DBSchema {
+  // V1 Stores (Legacy - kept for backward compatibility)
   pillars: {
     key: number;
     value: Pillar & { order_index?: number };
@@ -33,8 +46,47 @@ interface ZtmmDB extends DBSchema {
     key: string;
     value: {
       name: string;
-      data: unknown; // Using unknown instead of any for better type safety
+      data: unknown;
       timestamp: number;
+    };
+  };
+
+  // V2 Stores (New Maturity Model)
+  processTechnologyGroups: {
+    key: number;
+    value: ProcessTechnologyGroup;
+    indexes: {
+      'by-function-capability': number;
+      'by-order': number;
+      'by-type': string;
+    };
+  };
+  maturityStageImplementations: {
+    key: number;
+    value: MaturityStageImplementation;
+    indexes: {
+      'by-group': number;
+      'by-stage': number;
+      'by-group-stage': [number, number]; // Compound index
+    };
+  };
+  assessments: {
+    key: number;
+    value: Assessment;
+    indexes: {
+      'by-group': number;
+      'by-achieved-stage': number;
+      'by-target-stage': number;
+      'by-status': string;
+    };
+  };
+  stageImplementationDetails: {
+    key: number;
+    value: StageImplementationDetail;
+    indexes: {
+      'by-assessment': number;
+      'by-stage': number;
+      'by-status': string;
     };
   };
 }
@@ -44,6 +96,17 @@ export class IndexedDBService {
   private db: IDBPDatabase<ZtmmDB> | null = null;
   private isInitialized = false;
   private dbName = 'ztmm-assessment'; // Default database name
+
+  /**
+   * Set a custom database name (primarily for testing)
+   * Must be called before initialize()
+   */
+  setDatabaseName(name: string): void {
+    if (this.isInitialized) {
+      throw new Error('Cannot change database name after initialization');
+    }
+    this.dbName = name;
+  }
 
   // Default data to be inserted on first initialization
   private readonly defaultPillars: (Pillar & { order_index: number })[] = [
@@ -117,46 +180,91 @@ export class IndexedDBService {
 
     try {
       // Open IndexedDB with proper schema setup
-      this.db = await openDB<ZtmmDB>(this.dbName, 1, {
-        upgrade(db) {
-          // Create object stores with indexes
+      // Version 2: Added V2 maturity model stores
+      this.db = await openDB<ZtmmDB>(this.dbName, 2, {
+        upgrade(db, oldVersion, newVersion) {
+          console.log(`Upgrading database from version ${oldVersion} to ${newVersion}`);
 
-          // Pillars store
-          if (!db.objectStoreNames.contains('pillars')) {
-            const pillarStore = db.createObjectStore('pillars', { keyPath: 'id', autoIncrement: true });
-            pillarStore.createIndex('by-order', 'order_index');
-            pillarStore.createIndex('by-name', 'name', { unique: true });
+          // Version 1: Original schema (V1 stores)
+          if (oldVersion < 1) {
+            // Create V1 object stores with indexes
+
+            // Pillars store
+            if (!db.objectStoreNames.contains('pillars')) {
+              const pillarStore = db.createObjectStore('pillars', { keyPath: 'id', autoIncrement: true });
+              pillarStore.createIndex('by-order', 'order_index');
+              pillarStore.createIndex('by-name', 'name', { unique: true });
+            }
+
+            // Function capabilities store
+            if (!db.objectStoreNames.contains('functionCapabilities')) {
+              const fcStore = db.createObjectStore('functionCapabilities', { keyPath: 'id', autoIncrement: true });
+              fcStore.createIndex('by-pillar', 'pillar_id');
+              fcStore.createIndex('by-order', 'order_index');
+            }
+
+            // Maturity stages store
+            if (!db.objectStoreNames.contains('maturityStages')) {
+              const msStore = db.createObjectStore('maturityStages', { keyPath: 'id', autoIncrement: true });
+              msStore.createIndex('by-name', 'name', { unique: true });
+            }
+
+            // Technologies/processes store (V1)
+            if (!db.objectStoreNames.contains('technologiesProcesses')) {
+              const tpStore = db.createObjectStore('technologiesProcesses', { keyPath: 'id', autoIncrement: true });
+              tpStore.createIndex('by-function-capability', 'function_capability_id');
+              tpStore.createIndex('by-maturity-stage', 'maturity_stage_id');
+            }
+
+            // Assessment responses store (V1)
+            if (!db.objectStoreNames.contains('assessmentResponses')) {
+              const arStore = db.createObjectStore('assessmentResponses', { keyPath: 'id', autoIncrement: true });
+              arStore.createIndex('by-tech-process', 'tech_process_id', { unique: true });
+            }
+
+            // Backups store
+            if (!db.objectStoreNames.contains('backups')) {
+              db.createObjectStore('backups', { keyPath: 'name' });
+            }
           }
 
-          // Function capabilities store
-          if (!db.objectStoreNames.contains('functionCapabilities')) {
-            const fcStore = db.createObjectStore('functionCapabilities', { keyPath: 'id', autoIncrement: true });
-            fcStore.createIndex('by-pillar', 'pillar_id');
-            fcStore.createIndex('by-order', 'order_index');
-          }
+          // Version 2: Add V2 maturity model stores
+          if (oldVersion < 2) {
+            console.log('Creating V2 maturity model stores...');
 
-          // Maturity stages store
-          if (!db.objectStoreNames.contains('maturityStages')) {
-            const msStore = db.createObjectStore('maturityStages', { keyPath: 'id', autoIncrement: true });
-            msStore.createIndex('by-name', 'name', { unique: true });
-          }
+            // ProcessTechnologyGroups store
+            if (!db.objectStoreNames.contains('processTechnologyGroups')) {
+              const ptgStore = db.createObjectStore('processTechnologyGroups', { keyPath: 'id', autoIncrement: true });
+              ptgStore.createIndex('by-function-capability', 'function_capability_id');
+              ptgStore.createIndex('by-order', 'order_index');
+              ptgStore.createIndex('by-type', 'type');
+            }
 
-          // Technologies/processes store
-          if (!db.objectStoreNames.contains('technologiesProcesses')) {
-            const tpStore = db.createObjectStore('technologiesProcesses', { keyPath: 'id', autoIncrement: true });
-            tpStore.createIndex('by-function-capability', 'function_capability_id');
-            tpStore.createIndex('by-maturity-stage', 'maturity_stage_id');
-          }
+            // MaturityStageImplementations store
+            if (!db.objectStoreNames.contains('maturityStageImplementations')) {
+              const msiStore = db.createObjectStore('maturityStageImplementations', { keyPath: 'id', autoIncrement: true });
+              msiStore.createIndex('by-group', 'process_technology_group_id');
+              msiStore.createIndex('by-stage', 'maturity_stage_id');
+              // Compound index for efficient lookups by both group and stage
+              msiStore.createIndex('by-group-stage', ['process_technology_group_id', 'maturity_stage_id'], { unique: true });
+            }
 
-          // Assessment responses store
-          if (!db.objectStoreNames.contains('assessmentResponses')) {
-            const arStore = db.createObjectStore('assessmentResponses', { keyPath: 'id', autoIncrement: true });
-            arStore.createIndex('by-tech-process', 'tech_process_id', { unique: true });
-          }
+            // Assessments store (V2)
+            if (!db.objectStoreNames.contains('assessments')) {
+              const assessStore = db.createObjectStore('assessments', { keyPath: 'id', autoIncrement: true });
+              assessStore.createIndex('by-group', 'process_technology_group_id', { unique: true });
+              assessStore.createIndex('by-achieved-stage', 'achieved_maturity_stage_id');
+              assessStore.createIndex('by-target-stage', 'target_maturity_stage_id');
+              assessStore.createIndex('by-status', 'implementation_status');
+            }
 
-          // Backups store
-          if (!db.objectStoreNames.contains('backups')) {
-            db.createObjectStore('backups', { keyPath: 'name' });
+            // StageImplementationDetails store
+            if (!db.objectStoreNames.contains('stageImplementationDetails')) {
+              const sidStore = db.createObjectStore('stageImplementationDetails', { keyPath: 'id', autoIncrement: true });
+              sidStore.createIndex('by-assessment', 'assessment_id');
+              sidStore.createIndex('by-stage', 'maturity_stage_id');
+              sidStore.createIndex('by-status', 'status');
+            }
           }
         }
       });
@@ -485,7 +593,11 @@ export class IndexedDBService {
     }
   }
 
-  // Technology Process operations
+  // Technology Process operations (V1 - Legacy)
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.getTechnologies() or ProcessService.getProcesses().
+   */
   async getTechnologiesProcesses(functionCapabilityId?: number): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
 
@@ -496,6 +608,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.getTechnologies() or ProcessService.getProcesses().
+   */
   async getAllTechnologiesProcesses(): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
     try {
@@ -507,6 +623,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.getTechnologies() or ProcessService.getProcesses().
+   */
   async getTechnologiesProcessesByFunction(functionCapabilityId: number): Promise<TechnologyProcess[]> {
     await this.ensureInitialized();
 
@@ -523,6 +643,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.addTechnology() or ProcessService.addProcess().
+   */
   async addTechnologyProcess(name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
 
@@ -559,6 +683,10 @@ export class IndexedDBService {
     await this.getDatabase().add('technologiesProcesses', newTechnologyProcess as TechnologyProcess);
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.deleteTechnology() or ProcessService.deleteProcess().
+   */
   async removeTechnologyProcess(id: number): Promise<void> {
     await this.ensureInitialized();
 
@@ -585,6 +713,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use TechnologyService.updateTechnology() or ProcessService.updateProcess().
+   */
   async editTechnologyProcess(id: number, name: string, description: string, type: 'Technology' | 'Process', functionCapabilityId: number, maturityStageId: number): Promise<void> {
     await this.ensureInitialized();
 
@@ -627,7 +759,11 @@ export class IndexedDBService {
     await this.getDatabase().put('technologiesProcesses', techProcess);
   }
 
-  // Assessment operations
+  // Assessment operations (V1 - Legacy)
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use saveAssessmentV2() for V2 assessment data.
+   */
   async saveAssessment(techProcessId: number, status: AssessmentStatus, notes?: string): Promise<void> {
     await this.ensureInitialized();
 
@@ -670,6 +806,10 @@ export class IndexedDBService {
     }
   }
 
+  /**
+   * @deprecated V1 method - kept for import/migration only.
+   * For new code, use getAssessmentsV2() for V2 assessment data.
+   */
   async getAssessmentResponses(): Promise<AssessmentResponse[]> {
     await this.ensureInitialized();
     try {
@@ -925,5 +1065,217 @@ export class IndexedDBService {
   // Check if service is initialized
   isReady(): boolean {
     return this.isInitialized;
+  }
+
+  // ============================================================================
+  // V2 MATURITY MODEL DATA ACCESS METHODS
+  // ============================================================================
+
+  // ProcessTechnologyGroup methods
+  async getProcessTechnologyGroups(): Promise<ProcessTechnologyGroup[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAll('processTechnologyGroups');
+  }
+
+  async getProcessTechnologyGroupsByFunction(functionCapabilityId: number): Promise<ProcessTechnologyGroup[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAllFromIndex('processTechnologyGroups', 'by-function-capability', functionCapabilityId);
+  }
+
+  async getProcessTechnologyGroupsByType(type: 'Technology' | 'Process'): Promise<ProcessTechnologyGroup[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAllFromIndex('processTechnologyGroups', 'by-type', type);
+  }
+
+  async getProcessTechnologyGroupById(id: number): Promise<ProcessTechnologyGroup | undefined> {
+    await this.ensureInitialized();
+    return await this.getDatabase().get('processTechnologyGroups', id);
+  }
+
+  async addProcessTechnologyGroup(group: Omit<ProcessTechnologyGroup, 'id'>): Promise<number> {
+    await this.ensureInitialized();
+    return await this.getDatabase().add('processTechnologyGroups', group as ProcessTechnologyGroup);
+  }
+
+  async updateProcessTechnologyGroup(group: ProcessTechnologyGroup): Promise<void> {
+    await this.ensureInitialized();
+    await this.getDatabase().put('processTechnologyGroups', group);
+  }
+
+  async deleteProcessTechnologyGroup(id: number): Promise<void> {
+    await this.ensureInitialized();
+    const tx = this.getDatabase().transaction(['processTechnologyGroups', 'maturityStageImplementations', 'assessments', 'stageImplementationDetails'], 'readwrite');
+
+    // Delete related data in cascade
+    const implementations = await tx.objectStore('maturityStageImplementations').index('by-group').getAll(id);
+    for (const impl of implementations) {
+      await tx.objectStore('maturityStageImplementations').delete(impl.id);
+    }
+
+    const assessments = await tx.objectStore('assessments').index('by-group').getAll(id);
+    for (const assessment of assessments) {
+      // Delete stage implementation details
+      const details = await tx.objectStore('stageImplementationDetails').index('by-assessment').getAll(assessment.id);
+      for (const detail of details) {
+        await tx.objectStore('stageImplementationDetails').delete(detail.id);
+      }
+      await tx.objectStore('assessments').delete(assessment.id);
+    }
+
+    await tx.objectStore('processTechnologyGroups').delete(id);
+    await tx.done;
+  }
+
+  // MaturityStageImplementation methods
+  async getMaturityStageImplementations(): Promise<MaturityStageImplementation[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAll('maturityStageImplementations');
+  }
+
+  async getMaturityStageImplementationsByGroup(groupId: number): Promise<MaturityStageImplementation[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAllFromIndex('maturityStageImplementations', 'by-group', groupId);
+  }
+
+  async getMaturityStageImplementationByGroupAndStage(groupId: number, stageId: number): Promise<MaturityStageImplementation | undefined> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getFromIndex('maturityStageImplementations', 'by-group-stage', [groupId, stageId]);
+  }
+
+  async addMaturityStageImplementation(implementation: Omit<MaturityStageImplementation, 'id'>): Promise<number> {
+    await this.ensureInitialized();
+    return await this.getDatabase().add('maturityStageImplementations', implementation as MaturityStageImplementation);
+  }
+
+  async updateMaturityStageImplementation(implementation: MaturityStageImplementation): Promise<void> {
+    await this.ensureInitialized();
+    await this.getDatabase().put('maturityStageImplementations', implementation);
+  }
+
+  async deleteMaturityStageImplementation(id: number): Promise<void> {
+    await this.ensureInitialized();
+    await this.getDatabase().delete('maturityStageImplementations', id);
+  }
+
+  // Assessment methods (V2)
+  async getAssessmentsV2(): Promise<Assessment[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAll('assessments');
+  }
+
+  async getAssessmentByGroup(groupId: number): Promise<Assessment | undefined> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getFromIndex('assessments', 'by-group', groupId);
+  }
+
+  async getAssessmentsByAchievedStage(stageId: number): Promise<Assessment[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAllFromIndex('assessments', 'by-achieved-stage', stageId);
+  }
+
+  async getAssessmentsByStatus(status: AssessmentStatus): Promise<Assessment[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAllFromIndex('assessments', 'by-status', status);
+  }
+
+  async addAssessment(assessment: Omit<Assessment, 'id'>): Promise<number> {
+    await this.ensureInitialized();
+    return await this.getDatabase().add('assessments', assessment as Assessment);
+  }
+
+  async updateAssessment(assessment: Assessment): Promise<void> {
+    await this.ensureInitialized();
+    await this.getDatabase().put('assessments', assessment);
+  }
+
+  async deleteAssessment(id: number): Promise<void> {
+    await this.ensureInitialized();
+    const tx = this.getDatabase().transaction(['assessments', 'stageImplementationDetails'], 'readwrite');
+
+    // Delete related stage implementation details
+    const details = await tx.objectStore('stageImplementationDetails').index('by-assessment').getAll(id);
+    for (const detail of details) {
+      await tx.objectStore('stageImplementationDetails').delete(detail.id);
+    }
+
+    await tx.objectStore('assessments').delete(id);
+    await tx.done;
+  }
+
+  // StageImplementationDetail methods
+  async getStageImplementationDetails(): Promise<StageImplementationDetail[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAll('stageImplementationDetails');
+  }
+
+  async getStageImplementationDetailsByAssessment(assessmentId: number): Promise<StageImplementationDetail[]> {
+    await this.ensureInitialized();
+    return await this.getDatabase().getAllFromIndex('stageImplementationDetails', 'by-assessment', assessmentId);
+  }
+
+  async addStageImplementationDetail(detail: Omit<StageImplementationDetail, 'id'>): Promise<number> {
+    await this.ensureInitialized();
+    return await this.getDatabase().add('stageImplementationDetails', detail as StageImplementationDetail);
+  }
+
+  async updateStageImplementationDetail(detail: StageImplementationDetail): Promise<void> {
+    await this.ensureInitialized();
+    await this.getDatabase().put('stageImplementationDetails', detail);
+  }
+
+  async deleteStageImplementationDetail(id: number): Promise<void> {
+    await this.ensureInitialized();
+    await this.getDatabase().delete('stageImplementationDetails', id);
+  }
+
+  // Bulk operations for V2 import
+  async bulkImportV2Data(data: {
+    processTechnologyGroups?: ProcessTechnologyGroup[];
+    maturityStageImplementations?: MaturityStageImplementation[];
+    assessments?: Assessment[];
+    stageImplementationDetails?: StageImplementationDetail[];
+  }): Promise<void> {
+    await this.ensureInitialized();
+
+    const tx = this.getDatabase().transaction(
+      ['processTechnologyGroups', 'maturityStageImplementations', 'assessments', 'stageImplementationDetails'],
+      'readwrite'
+    );
+
+    try {
+      // Import ProcessTechnologyGroups
+      if (data.processTechnologyGroups) {
+        for (const group of data.processTechnologyGroups) {
+          await tx.objectStore('processTechnologyGroups').put(group);
+        }
+      }
+
+      // Import MaturityStageImplementations
+      if (data.maturityStageImplementations) {
+        for (const impl of data.maturityStageImplementations) {
+          await tx.objectStore('maturityStageImplementations').put(impl);
+        }
+      }
+
+      // Import Assessments
+      if (data.assessments) {
+        for (const assessment of data.assessments) {
+          await tx.objectStore('assessments').put(assessment);
+        }
+      }
+
+      // Import StageImplementationDetails
+      if (data.stageImplementationDetails) {
+        for (const detail of data.stageImplementationDetails) {
+          await tx.objectStore('stageImplementationDetails').put(detail);
+        }
+      }
+
+      await tx.done;
+      console.log('V2 data imported successfully');
+    } catch (error) {
+      console.error('Error importing V2 data:', error);
+      throw error;
+    }
   }
 }
