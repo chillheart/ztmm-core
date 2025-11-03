@@ -125,6 +125,16 @@ export class DataExportService {
   private async importV2Data(data: ExportedData): Promise<void> {
     console.log('Importing V2 format data...');
 
+    // Log what we're about to import
+    console.log('📊 Import Summary:');
+    console.log(`  • ${data.pillars?.length || 0} Pillars`);
+    console.log(`  • ${data.functionCapabilities?.length || 0} Function Capabilities`);
+    console.log(`  • ${data.maturityStages?.length || 0} Maturity Stages`);
+    console.log(`  • ${data.processTechnologyGroups?.length || 0} Process/Technology Groups`);
+    console.log(`  • ${data.maturityStageImplementations?.length || 0} Maturity Stage Implementations`);
+    console.log(`  • ${data.assessments?.length || 0} Assessments`);
+    console.log(`  • ${data.stageImplementationDetails?.length || 0} Stage Implementation Details`);
+
     // Reset the database
     await this.dataService.resetDatabase(true);
 
@@ -204,17 +214,47 @@ export class DataExportService {
    */
   async uploadAndImport(file: File): Promise<void> {
     try {
+      console.log('📁 Reading import file:', file.name);
       const text = await file.text();
       const data: ExportedData = JSON.parse(text);
 
       // Validate the data structure
       if (!this.validateImportData(data)) {
-        throw new Error('Invalid import data format');
+        throw new Error('Invalid import data format. Please ensure the file is a valid ZTMM export file.');
       }
 
+      console.log('✅ File validated, starting import...');
       await this.importFromJson(data);
+      console.log('✅ Import completed successfully');
     } catch (error) {
-      console.error('Error uploading and importing data:', error);
+      console.error('❌ Error uploading and importing data:', error);
+
+      // Provide user-friendly error messages
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate MaturityStageImplementation')) {
+          // Extract useful information from the error
+          const match = error.message.match(/group_id=(\d+), stage_id=(\d+)/);
+          if (match) {
+            const [, groupId, stageId] = match;
+            throw new Error(
+              `Import failed: Duplicate maturity stage implementation detected.\n\n` +
+              `The import file contains multiple implementations for the same combination:\n` +
+              `  • Process/Technology Group ID: ${groupId}\n` +
+              `  • Maturity Stage ID: ${stageId}\n\n` +
+              `Each process/technology group can only have one implementation per maturity stage.\n` +
+              `Please fix the import file and try again.`
+            );
+          }
+        } else if (error.message.includes('ConstraintError')) {
+          throw new Error(
+            `Import failed: Database constraint violation.\n\n` +
+            `${error.message}\n\n` +
+            `This usually means the import file contains duplicate or invalid data.\n` +
+            `Check the browser console for detailed information.`
+          );
+        }
+      }
+
       throw error;
     }
   }

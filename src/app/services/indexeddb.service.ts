@@ -1245,36 +1245,107 @@ export class IndexedDBService {
     try {
       // Import ProcessTechnologyGroups
       if (data.processTechnologyGroups) {
-        for (const group of data.processTechnologyGroups) {
-          await tx.objectStore('processTechnologyGroups').put(group);
+        console.log(`Importing ${data.processTechnologyGroups.length} ProcessTechnologyGroups...`);
+        for (let i = 0; i < data.processTechnologyGroups.length; i++) {
+          const group = data.processTechnologyGroups[i];
+          try {
+            await tx.objectStore('processTechnologyGroups').put(group);
+          } catch (error) {
+            console.error(`Error importing ProcessTechnologyGroup at index ${i}:`, group, error);
+            throw new Error(`Failed to import ProcessTechnologyGroup "${group.name}" (id: ${group.id}): ${error instanceof Error ? error.message : String(error)}`);
+          }
         }
       }
 
       // Import MaturityStageImplementations
       if (data.maturityStageImplementations) {
-        for (const impl of data.maturityStageImplementations) {
-          await tx.objectStore('maturityStageImplementations').put(impl);
+        console.log(`Importing ${data.maturityStageImplementations.length} MaturityStageImplementations...`);
+
+        // Check for duplicates before importing
+        const seen = new Map<string, MaturityStageImplementation>();
+        const duplicates: Array<{ index: number; impl: MaturityStageImplementation; original: MaturityStageImplementation }> = [];
+
+        for (let i = 0; i < data.maturityStageImplementations.length; i++) {
+          const impl = data.maturityStageImplementations[i];
+          const key = `${impl.process_technology_group_id}-${impl.maturity_stage_id}`;
+
+          if (seen.has(key)) {
+            duplicates.push({ index: i, impl, original: seen.get(key)! });
+          } else {
+            seen.set(key, impl);
+          }
+        }
+
+        if (duplicates.length > 0) {
+          console.error('❌ DUPLICATE MaturityStageImplementations detected:');
+          duplicates.forEach(({ index, impl, original }) => {
+            console.error(`  - Duplicate at index ${index}:`, {
+              id: impl.id,
+              group_id: impl.process_technology_group_id,
+              stage_id: impl.maturity_stage_id,
+              description: impl.description?.substring(0, 50) + '...'
+            });
+            console.error(`  - Original:`, {
+              id: original.id,
+              group_id: original.process_technology_group_id,
+              stage_id: original.maturity_stage_id,
+              description: original.description?.substring(0, 50) + '...'
+            });
+          });
+
+          throw new Error(
+            `Cannot import: Found ${duplicates.length} duplicate MaturityStageImplementation(s) with the same (process_technology_group_id, maturity_stage_id) combination. ` +
+            `The 'by-group-stage' index requires unique combinations. ` +
+            `First duplicate: group_id=${duplicates[0].impl.process_technology_group_id}, stage_id=${duplicates[0].impl.maturity_stage_id}`
+          );
+        }
+
+        for (let i = 0; i < data.maturityStageImplementations.length; i++) {
+          const impl = data.maturityStageImplementations[i];
+          try {
+            await tx.objectStore('maturityStageImplementations').put(impl);
+          } catch (error) {
+            console.error(`Error importing MaturityStageImplementation at index ${i}:`, impl, error);
+            throw new Error(
+              `Failed to import MaturityStageImplementation (id: ${impl.id}, group_id: ${impl.process_technology_group_id}, stage_id: ${impl.maturity_stage_id}): ` +
+              `${error instanceof Error ? error.message : String(error)}`
+            );
+          }
         }
       }
 
       // Import Assessments
       if (data.assessments) {
-        for (const assessment of data.assessments) {
-          await tx.objectStore('assessments').put(assessment);
+        console.log(`Importing ${data.assessments.length} Assessments...`);
+        for (let i = 0; i < data.assessments.length; i++) {
+          const assessment = data.assessments[i];
+          try {
+            await tx.objectStore('assessments').put(assessment);
+          } catch (error) {
+            console.error(`Error importing Assessment at index ${i}:`, assessment, error);
+            throw new Error(`Failed to import Assessment (id: ${assessment.id}, group_id: ${assessment.process_technology_group_id}): ${error instanceof Error ? error.message : String(error)}`);
+          }
         }
       }
 
       // Import StageImplementationDetails
       if (data.stageImplementationDetails) {
-        for (const detail of data.stageImplementationDetails) {
-          await tx.objectStore('stageImplementationDetails').put(detail);
+        console.log(`Importing ${data.stageImplementationDetails.length} StageImplementationDetails...`);
+        for (let i = 0; i < data.stageImplementationDetails.length; i++) {
+          const detail = data.stageImplementationDetails[i];
+          try {
+            await tx.objectStore('stageImplementationDetails').put(detail);
+          } catch (error) {
+            console.error(`Error importing StageImplementationDetail at index ${i}:`, detail, error);
+            throw new Error(`Failed to import StageImplementationDetail (id: ${detail.id}, assessment_id: ${detail.assessment_id}, stage_id: ${detail.maturity_stage_id}): ${error instanceof Error ? error.message : String(error)}`);
+          }
         }
       }
 
       await tx.done;
-      console.log('V2 data imported successfully');
+      console.log('✅ V2 data imported successfully');
     } catch (error) {
-      console.error('Error importing V2 data:', error);
+      console.error('❌ Error importing V2 data:', error);
       throw error;
     }
   }
