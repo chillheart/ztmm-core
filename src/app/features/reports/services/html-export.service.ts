@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { PillarSummary, FunctionSummary, DetailedAssessmentItem } from '../models/report.models';
+import { PillarSummary, FunctionSummary, DetailedAssessmentItem, MaturityStageBreakdown } from '../models/report.models';
 import { MaturityCalculationService } from './maturity-calculation.service';
 
 @Injectable({
@@ -306,7 +306,7 @@ export class HtmlExportService {
     </div>`;
   }
 
-  private generateStageTable(breakdown: any, functionDetails: DetailedAssessmentItem[]): string {
+  private generateStageTable(breakdown: MaturityStageBreakdown, functionDetails: DetailedAssessmentItem[]): string {
     const stageItems = functionDetails.filter(item => item.maturityStageName === breakdown.stageName);
 
     const rows = stageItems.length > 0 ? stageItems.map(item => {
@@ -380,13 +380,13 @@ export class HtmlExportService {
                     ` : ''}
                 </div>
             </div>
-            ${!breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages?.length > 0 ? `
+            ${breakdown.status === 'completed' && !breakdown.canAdvanceToThisStage && breakdown.blockedByPreviousStages && breakdown.blockedByPreviousStages.length > 0 ? `
             <div class="mt-2 p-2 border border-warning rounded bg-light">
                 <div class="d-flex align-items-start">
                     <i class="bi bi-lock-fill text-warning me-2 mt-1"></i>
                     <div>
                         <div class="small text-warning fw-bold">Blocked by Prerequisites</div>
-                        <div class="small text-muted">Complete ${breakdown.blockedByPreviousStages.join(', ')} stage first</div>
+                        <div class="small text-muted">Complete ${breakdown.blockedByPreviousStages?.join(', ') || ''} stage first</div>
                     </div>
                 </div>
             </div>

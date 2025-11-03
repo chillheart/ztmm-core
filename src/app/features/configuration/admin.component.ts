@@ -9,8 +9,9 @@ import { DemoDataGeneratorService } from '../../services/demo-data-generator.ser
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, ProcessTechnologyGroup, MaturityStageImplementation } from '../../models/ztmm.models';
 import { PillarsTabComponent } from './pillars-tab.component';
 import { FunctionsTabComponent } from './functions-tab.component';
-import { TechnologiesV2TabComponent } from './technologies-v2-tab.component';
+import { TechnologiesTabComponent } from './technologies-tab.component';
 import { DataManagementTabComponent } from './data-management-tab.component';
+import { ProcessTechWizardModalComponent, WizardResult } from './process-tech-wizard-modal.component';
 
 
 @Component({
@@ -18,7 +19,7 @@ import { DataManagementTabComponent } from './data-management-tab.component';
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesV2TabComponent, DataManagementTabComponent]
+  imports: [CommonModule, FormsModule, PillarsTabComponent, FunctionsTabComponent, TechnologiesTabComponent, DataManagementTabComponent, ProcessTechWizardModalComponent]
 })
 export class AdminComponent implements OnInit {
   // V1 Data - kept for import/migration support
@@ -27,8 +28,12 @@ export class AdminComponent implements OnInit {
   maturityStages: MaturityStage[] = [];
   technologiesProcesses: TechnologyProcess[] = [];
 
-  // V2 Data (now the default and only UI model)
+  // Data
   processTechnologyGroups: ProcessTechnologyGroup[] = [];
+
+  // Wizard Modal State
+  showWizardModal = false;
+  editingProcessTechGroup: ProcessTechnologyGroup | null = null;
 
   newPillar = '';
   newFunctionCapability = '';
@@ -116,7 +121,7 @@ export class AdminComponent implements OnInit {
     // Load V1 data
     await this.loadTechnologiesProcesses();
 
-    // Load V2 data
+    // Load data
     await this.loadProcessTechnologyGroups();
 
     this.cdr.detectChanges();
@@ -124,13 +129,13 @@ export class AdminComponent implements OnInit {
 
   async loadProcessTechnologyGroups() {
     try {
-      // Load all V2 ProcessTechnologyGroups (both technologies and processes)
+      // Load all ProcessTechnologyGroups (both technologies and processes)
       const technologies = await this.technologyService.getTechnologies();
       const processes = await this.processService.getProcesses();
       this.processTechnologyGroups = [...technologies, ...processes];
-      console.log('Loaded V2 ProcessTechnologyGroups:', this.processTechnologyGroups);
-    } catch (error) {
-      // V2 data might not be available yet (e.g., in tests or fresh database)
+      console.log('Loaded ProcessTechnologyGroups:', this.processTechnologyGroups);
+    } catch {
+      // data might not be available yet (e.g., in tests or fresh database)
       // This is expected and not an error
       this.processTechnologyGroups = [];
     }
@@ -186,12 +191,13 @@ export class AdminComponent implements OnInit {
   }
 
   // Type guard for TechnologyProcessData
-  private isTechnologyProcessData(obj: unknown): obj is TechnologyProcess {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private isTechnologyProcessData(obj: any): boolean {
     return (
       typeof obj === 'object' && obj !== null &&
-      'name' in obj && typeof (obj as any).name === 'string' &&
-      'description' in obj && typeof (obj as any).description === 'string' &&
-      'type' in obj && typeof (obj as any).type === 'string' &&
+      'name' in obj && typeof obj.name === 'string' &&
+      'description' in obj && typeof obj.description === 'string' &&
+      'type' in obj && typeof obj.type === 'string' &&
       (
         ('function_capability_id' in obj && 'maturity_stage_id' in obj) ||
         ('functionCapabilityId' in obj && 'maturityStageId' in obj)
@@ -199,6 +205,7 @@ export class AdminComponent implements OnInit {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async addOrEditTechnologyProcess(arg?: any) {
     // If called from child, arg is the data object; if from form, arg is NgForm
     console.log('addOrEditTechnologyProcess called with:', arg);
@@ -692,7 +699,7 @@ export class AdminComponent implements OnInit {
     this.loadTechnologiesProcesses();
   }
 
-  // V2 Event Handlers for ProcessTechnologyGroup
+  // Event Handlers for ProcessTechnologyGroup
   async onAddProcessTechnologyGroup(data: {
     name: string,
     description: string,
@@ -734,7 +741,7 @@ export class AdminComponent implements OnInit {
 
       await this.loadProcessTechnologyGroups();
     } catch (error) {
-      console.error('Error adding V2 ProcessTechnologyGroup:', error);
+      console.error('Error adding ProcessTechnologyGroup:', error);
       alert('Error adding technology/process. Please check the console for details.');
     }
   }
@@ -779,7 +786,7 @@ export class AdminComponent implements OnInit {
 
       await this.loadProcessTechnologyGroups();
     } catch (error) {
-      console.error('Error updating V2 ProcessTechnologyGroup:', error);
+      console.error('Error updating ProcessTechnologyGroup:', error);
       alert('Error updating technology/process. Please check the console for details.');
     }
   }
@@ -798,7 +805,7 @@ export class AdminComponent implements OnInit {
 
       await this.loadProcessTechnologyGroups();
     } catch (error) {
-      console.error('Error removing V2 ProcessTechnologyGroup:', error);
+      console.error('Error removing ProcessTechnologyGroup:', error);
       alert('Error removing technology/process. Please check the console for details.');
     }
   }
@@ -864,6 +871,93 @@ export class AdminComponent implements OnInit {
       alert('Failed to generate demo data. Please check the console for details.');
     } finally {
       this.isGeneratingDemo = false;
+    }
+  }
+
+  // Wizard Modal Methods
+  openWizardModal(editingGroup: ProcessTechnologyGroup | null = null) {
+    this.editingProcessTechGroup = editingGroup;
+    this.showWizardModal = true;
+  }
+
+  closeWizardModal() {
+    this.showWizardModal = false;
+    this.editingProcessTechGroup = null;
+  }
+
+  async onWizardSave(result: WizardResult) {
+    try {
+      console.log('💾 Wizard save started with result:', result);
+      console.log('📝 Stage implementations to save:', result.stageImplementations);
+
+      // Create or update the ProcessTechnologyGroup
+      let groupId: number;
+
+      if (this.editingProcessTechGroup) {
+        // Update existing group
+        const updatedGroup: ProcessTechnologyGroup = {
+          ...this.editingProcessTechGroup,
+          name: result.name,
+          description: result.description,
+          type: result.type,
+          function_capability_id: result.functionCapabilityId
+        };
+
+        if (result.type === 'Technology') {
+          await this.technologyService.updateTechnology(updatedGroup);
+        } else {
+          await this.processService.updateProcess(updatedGroup);
+        }
+        groupId = this.editingProcessTechGroup.id;
+
+        // Delete old MaturityStageImplementations and create new ones
+        // This is simpler than trying to sync/merge changes
+        const oldImplementations = await this.data.getMaturityStageImplementationsByGroup(groupId);
+        for (const impl of oldImplementations) {
+          await this.data.deleteMaturityStageImplementation(impl.id);
+        }
+      } else {
+        // Create new group
+        const newGroup: Omit<ProcessTechnologyGroup, 'id'> = {
+          name: result.name,
+          description: result.description,
+          type: result.type,
+          function_capability_id: result.functionCapabilityId,
+          order_index: 0
+        };
+
+        if (result.type === 'Technology') {
+          groupId = await this.technologyService.addTechnology(newGroup);
+        } else {
+          groupId = await this.processService.addProcess(newGroup);
+        }
+      }
+
+      // Create MaturityStageImplementations from wizard results
+      console.log(`✅ Group created/updated with ID: ${groupId}`);
+      console.log(`📋 Creating ${result.stageImplementations.length} stage implementations...`);
+
+      for (const stageImpl of result.stageImplementations) {
+        const impl: Omit<MaturityStageImplementation, 'id'> = {
+          process_technology_group_id: groupId,
+          maturity_stage_id: stageImpl.maturity_stage_id,
+          description: stageImpl.description,
+          order_index: 0
+        };
+        console.log('💾 Saving stage implementation:', impl);
+        const implId = await this.data.addMaturityStageImplementation(impl);
+        console.log(`✅ Stage implementation saved with ID: ${implId}`);
+      }
+
+      console.log('✅ All stage implementations saved successfully');
+
+      // Reload data and close modal
+      await this.loadProcessTechnologyGroups();
+      this.closeWizardModal();
+
+    } catch (error) {
+      console.error('Error saving process/technology group:', error);
+      alert('Error saving. Please check the console for details.');
     }
   }
 

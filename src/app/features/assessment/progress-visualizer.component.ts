@@ -3,18 +3,18 @@ import { CommonModule } from '@angular/common';
 import { MaturityStage, MaturityStageImplementation } from '../../models/ztmm.models';
 
 @Component({
-  selector: 'app-v2-progress-visualizer',
-  templateUrl: './v2-progress-visualizer.component.html',
-  styleUrls: ['./v2-progress-visualizer.component.scss'],
+  selector: 'app-progress-visualizer',
+  templateUrl: './progress-visualizer.component.html',
+  styleUrls: ['./progress-visualizer.component.scss'],
   standalone: true,
   imports: [CommonModule]
 })
-export class V2ProgressVisualizerComponent implements OnInit {
-  @Input() achievedStageId: number = 0;
+export class ProgressVisualizerComponent implements OnInit {
+  @Input() achievedStageId = 0;
   @Input() targetStageId: number | null = null;
   @Input() availableStages: MaturityStage[] = [];
   @Input() stageImplementations: MaturityStageImplementation[] = [];
-  @Input() compact: boolean = false;
+  @Input() compact = false;
 
   ngOnInit() {
     // Sort available stages by ID

@@ -3,9 +3,8 @@ import {
   TechnologyProcess,
   AssessmentResponse,
   ProcessTechnologyGroup,
-  MaturityStageImplementation,
   Assessment,
-  AssessmentStatus as V2AssessmentStatus
+  StageImplementationDetail
 } from '../../../models/ztmm.models';
 import {
   MaturityStageBreakdown,
@@ -109,6 +108,7 @@ export class MaturityCalculationService {
   /**
    * Calculates the overall maturity stage for a function based on completed stages
    * Enforces sequential maturity: must complete all previous stages before advancing
+   * Only considers stages that are applicable (have implementations) for the group
    */
   calculateOverallMaturityStage(maturityBreakdown: MaturityStageBreakdown[]): {
     stage: string;
@@ -119,11 +119,26 @@ export class MaturityCalculationService {
   } {
     const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
 
+    // Extract which stages are applicable (have items) - these are the only ones we care about
+    const applicableStages = maturityBreakdown
+      .filter(mb => mb.totalItems > 0)
+      .map(mb => mb.stageName);
+
+    console.log('🔍 calculateOverallMaturityStage:', {
+      applicableStages,
+      breakdown: maturityBreakdown.map(mb => ({
+        stage: mb.stageName,
+        status: mb.status,
+        total: mb.totalItems,
+        completed: mb.completedItems
+      }))
+    });
+
     // First, let's mark which stages can be advanced to based on sequential requirements
-    const updatedBreakdown = this.validateSequentialMaturity(maturityBreakdown);
+    const updatedBreakdown = this.validateSequentialMaturity(maturityBreakdown, applicableStages);
 
     // Find the highest completed stage that can be achieved sequentially
-    let achievedStage = 'Traditional';
+    let achievedStage: string | null = null; // Will be set to first applicable stage or first completed stage
     let actualStage = 'Traditional';
     let hasGap = false;
     let explanation = '';
@@ -150,15 +165,33 @@ export class MaturityCalculationService {
     }
 
     // Calculate sequential achieved stage
+    // Only consider stages that are in the breakdown (applicable stages)
     for (const stage of stageOrder) {
       const stageBreakdown = updatedBreakdown.find(mb => mb.stageName === stage);
 
-      if (stageBreakdown && stageBreakdown.status === 'completed' && stageBreakdown.canAdvanceToThisStage) {
+      // Skip if this stage is not in the breakdown (not applicable to this group)
+      if (!stageBreakdown) {
+        continue;
+      }
+
+      // Set achievedStage to first applicable stage if not set yet (handles case where nothing is completed)
+      if (achievedStage === null) {
+        achievedStage = stage;
+      }
+
+      if (stageBreakdown.status === 'completed' && stageBreakdown.canAdvanceToThisStage) {
         achievedStage = stage;
       } else {
         break; // Stop at first incomplete or blocked stage
       }
     }
+
+    // If still null, default to Traditional (no applicable stages found)
+    if (achievedStage === null) {
+      achievedStage = 'Traditional';
+    }
+
+    console.log('✅ Result:', { achievedStage, actualStage, hasGap });
 
     // Check for gaps
     if (actualStage !== achievedStage) {
@@ -180,11 +213,15 @@ export class MaturityCalculationService {
 
   /**
    * Validates sequential maturity requirements for each stage
+   * Only considers stages that are in the applicableStages list
    */
-  private validateSequentialMaturity(maturityBreakdown: MaturityStageBreakdown[]): MaturityStageBreakdown[] {
+  private validateSequentialMaturity(
+    maturityBreakdown: MaturityStageBreakdown[],
+    applicableStages: string[]
+  ): MaturityStageBreakdown[] {
     return maturityBreakdown.map(breakdown => {
-      const canAdvanceToThisStage = this.canAdvanceToStage(breakdown.stageName, maturityBreakdown);
-      const blockedByPreviousStages = this.getBlockingStages(breakdown.stageName, maturityBreakdown);
+      const canAdvanceToThisStage = this.canAdvanceToStage(breakdown.stageName, maturityBreakdown, applicableStages);
+      const blockedByPreviousStages = this.getBlockingStages(breakdown.stageName, maturityBreakdown, applicableStages);
 
       return {
         ...breakdown,
@@ -196,20 +233,41 @@ export class MaturityCalculationService {
 
   /**
    * Checks if advancement to a specific stage is allowed based on sequential requirements
+   * Only considers stages that are assessed AND in the applicable stages list
    */
-  private canAdvanceToStage(stageName: string, maturityBreakdown: MaturityStageBreakdown[]): boolean {
+  private canAdvanceToStage(
+    stageName: string,
+    maturityBreakdown: MaturityStageBreakdown[],
+    applicableStages: string[]
+  ): boolean {
     const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
     const stageIndex = stageOrder.indexOf(stageName);
 
-    // Traditional stage is always accessible
-    if (stageIndex === 0) return true;
+    // First applicable stage is always accessible
+    if (applicableStages.length > 0 && stageName === applicableStages[0]) {
+      return true;
+    }
 
-    // Check if all previous stages are completed
+    // Traditional stage is always accessible (if it's applicable)
+    if (stageIndex === 0 && applicableStages.includes('Traditional')) {
+      return true;
+    }
+
+    // Check if all previous ASSESSED AND APPLICABLE stages are completed
     for (let i = 0; i < stageIndex; i++) {
       const previousStage = stageOrder[i];
+
+      // Skip if this stage is not applicable for this group
+      if (!applicableStages.includes(previousStage)) {
+        continue;
+      }
+
       const previousStageBreakdown = maturityBreakdown.find(mb => mb.stageName === previousStage);
 
-      if (!previousStageBreakdown || previousStageBreakdown.status !== 'completed') {
+      // Only block if the previous stage is applicable, has been assessed, but is not completed
+      if (previousStageBreakdown &&
+          previousStageBreakdown.status !== 'not-assessed' &&
+          previousStageBreakdown.status !== 'completed') {
         return false;
       }
     }
@@ -219,18 +277,32 @@ export class MaturityCalculationService {
 
   /**
    * Gets the list of stages that are blocking advancement to the specified stage
+   * Only includes stages that are assessed, not completed, AND in the applicable stages list
    */
-  private getBlockingStages(stageName: string, maturityBreakdown: MaturityStageBreakdown[]): string[] {
+  private getBlockingStages(
+    stageName: string,
+    maturityBreakdown: MaturityStageBreakdown[],
+    applicableStages: string[]
+  ): string[] {
     const stageOrder = ['Traditional', 'Initial', 'Advanced', 'Optimal'];
     const stageIndex = stageOrder.indexOf(stageName);
     const blockingStages: string[] = [];
 
-    // Check previous stages for incomplete items
+    // Check previous stages for incomplete items (only those that are applicable and have been assessed)
     for (let i = 0; i < stageIndex; i++) {
       const previousStage = stageOrder[i];
+
+      // Skip if this stage is not applicable for this group
+      if (!applicableStages.includes(previousStage)) {
+        continue;
+      }
+
       const previousStageBreakdown = maturityBreakdown.find(mb => mb.stageName === previousStage);
 
-      if (!previousStageBreakdown || previousStageBreakdown.status !== 'completed') {
+      // Only include as blocking if the stage is applicable, has been assessed, but is not completed
+      if (previousStageBreakdown &&
+          previousStageBreakdown.status !== 'not-assessed' &&
+          previousStageBreakdown.status !== 'completed') {
         blockingStages.push(previousStage);
       }
     }
@@ -351,7 +423,9 @@ export class MaturityCalculationService {
   calculateV2MaturityStageBreakdown(
     stageName: string,
     groupsAtStage: ProcessTechnologyGroup[],
-    assessments: Assessment[]
+    assessments: Assessment[],
+    stageImplementationDetails: StageImplementationDetail[],
+    currentStageId: number
   ): MaturityStageBreakdown {
     const totalItems = groupsAtStage.length;
     let assessedItems = 0;
@@ -369,47 +443,67 @@ export class MaturityCalculationService {
       if (assessment) {
         assessedItems++;
 
-        // Compare achieved stage with current stage (IDs are 1-based, convert to 0-based index)
-        const achievedStageIndex = assessment.achieved_maturity_stage_id - 1;
-        const targetStageIndex = assessment.target_maturity_stage_id ? assessment.target_maturity_stage_id - 1 : -1;
+        // Check if we have a StageImplementationDetail for this specific stage
+        const stageDetail = stageImplementationDetails.find(
+          d => d.assessment_id === assessment.id && d.maturity_stage_id === currentStageId
+        );
 
-        if (achievedStageIndex > currentStageIndex) {
-          // Already surpassed this stage
-          completedItems++;
-        } else if (achievedStageIndex === currentStageIndex) {
-          // Currently at this stage - check implementation status
-          switch (assessment.implementation_status) {
-            case 'Fully Implemented':
-            case 'Superseded':
+        if (stageDetail) {
+          // Use the actual saved stage detail status
+          switch (stageDetail.status) {
+            case 'Completed':
               completedItems++;
               break;
-            case 'Partially Implemented':
+            case 'In Progress':
               inProgressItems++;
               break;
-            case 'Not Implemented':
-              notStartedItems++;
-              break;
-          }
-        } else if (targetStageIndex === currentStageIndex ||
-                   (achievedStageIndex < currentStageIndex && assessment.implementation_status !== 'Not Implemented')) {
-          // Haven't achieved this stage yet, but either:
-          // 1. It's the target stage being worked on, OR
-          // 2. They're below this stage but showing progress (Partially/Fully Implemented means working on next stage)
-          switch (assessment.implementation_status) {
-            case 'Fully Implemented':
-            case 'Superseded':
-              completedItems++;
-              break;
-            case 'Partially Implemented':
-              inProgressItems++;
-              break;
-            case 'Not Implemented':
+            case 'Not Started':
               notStartedItems++;
               break;
           }
         } else {
-          // Haven't reached this stage yet and not working on it
-          notStartedItems++;
+          // Fallback: infer from achieved stage (legacy behavior)
+          const achievedStageIndex = assessment.achieved_maturity_stage_id - 1;
+          const targetStageIndex = assessment.target_maturity_stage_id ? assessment.target_maturity_stage_id - 1 : -1;
+
+          if (achievedStageIndex > currentStageIndex) {
+            // Already surpassed this stage
+            completedItems++;
+          } else if (achievedStageIndex === currentStageIndex) {
+            // Currently at this stage - check implementation status
+            switch (assessment.implementation_status) {
+              case 'Fully Implemented':
+              case 'Superseded':
+                completedItems++;
+                break;
+              case 'Partially Implemented':
+                inProgressItems++;
+                break;
+              case 'Not Implemented':
+                notStartedItems++;
+                break;
+            }
+          } else if (targetStageIndex === currentStageIndex ||
+                     (achievedStageIndex < currentStageIndex && assessment.implementation_status !== 'Not Implemented')) {
+            // Haven't achieved this stage yet, but either:
+            // 1. It's the target stage being worked on, OR
+            // 2. They're below this stage but showing progress
+            switch (assessment.implementation_status) {
+              case 'Fully Implemented':
+              case 'Superseded':
+                completedItems++;
+                break;
+              case 'Partially Implemented':
+                inProgressItems++;
+                break;
+              case 'Not Implemented':
+                notStartedItems++;
+                break;
+            }
+          } else {
+            // Haven't reached this stage yet and not working on it
+            notStartedItems++;
+          }
         }
       }
     }

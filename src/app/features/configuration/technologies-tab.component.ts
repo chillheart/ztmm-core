@@ -4,17 +4,18 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Pillar, FunctionCapability, MaturityStage, ProcessTechnologyGroup } from '../../models/ztmm.models';
 
 @Component({
-  selector: 'app-technologies-v2-tab',
-  templateUrl: './technologies-v2-tab.component.html',
-  styleUrls: ['./technologies-v2-tab.component.scss'],
+  selector: 'app-technologies-tab',
+  templateUrl: './technologies-tab.component.html',
+  styleUrls: ['./technologies-tab.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class TechnologiesV2TabComponent {
+export class TechnologiesTabComponent {
   @Input() pillars: Pillar[] = [];
   @Input() functionCapabilities: FunctionCapability[] = [];
   @Input() maturityStages: MaturityStage[] = [];
   @Input() processTechnologyGroups: ProcessTechnologyGroup[] = [];
+  @Output() openWizard = new EventEmitter<ProcessTechnologyGroup | null>();
   @Output() addProcessTechnologyGroup = new EventEmitter<{
     name: string,
     description: string,
@@ -217,7 +218,7 @@ export class TechnologiesV2TabComponent {
     return this.maturityStages.find(ms => ms.id === maturityStageId)?.name || 'Unknown';
   }
 
-  getStageRange(group: ProcessTechnologyGroup): string {
+  getStageRange(_group: ProcessTechnologyGroup): string {
     // This is a placeholder - we'll need to query MaturityStageImplementations
     // to get the actual stages this group spans
     return 'Multiple stages';

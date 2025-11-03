@@ -1026,13 +1026,13 @@ export class DemoDataGeneratorService {
 
       // Define V2 demo groups for each function/capability
       // Each group represents a technology/process implemented across multiple stages
-      const v2DemoGroups: Record<string, Array<{
+      const v2DemoGroups: Record<string, {
         name: string;
         description: string;
         type: 'Technology' | 'Process';
-        stages: Array<'Traditional' | 'Initial' | 'Advanced' | 'Optimal'>; // Stage names
+        stages: ('Traditional' | 'Initial' | 'Advanced' | 'Optimal')[]; // Stage names
         implementations: string[]; // Description for each stage
-      }>> = {
+      }[]> = {
         'Authentication': [
           {
             name: 'Multi-Factor Authentication Platform',

@@ -8,7 +8,7 @@ import {
   ProcessTechnologyGroup,
   MaturityStageImplementation,
   Assessment,
-  AssessmentStatus
+  StageImplementationDetail
 } from '../../../models/ztmm.models';
 import {
   PillarSummary,
@@ -236,7 +236,8 @@ export class ReportDataService {
     maturityStages: MaturityStage[],
     processTechnologyGroups: ProcessTechnologyGroup[],
     maturityStageImplementations: MaturityStageImplementation[],
-    assessments: Assessment[]
+    assessments: Assessment[],
+    stageImplementationDetails: StageImplementationDetail[]
   ): PillarSummary[] {
     return pillars.map(pillar => {
       const pillarFunctions = functionCapabilities.filter(fc => fc.pillar_id === pillar.id);
@@ -245,7 +246,8 @@ export class ReportDataService {
         maturityStages,
         processTechnologyGroups,
         maturityStageImplementations,
-        assessments
+        assessments,
+        stageImplementationDetails
       );
 
       const { assessedItems, totalItems } = this.calculatePillarTotals(functions);
@@ -255,7 +257,8 @@ export class ReportDataService {
         functionCapabilities,
         processTechnologyGroups,
         maturityStageImplementations,
-        assessments
+        assessments,
+        stageImplementationDetails
       );
 
       const maturityResult = this.maturityCalculation.calculatePillarMaturityStage(functions);
@@ -283,7 +286,8 @@ export class ReportDataService {
     maturityStages: MaturityStage[],
     processTechnologyGroups: ProcessTechnologyGroup[],
     maturityStageImplementations: MaturityStageImplementation[],
-    assessments: Assessment[]
+    assessments: Assessment[],
+    stageImplementationDetails: StageImplementationDetail[]
   ): FunctionSummary[] {
     return functions.map(func => {
       const functionGroups = processTechnologyGroups.filter(ptg => ptg.function_capability_id === func.id);
@@ -294,7 +298,8 @@ export class ReportDataService {
         maturityStages,
         processTechnologyGroups,
         maturityStageImplementations,
-        assessments
+        assessments,
+        stageImplementationDetails
       );
 
       const maturityResult = this.maturityCalculation.calculateOverallMaturityStage(maturityStageBreakdown);
@@ -322,7 +327,8 @@ export class ReportDataService {
     maturityStages: MaturityStage[],
     processTechnologyGroups: ProcessTechnologyGroup[],
     maturityStageImplementations: MaturityStageImplementation[],
-    assessments: Assessment[]
+    assessments: Assessment[],
+    stageImplementationDetails: StageImplementationDetail[]
   ): MaturityStageBreakdown[] {
     return maturityStages.map(stage => {
       // Find all groups for this function
@@ -338,7 +344,9 @@ export class ReportDataService {
       return this.maturityCalculation.calculateV2MaturityStageBreakdown(
         stage.name,
         groupsAtStage,
-        assessments
+        assessments,
+        stageImplementationDetails,
+        stage.id
       );
     }).filter(breakdown => breakdown.totalItems > 0);
   }
@@ -352,7 +360,8 @@ export class ReportDataService {
     functionCapabilities: FunctionCapability[],
     processTechnologyGroups: ProcessTechnologyGroup[],
     maturityStageImplementations: MaturityStageImplementation[],
-    assessments: Assessment[]
+    assessments: Assessment[],
+    stageImplementationDetails: StageImplementationDetail[]
   ): MaturityStageBreakdown[] {
     const pillarFunctions = functionCapabilities.filter(fc => fc.pillar_id === pillarId);
 
@@ -372,7 +381,9 @@ export class ReportDataService {
       return this.maturityCalculation.calculateV2MaturityStageBreakdown(
         stage.name,
         groupsAtStage,
-        assessments
+        assessments,
+        stageImplementationDetails,
+        stage.id
       );
     }).filter(breakdown => breakdown.totalItems > 0);
   }
@@ -398,7 +409,8 @@ export class ReportDataService {
     maturityStages: MaturityStage[],
     processTechnologyGroups: ProcessTechnologyGroup[],
     maturityStageImplementations: MaturityStageImplementation[],
-    assessments: Assessment[]
+    assessments: Assessment[],
+    stageImplementationDetails: StageImplementationDetail[]
   ): DetailedAssessmentItem[] {
     const functionGroups = processTechnologyGroups.filter(
       ptg => ptg.function_capability_id === functionSummary.functionCapability.id
@@ -418,16 +430,26 @@ export class ReportDataService {
       for (const impl of groupImplementations) {
         const maturityStage = maturityStages.find(ms => ms.id === impl.maturity_stage_id);
 
-        // Determine status based on achieved stage
+        // Determine status - prioritize StageImplementationDetail if available
         let status: string;
-        if (!assessment) {
+        const stageDetail = stageImplementationDetails.find(
+          d => d.assessment_id === assessment?.id && d.maturity_stage_id === impl.maturity_stage_id
+        );
+
+        if (stageDetail) {
+          // Use the actual saved stage detail status
+          status = this.mapDetailStatusToDisplayStatus(stageDetail.status);
+        } else if (!assessment) {
           status = 'Not Assessed';
-        } else if (assessment.achieved_maturity_stage_id >= impl.maturity_stage_id) {
-          status = 'Fully Implemented';
-        } else if (assessment.target_maturity_stage_id === impl.maturity_stage_id) {
-          status = assessment.implementation_status;
         } else {
-          status = 'Not Implemented';
+          // Fallback to inferring from achieved stage (legacy behavior)
+          if (assessment.achieved_maturity_stage_id >= impl.maturity_stage_id) {
+            status = 'Fully Implemented';
+          } else if (assessment.target_maturity_stage_id === impl.maturity_stage_id) {
+            status = assessment.implementation_status;
+          } else {
+            status = 'Not Implemented';
+          }
         }
 
         details.push({
@@ -439,7 +461,7 @@ export class ReportDataService {
           type: group.type,
           maturityStageName: maturityStage?.name || '',
           status,
-          notes: assessment?.notes || ''
+          notes: stageDetail?.notes || assessment?.notes || ''
         });
       }
     }
@@ -451,5 +473,21 @@ export class ReportDataService {
       if (stageComparison !== 0) return stageComparison;
       return a.name.localeCompare(b.name);
     });
+  }
+
+  /**
+   * Maps StageImplementationDetail status to display status
+   */
+  private mapDetailStatusToDisplayStatus(status: string): string {
+    switch (status) {
+      case 'Not Started':
+        return 'Not Implemented';
+      case 'In Progress':
+        return 'Partially Implemented';
+      case 'Completed':
+        return 'Fully Implemented';
+      default:
+        return status;
+    }
   }
 }

@@ -2,9 +2,6 @@ import { Injectable } from '@angular/core';
 import { IndexedDBService } from '../services/indexeddb.service';
 import { DataMigrationService } from '../services/data-migration.service';
 import {
-  Pillar,
-  FunctionCapability,
-  MaturityStage,
   ExportedData,
   DataFormatVersion
 } from '../models/ztmm.models';
@@ -44,8 +41,8 @@ export class DataExportService {
       ]);
 
       // Ensure order_index is exported
-      const pillars = rawPillars.map((p: any) => ({ ...p }));
-      const functionCapabilities = rawFunctionCapabilities.map((fc: any) => ({ ...fc }));
+      const pillars = rawPillars.map(p => ({ ...p }));
+      const functionCapabilities = rawFunctionCapabilities.map(fc => ({ ...fc }));
 
       return {
         version: '2.0.0',

@@ -9,11 +9,7 @@ import {
   TechnologyProcess,
   AssessmentResponse,
   AssessmentStatus,
-  ExportedData,
-  ProcessTechnologyGroup,
-  MaturityStageImplementation,
-  Assessment,
-  StageImplementationDetail
+  ExportedData
 } from '../models/ztmm.models';
 import { TestUtilsIndexedDB } from '../testing/test-utils-indexeddb';
 
@@ -142,7 +138,7 @@ describe('DataExportService', () => {
 
       // Mock URL static methods
       const createObjectURLSpy = spyOn(URL, 'createObjectURL').and.returnValue('blob:mock-url');
-      const revokeObjectURLSpy = spyOn(URL, 'revokeObjectURL');
+      spyOn(URL, 'revokeObjectURL');
 
       spyOn(document, 'createElement').and.returnValue(mockLink);
       await service.downloadExport();

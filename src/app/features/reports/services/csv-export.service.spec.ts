@@ -327,7 +327,7 @@ describe('CsvExportService', () => {
       expect(lines.length).toBeGreaterThan(3); // Header + Pillar + Function + Detail
 
       // Each line should have 20 fields
-      lines.forEach((line, index) => {
+      lines.forEach((line) => {
         if (line.trim()) {
           const fields = line.split(',').length;
           expect(fields).toBe(20);

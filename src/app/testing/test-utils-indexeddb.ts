@@ -363,6 +363,9 @@ export class TestUtilsIndexedDB {
     if (spy.getAssessmentsV2) {
       spy.getAssessmentsV2.and.returnValue(Promise.resolve(mockData.mockAssessmentsV2));
     }
+    if (spy.getStageImplementationDetails) {
+      spy.getStageImplementationDetails.and.returnValue(Promise.resolve([]));
+    }
 
     return spy;
   }

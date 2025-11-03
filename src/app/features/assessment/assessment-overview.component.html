@@ -3,12 +3,18 @@
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white">
       <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="mb-0">
-            <i class="bi bi-list-check"></i>
-            {{ selectedFunctionCapabilityType }}: {{ selectedFunctionCapabilityName }}
-          </h5>
-          <small class="text-white-50">V2 Multi-Stage Assessment</small>
+        <div class="d-flex align-items-center gap-3">
+          <!-- Back Button -->
+          <button type="button" class="btn btn-sm btn-outline-light" (click)="onBackToPillarSummary()">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>
+          <div>
+            <h5 class="mb-0">
+              <i class="bi bi-list-check"></i>
+              {{ selectedFunctionCapabilityType }}: {{ selectedFunctionCapabilityName }}
+            </h5>
+            <small class="text-white-50">Multi-Stage Assessment</small>
+          </div>
         </div>
         <div class="d-flex align-items-center gap-3">
           <!-- Progress Badge -->
@@ -75,35 +81,27 @@
           </div>
         </div>
       </div>
-
-      <!-- Action Buttons -->
-      <div class="d-flex gap-2">
-        <button
-          class="btn btn-primary"
-          (click)="onSaveAll()"
-          [disabled]="isAutoSaving">
-          <i class="bi bi-save"></i>
-          Save All Progress
-        </button>
-      </div>
     </div>
-  </div>
 
   <!-- Assessment Items -->
-  <div class="assessment-items">
+  <div class="assessment-items p-3">
     <div *ngIf="processTechnologyGroups.length === 0" class="alert alert-info">
       <i class="bi bi-info-circle"></i>
       No process/technology groups found for this function/capability.
     </div>
 
     <div *ngFor="let group of processTechnologyGroups; let i = index" class="mb-3">
-      <app-v2-assessment-item
+      <app-assessment-item
         [group]="group"
         [itemNumber]="i + 1"
-        [assessment]="getAssessmentForGroup(group.id) || null"
-        [stageImplementations]="getStagesForGroup(group.id)"
+        [assessment]="getAssessment(group.id)"
+        [stageImplementations]="getStageImplementations(group.id)"
+        [stageImplementationDetails]="getStageDetails(group.id)"
+        [functionCapabilities]="functionCapabilities"
+        [maturityStages]="maturityStages"
+        [statusOptions]="statusOptions"
         (assessmentChange)="onAssessmentUpdate(group.id, $event)">
-      </app-v2-assessment-item>
+      </app-assessment-item>
     </div>
   </div>
 </div>

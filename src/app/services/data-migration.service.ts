@@ -107,7 +107,7 @@ export class DataMigrationService {
     };
     errors?: string[];
   }> {
-    const { validateFirst = true, dryRun = false, preserveV1Data = true } = options;
+    const { validateFirst = true, dryRun = false } = options;
 
     try {
       // Step 1: Validate V1 data
@@ -149,7 +149,7 @@ export class DataMigrationService {
       let groupIdCounter = 1;
       let implementationIdCounter = 1;
 
-      for (const [groupKey, processes] of groupedData.entries()) {
+      for (const processes of groupedData.values()) {
         const firstProcess = processes[0];
 
         // Create ProcessTechnologyGroup

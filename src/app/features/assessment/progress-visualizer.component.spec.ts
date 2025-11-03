@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { V2ProgressVisualizerComponent } from './v2-progress-visualizer.component';
+import { ProgressVisualizerComponent } from './progress-visualizer.component';
 import { MaturityStage, MaturityStageImplementation } from '../../models/ztmm.models';
 
 describe('V2ProgressVisualizerComponent', () => {
-  let component: V2ProgressVisualizerComponent;
-  let fixture: ComponentFixture<V2ProgressVisualizerComponent>;
+  let component: ProgressVisualizerComponent;
+  let fixture: ComponentFixture<ProgressVisualizerComponent>;
 
   const mockMaturityStages: MaturityStage[] = [
     { id: 1, name: 'Traditional' },
@@ -39,10 +39,10 @@ describe('V2ProgressVisualizerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [V2ProgressVisualizerComponent]
+      imports: [ProgressVisualizerComponent]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(V2ProgressVisualizerComponent);
+    fixture = TestBed.createComponent(ProgressVisualizerComponent);
     component = fixture.componentInstance;
     component.availableStages = mockMaturityStages.slice(1); // Exclude Traditional
     component.stageImplementations = mockStageImplementations;
@@ -55,7 +55,7 @@ describe('V2ProgressVisualizerComponent', () => {
   it('should sort available stages by ID on init', () => {
     component.availableStages = [mockMaturityStages[3], mockMaturityStages[1], mockMaturityStages[2]];
     component.ngOnInit();
-    expect(component.availableStages.map(s => s.id)).toEqual([2, 3, 4]);
+    expect(component.availableStages.map((s: MaturityStage) => s.id)).toEqual([2, 3, 4]);
   });
 
   it('should determine stage status correctly', () => {

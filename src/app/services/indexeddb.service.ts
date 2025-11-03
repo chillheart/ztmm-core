@@ -182,7 +182,7 @@ export class IndexedDBService {
       // Open IndexedDB with proper schema setup
       // Version 2: Added V2 maturity model stores
       this.db = await openDB<ZtmmDB>(this.dbName, 2, {
-        upgrade(db, oldVersion, newVersion, transaction) {
+        upgrade(db, oldVersion, newVersion) {
           console.log(`Upgrading database from version ${oldVersion} to ${newVersion}`);
 
           // Version 1: Original schema (V1 stores)

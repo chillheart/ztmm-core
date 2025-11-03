@@ -80,6 +80,84 @@ describe('MaturityCalculationService', () => {
     expect(result.explanation).toContain('Traditional');
   });
 
+  it('should not block on non-applicable stages (e.g., Traditional skipped)', () => {
+    // Scenario: Technology group only affects Initial, Advanced, and Optimal
+    // Traditional is not in the breakdown at all (filtered out because totalItems = 0)
+    const result = service.calculateOverallMaturityStage([
+      // Note: Traditional is NOT included - it was filtered out
+      {
+        stageName: 'Initial',
+        assessedItems: 2,
+        totalItems: 2,
+        completedItems: 2,
+        inProgressItems: 0,
+        notStartedItems: 0,
+        percentage: 100,
+        completionPercentage: 100,
+        status: 'completed' as const
+      },
+      {
+        stageName: 'Advanced',
+        assessedItems: 2,
+        totalItems: 2,
+        completedItems: 2,
+        inProgressItems: 0,
+        notStartedItems: 0,
+        percentage: 100,
+        completionPercentage: 100,
+        status: 'completed' as const
+      },
+      {
+        stageName: 'Optimal',
+        assessedItems: 1,
+        totalItems: 2,
+        completedItems: 0,
+        inProgressItems: 1,
+        notStartedItems: 0,
+        percentage: 50,
+        completionPercentage: 0,
+        status: 'in-progress' as const
+      }
+    ]);
+    // Should reach Advanced stage without being blocked by non-applicable Traditional
+    expect(result.stage).toBe('Advanced');
+    expect(result.actualStage).toBe('Advanced');
+    expect(result.hasGap).toBeFalse();
+  });
+
+  it('should handle multiple non-applicable stages (e.g., only Advanced and Optimal)', () => {
+    // Scenario: Technology group only affects Advanced and Optimal
+    // Traditional and Initial are both not in the breakdown
+    const result = service.calculateOverallMaturityStage([
+      {
+        stageName: 'Advanced',
+        assessedItems: 1,
+        totalItems: 1,
+        completedItems: 1,
+        inProgressItems: 0,
+        notStartedItems: 0,
+        percentage: 100,
+        completionPercentage: 100,
+        status: 'completed' as const
+      },
+      {
+        stageName: 'Optimal',
+        assessedItems: 1,
+        totalItems: 1,
+        completedItems: 0,
+        inProgressItems: 1,
+        notStartedItems: 0,
+        percentage: 100,
+        completionPercentage: 0,
+        status: 'in-progress' as const
+      }
+    ]);
+    // Should reach Advanced stage, skipping both Traditional and Initial
+    expect(result.stage).toBe('Advanced');
+    expect(result.actualStage).toBe('Advanced');
+    expect(result.hasGap).toBeFalse();
+  });
+
   describe('calculateMaturityStatus', () => {
     it('should return not-assessed if assessedItems is 0', () => {
       const breakdown = { assessedItems: 0, completedItems: 0, inProgressItems: 0, notStartedItems: 0 } as any;
@@ -221,7 +299,7 @@ describe('MaturityCalculationService', () => {
       const stageName = 'Initial';
 
       it('should handle empty input', () => {
-        const result = service.calculateV2MaturityStageBreakdown(stageName, [], []);
+        const result = service.calculateV2MaturityStageBreakdown(stageName, [], [], [], 2);
         expect(result.totalItems).toBe(0);
         expect(result.assessedItems).toBe(0);
         expect(result.status).toBe('not-assessed');
@@ -245,7 +323,9 @@ describe('MaturityCalculationService', () => {
         const result = service.calculateV2MaturityStageBreakdown(
           stageName,
           groups as any,
-          assessments as any
+          assessments as any,
+          [],
+          2
         );
 
         expect(result.completedItems).toBe(1);
@@ -272,7 +352,9 @@ describe('MaturityCalculationService', () => {
         const result = service.calculateV2MaturityStageBreakdown(
           'Advanced',
           groups as any,
-          assessments as any
+          assessments as any,
+          [],
+          3
         );
 
         expect(result.completedItems).toBe(0);
@@ -290,7 +372,9 @@ describe('MaturityCalculationService', () => {
         const result = service.calculateV2MaturityStageBreakdown(
           stageName,
           groups as any,
-          assessments as any
+          assessments as any,
+          [],
+          2
         );
 
         // When no assessment exists, totalItems = 1 but assessedItems = 0
@@ -329,7 +413,9 @@ describe('MaturityCalculationService', () => {
         const result = service.calculateV2MaturityStageBreakdown(
           stageName,
           groups as any,
-          assessments as any
+          assessments as any,
+          [],
+          2
         );
 
         expect(result.totalItems).toBe(3);
@@ -357,7 +443,9 @@ describe('MaturityCalculationService', () => {
         const result = service.calculateV2MaturityStageBreakdown(
           'Traditional',
           groups as any,
-          assessments as any
+          assessments as any,
+          [],
+          1
         );
 
         expect(result.completedItems).toBe(1);
@@ -391,7 +479,9 @@ describe('MaturityCalculationService', () => {
         const result = service.calculateV2MaturityStageBreakdown(
           'Traditional',
           groups as any,
-          assessments as any
+          assessments as any,
+          [],
+          1
         );
 
         expect(result.totalItems).toBe(4);
@@ -420,7 +510,9 @@ describe('MaturityCalculationService', () => {
           const result = service.calculateV2MaturityStageBreakdown(
             'Traditional',
             groups as any,
-            assessments as any
+            assessments as any,
+            [],
+            1
           );
 
           expect(result.assessedItems).toBe(1);

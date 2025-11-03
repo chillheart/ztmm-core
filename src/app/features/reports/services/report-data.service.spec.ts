@@ -162,7 +162,8 @@ describe('ReportDataService', () => {
         maturityStages as any,
         processTechnologyGroups as any,
         maturityStageImplementations as any,
-        assessments as any
+        assessments as any,
+        []
       );
 
       expect(result.length).toBe(1);
@@ -172,7 +173,7 @@ describe('ReportDataService', () => {
     });
 
     it('should return empty array for buildV2PillarSummaries with empty input', () => {
-      const result = service.buildV2PillarSummaries([], [], [], [], [], []);
+      const result = service.buildV2PillarSummaries([], [], [], [], [], [], []);
       expect(result).toEqual([]);
     });
 
@@ -235,7 +236,8 @@ describe('ReportDataService', () => {
         maturityStages as any,
         processTechnologyGroups as any,
         maturityStageImplementations as any,
-        assessments as any
+        assessments as any,
+        []
       );
 
       expect(details.length).toBeGreaterThan(0);
@@ -300,7 +302,8 @@ describe('ReportDataService', () => {
         maturityStages as any,
         processTechnologyGroups as any,
         maturityStageImplementations as any,
-        assessments as any
+        assessments as any,
+        []
       );
 
       expect(result.length).toBe(1);
@@ -358,7 +361,8 @@ describe('ReportDataService', () => {
         maturityStages as any,
         processTechnologyGroups as any,
         maturityStageImplementations as any,
-        assessments as any
+        assessments as any,
+        []
       );
 
       expect(result.length).toBe(1);

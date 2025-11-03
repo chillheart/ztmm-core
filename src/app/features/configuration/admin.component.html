@@ -78,17 +78,18 @@
       (saveFunctionOrder)="onSaveFunctionOrder($event)">
     </app-functions-tab>
   </div>
-  <!-- TECHNOLOGIES/PROCESSES TAB (V2 Only) -->
+  <!-- TECHNOLOGIES/PROCESSES TAB -->
   <div *ngSwitchCase="'tech'">
-    <app-technologies-v2-tab
+    <app-technologies-tab
       [pillars]="pillars"
       [functionCapabilities]="functionCapabilities"
       [maturityStages]="maturityStages"
       [processTechnologyGroups]="processTechnologyGroups"
+      (openWizard)="openWizardModal($event)"
       (addProcessTechnologyGroup)="onAddProcessTechnologyGroup($event)"
       (removeProcessTechnologyGroup)="onRemoveProcessTechnologyGroup($event)"
       (editProcessTechnologyGroup)="onEditProcessTechnologyGroup($event)">
-    </app-technologies-v2-tab>
+    </app-technologies-tab>
   </div>
   <!-- DATA MANAGEMENT TAB -->
   <div *ngSwitchCase="'management'">
@@ -107,3 +108,14 @@
     </app-data-management-tab>
   </div>
 </div>
+
+<!-- Wizard Modal -->
+<app-process-tech-wizard-modal
+  *ngIf="showWizardModal"
+  [pillars]="pillars"
+  [functionCapabilities]="functionCapabilities"
+  [maturityStages]="maturityStages"
+  [editingGroup]="editingProcessTechGroup"
+  (save)="onWizardSave($event)"
+  (cancelled)="closeWizardModal()">
+</app-process-tech-wizard-modal>

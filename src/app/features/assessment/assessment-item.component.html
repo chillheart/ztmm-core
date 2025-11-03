@@ -1,0 +1,106 @@
+<div class="card mb-3 assessment-card shadow-sm">
+  <div class="card-body">
+    <!-- Header: Group info with overall maturity indicator -->
+    <div class="d-flex align-items-start mb-3">
+      <div class="item-number me-3">
+        <div class="badge bg-secondary rounded-pill fs-6">{{ itemNumber }}</div>
+      </div>
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 text-dark fw-bold">{{ group.name }}</h5>
+            <span class="badge" [class]="group.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+              <i [class]="group.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-3'"></i>
+              {{ group.type }}
+            </span>
+          </div>
+          <!-- Overall Maturity Level -->
+          <div class="text-end">
+            <small class="text-muted d-block">Overall Maturity</small>
+            <span class="badge fs-6" [class]="getOverallMaturityBadgeClass()">
+              {{ getOverallMaturityLevel() }}
+            </span>
+          </div>
+        </div>
+        <p class="text-muted small mb-0">{{ group.description }}</p>
+      </div>
+    </div>
+
+    <!-- Maturity Stages Assessment -->
+    <div class="stages-assessment">
+      <h6 class="text-muted mb-3">
+        <i class="bi bi-list-check"></i> Implementation Status by Maturity Stage
+      </h6>
+
+      <div class="row g-3">
+        <div *ngFor="let stage of getAvailableStages()" class="col-md-6">
+          <div class="card h-100 stage-card" [class.stage-partial]="getStageStatus(stage.id) === 'Partially Implemented'" [class.stage-implemented]="getStageStatus(stage.id) === 'Fully Implemented'">
+            <div class="card-body">
+              <div class="d-flex align-items-start mb-2">
+                <div class="flex-grow-1">
+                  <div class="form-label fw-bold mb-2">
+                    <i class="bi" [class]="getStageIcon(stage.id)"></i>
+                    {{ stage.name }}
+                  </div>
+                  <p class="small text-muted mb-3">
+                    {{ getStageImplementation(stage.id)?.description || 'No description available' }}
+                  </p>
+
+                  <!-- Radio buttons for implementation status -->
+                  <div class="btn-group btn-group-sm w-100" role="group">
+                    <input type="radio"
+                           class="btn-check"
+                           [name]="'stage_' + group.id + '_' + stage.id"
+                           [id]="'stage_' + group.id + '_' + stage.id + '_none'"
+                           [value]="'Not Implemented'"
+                           [checked]="getStageStatus(stage.id) === 'Not Implemented'"
+                           (change)="onStageStatusChange(stage.id, 'Not Implemented')">
+                    <label class="btn btn-outline-secondary" [for]="'stage_' + group.id + '_' + stage.id + '_none'">
+                      <i class="bi bi-circle"></i> Not Started
+                    </label>
+
+                    <input type="radio"
+                           class="btn-check"
+                           [name]="'stage_' + group.id + '_' + stage.id"
+                           [id]="'stage_' + group.id + '_' + stage.id + '_partial'"
+                           [value]="'Partially Implemented'"
+                           [checked]="getStageStatus(stage.id) === 'Partially Implemented'"
+                           (change)="onStageStatusChange(stage.id, 'Partially Implemented')">
+                    <label class="btn btn-outline-warning" [for]="'stage_' + group.id + '_' + stage.id + '_partial'">
+                      <i class="bi bi-hourglass-split"></i> Partial
+                    </label>
+
+                    <input type="radio"
+                           class="btn-check"
+                           [name]="'stage_' + group.id + '_' + stage.id"
+                           [id]="'stage_' + group.id + '_' + stage.id + '_full'"
+                           [value]="'Fully Implemented'"
+                           [checked]="getStageStatus(stage.id) === 'Fully Implemented'"
+                           (change)="onStageStatusChange(stage.id, 'Fully Implemented')">
+                    <label class="btn btn-outline-success" [for]="'stage_' + group.id + '_' + stage.id + '_full'">
+                      <i class="bi bi-check-circle-fill"></i> Complete
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes-section mt-3">
+      <label class="form-label fw-semibold small text-muted" [for]="'notes_' + group.id">
+        <i class="bi bi-sticky"></i> Assessment Notes
+      </label>
+      <textarea class="form-control"
+                rows="2"
+                [ngModel]="notes"
+                (ngModelChange)="onNotesChange($event)"
+                [id]="'notes_' + group.id"
+                [name]="'notes_' + group.id"
+                placeholder="Add any notes about this assessment..."></textarea>
+    </div>
+  </div>
+</div>

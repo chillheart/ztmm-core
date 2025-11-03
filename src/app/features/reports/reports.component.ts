@@ -11,7 +11,8 @@ import {
   AssessmentResponse,
   ProcessTechnologyGroup,
   MaturityStageImplementation,
-  Assessment
+  Assessment,
+  StageImplementationDetail
 } from '../../models/ztmm.models';
 
 // Import new components and services
@@ -76,6 +77,7 @@ export class ReportsComponent implements OnInit {
   processTechnologyGroups: ProcessTechnologyGroup[] = [];
   maturityStageImplementations: MaturityStageImplementation[] = [];
   assessmentsV2: Assessment[] = [];
+  stageImplementationDetails: StageImplementationDetail[] = [];
 
   // UI State
   currentView: ViewLevel = 'pillar-overview';
@@ -119,6 +121,9 @@ export class ReportsComponent implements OnInit {
       this.processTechnologyGroups = await this.data.getProcessTechnologyGroups();
       this.maturityStageImplementations = await this.data.getMaturityStageImplementations();
       this.assessmentsV2 = await this.data.getAssessmentsV2();
+      this.stageImplementationDetails = await this.data.getStageImplementationDetails();
+
+      console.log(`Reports loaded: ${this.processTechnologyGroups.length} groups, ${this.assessmentsV2.length} assessments, ${this.stageImplementationDetails.length} stage details`);
 
       this.buildPillarSummaries();
     } catch (error) {
@@ -134,7 +139,8 @@ export class ReportsComponent implements OnInit {
       this.maturityStages,
       this.processTechnologyGroups,
       this.maturityStageImplementations,
-      this.assessmentsV2
+      this.assessmentsV2,
+      this.stageImplementationDetails
     );
   }
 
@@ -166,14 +172,15 @@ export class ReportsComponent implements OnInit {
   loadFunctionDetails() {
     if (!this.selectedFunctionSummary) return;
 
-    // Always use V2 data model
+    // Always use V2 data model with stage implementation details
     this.selectedFunctionDetails = this.reportDataService.buildV2FunctionDetails(
       this.selectedFunctionSummary,
       this.pillars,
       this.maturityStages,
       this.processTechnologyGroups,
       this.maturityStageImplementations,
-      this.assessmentsV2
+      this.assessmentsV2,
+      this.stageImplementationDetails
     );
   }
 
@@ -221,14 +228,15 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          // Always use V2 data model
+          // Always use V2 data model with stage implementation details
           const details = this.reportDataService.buildV2FunctionDetails(
             functionSummary,
             this.pillars,
             this.maturityStages,
             this.processTechnologyGroups,
             this.maturityStageImplementations,
-            this.assessmentsV2
+            this.assessmentsV2,
+            this.stageImplementationDetails
           );
 
           allFunctionDetails.set(functionSummary.functionCapability.id, details);
@@ -258,14 +266,15 @@ export class ReportsComponent implements OnInit {
 
       for (const pillarSummary of this.pillarSummaries) {
         for (const functionSummary of pillarSummary.functions) {
-          // Always use V2 data model
+          // Always use V2 data model with stage implementation details
           const details = this.reportDataService.buildV2FunctionDetails(
             functionSummary,
             this.pillars,
             this.maturityStages,
             this.processTechnologyGroups,
             this.maturityStageImplementations,
-            this.assessmentsV2
+            this.assessmentsV2,
+            this.stageImplementationDetails
           );
 
           allFunctionDetails.set(functionSummary.functionCapability.id, details);

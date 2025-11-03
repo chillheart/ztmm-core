@@ -1,8 +1,8 @@
 <div class="container py-5">
-  <!-- Hero Section -->
-  <div class="hero-section" [class.hero-collapsed]="selectedPillarId">
-    <h1 class="hero-title" [class.hero-title-small]="selectedPillarId">Zero Trust Assessment</h1>
-    <p class="hero-subtitle" [class.hero-subtitle-hidden]="selectedPillarId">
+  <!-- Hero Section (only show when no pillar is selected) -->
+  <div *ngIf="!selectedPillarId" class="hero-section">
+    <h1 class="hero-title">Zero Trust Assessment</h1>
+    <p class="hero-subtitle">
       Evaluate your organization's current implementation status against the Zero Trust Maturity Model.
       Use our streamlined assessment process with guided steps and visual progress tracking.
     </p>
@@ -10,38 +10,38 @@
 
   <!-- Overall Progress Summary (show when no pillar is selected) -->
   <app-overall-progress-summary
-    *ngIf="showOverallSummary && v2OverallProgress.length > 0"
-    [overallPillarProgress]="v2OverallProgress"
+    *ngIf="showOverallSummary && overallProgress.length > 0"
+    [overallPillarProgress]="overallProgress"
     (pillarSelected)="onPillarSelected($event)">
   </app-overall-progress-summary>
 
   <!-- Assessment View -->
-  <div *ngIf="selectedPillarId" class="card shadow-sm">
-    <div class="card-body">
-      <!-- Pillar Summary -->
-      <app-pillar-summary
-        *ngIf="!selectedFunctionCapabilityId"
-        [pillarSummary]="pillarSummary"
-        [selectedFunctionCapabilityId]="selectedFunctionCapabilityId"
-        [selectedPillarName]="getSelectedPillarName()"
-        (backToOverview)="goBackToOverallSummary()"
-        (functionCapabilitySelected)="onFunctionCapabilitySelected($event)">
-      </app-pillar-summary>
+  <div *ngIf="selectedPillarId">
+    <!-- Pillar Summary -->
+    <app-pillar-summary
+      *ngIf="!selectedFunctionCapabilityId"
+      [pillarSummary]="pillarSummary"
+      [selectedFunctionCapabilityId]="selectedFunctionCapabilityId"
+      [selectedPillarName]="getSelectedPillarName()"
+      (backToOverview)="goBackToOverallSummary()"
+      (functionCapabilitySelected)="onFunctionCapabilitySelected($event)">
+    </app-pillar-summary>
 
-      <!-- V2 Assessment Overview -->
-      <app-v2-assessment-overview
-        *ngIf="selectedFunctionCapabilityId"
-        [processTechnologyGroups]="processTechnologyGroups"
-        [stageImplementations]="stageImplementations"
-        [assessments]="v2Assessments"
-        [functionCapabilities]="functionCapabilities"
-        [selectedFunctionCapabilityName]="getSelectedFunctionCapabilityName()"
-        [selectedFunctionCapabilityType]="getSelectedFunctionCapabilityType()"
-        [isAutoSaving]="isAutoSaving"
-        [showSuccess]="showSuccess"
-        (assessmentUpdate)="onV2AssessmentUpdate($event)"
-        (saveAll)="saveAllV2Assessments()">
-      </app-v2-assessment-overview>
-    </div>
+    <!-- Assessment Overview -->
+    <app-assessment-overview
+      *ngIf="selectedFunctionCapabilityId"
+      [processTechnologyGroups]="processTechnologyGroups"
+      [stageImplementations]="stageImplementations"
+      [assessments]="assessments"
+      [stageImplementationDetails]="stageImplementationDetails"
+      [functionCapabilities]="functionCapabilities"
+      [maturityStages]="maturityStages"
+      [selectedFunctionCapabilityName]="getSelectedFunctionCapabilityName()"
+      [selectedFunctionCapabilityType]="getSelectedFunctionCapabilityType()"
+      [isAutoSaving]="isAutoSaving"
+      [showSuccess]="showSuccess"
+      (assessmentUpdate)="onAssessmentUpdate($event)"
+      (backToPillarSummary)="goBackToPillarSummary()">
+    </app-assessment-overview>
   </div>
 </div>
