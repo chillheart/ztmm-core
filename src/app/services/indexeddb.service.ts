@@ -1052,7 +1052,7 @@ export class IndexedDBService {
       }
 
       await tx.done;
-      this.logger.info('Import with preserved IDs completed successfully', this.LOG_CONTEXT, { 
+      this.logger.info('Import with preserved IDs completed successfully', this.LOG_CONTEXT, {
         pillarCount: data.pillars?.length,
         fcCount: data.functionCapabilities?.length,
         stageCount: data.maturityStages?.length,

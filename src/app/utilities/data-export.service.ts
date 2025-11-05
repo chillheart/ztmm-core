@@ -108,7 +108,7 @@ export class DataExportService {
     });
 
     // Step 2: Automatically migrate to V2 format
-    console.log('Auto-migrating V1 data to V2 format...');
+    this.logger.info('Auto-migrating V1 data to V2 format', this.LOG_CONTEXT);
     const migrationResult = await this.migrationService.migrateV1ToV2({
       validateFirst: true,
       dryRun: false,
@@ -119,24 +119,22 @@ export class DataExportService {
       throw new Error(`Migration failed: ${migrationResult.message}`);
     }
 
-    console.log('V1 data imported and migrated to V2 successfully');
+    this.logger.info('V1 data imported and migrated to V2 successfully', this.LOG_CONTEXT);
   }
 
   /**
    * Import V2 format data (new)
    */
   private async importV2Data(data: ExportedData): Promise<void> {
-    console.log('Importing V2 format data...');
-
-    // Log what we're about to import
-    console.log('📊 Import Summary:');
-    console.log(`  • ${data.pillars?.length || 0} Pillars`);
-    console.log(`  • ${data.functionCapabilities?.length || 0} Function Capabilities`);
-    console.log(`  • ${data.maturityStages?.length || 0} Maturity Stages`);
-    console.log(`  • ${data.processTechnologyGroups?.length || 0} Process/Technology Groups`);
-    console.log(`  • ${data.maturityStageImplementations?.length || 0} Maturity Stage Implementations`);
-    console.log(`  • ${data.assessments?.length || 0} Assessments`);
-    console.log(`  • ${data.stageImplementationDetails?.length || 0} Stage Implementation Details`);
+    this.logger.info('Importing V2 format data', this.LOG_CONTEXT, {
+      pillars: data.pillars?.length || 0,
+      functionCapabilities: data.functionCapabilities?.length || 0,
+      maturityStages: data.maturityStages?.length || 0,
+      processTechnologyGroups: data.processTechnologyGroups?.length || 0,
+      maturityStageImplementations: data.maturityStageImplementations?.length || 0,
+      assessments: data.assessments?.length || 0,
+      stageImplementationDetails: data.stageImplementationDetails?.length || 0
+    });
 
     // Reset the database
     await this.dataService.resetDatabase(true);
@@ -158,7 +156,7 @@ export class DataExportService {
       stageImplementationDetails: data.stageImplementationDetails || []
     });
 
-    console.log('V2 data imported successfully');
+    this.logger.info('V2 data imported successfully', this.LOG_CONTEXT);
   }
 
   /**
@@ -185,7 +183,7 @@ export class DataExportService {
     }
 
     // Default to V1 if can't determine
-    console.warn('Could not determine data version, defaulting to V1');
+    this.logger.warn('Could not determine data version, defaulting to V1', this.LOG_CONTEXT);
     return '1.0.0';
   }
 
@@ -207,7 +205,7 @@ export class DataExportService {
 
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading export:', error);
+      this.logger.error('Error downloading export', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -217,7 +215,7 @@ export class DataExportService {
    */
   async uploadAndImport(file: File): Promise<void> {
     try {
-      console.log('📁 Reading import file:', file.name);
+      this.logger.info('Reading import file', this.LOG_CONTEXT, { fileName: file.name });
       const text = await file.text();
       const data: ExportedData = JSON.parse(text);
 
@@ -226,11 +224,11 @@ export class DataExportService {
         throw new Error('Invalid import data format. Please ensure the file is a valid ZTMM export file.');
       }
 
-      console.log('✅ File validated, starting import...');
+      this.logger.info('File validated, starting import', this.LOG_CONTEXT);
       await this.importFromJson(data);
-      console.log('✅ Import completed successfully');
+      this.logger.info('Import completed successfully', this.LOG_CONTEXT);
     } catch (error) {
-      console.error('❌ Error uploading and importing data:', error);
+      this.logger.error('Error uploading and importing data', error as Error, this.LOG_CONTEXT);
 
       // Provide user-friendly error messages
       if (error instanceof Error) {
@@ -266,7 +264,7 @@ export class DataExportService {
    * Clear all data from the database (use with caution!)
    */
   private async clearAllData(): Promise<void> {
-    console.warn('Clearing all data from database');
+    this.logger.warn('Clearing all data from database', this.LOG_CONTEXT);
     await this.dataService.clearAllData();
   }
 
@@ -357,7 +355,7 @@ export class DataExportService {
         assessments: assessments.length
       };
     } catch (error) {
-      console.error('Error getting data statistics:', error);
+      this.logger.error('Error getting data statistics', error as Error, this.LOG_CONTEXT);
       return {
         version: '2.0.0',
         pillars: 0,

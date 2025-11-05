@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { IndexedDBService } from '../../services/indexeddb.service';
+import { LoggingService } from '../../services/logging.service';
 import { ProcessService } from '../../services/process.service';
 import { TechnologyService } from '../../services/technology.service';
 import { DataExportService } from '../../utilities/data-export.service';
@@ -78,8 +79,11 @@ export class AdminComponent implements OnInit {
   editingTechProcessId: number | null = null;
   editingTechProcess: Partial<TechnologyProcess> = {};
 
+  private readonly LOG_CONTEXT = 'AdminComponent';
+
   constructor(
     private data: IndexedDBService,
+    private logger: LoggingService,
     private processService: ProcessService,
     private technologyService: TechnologyService,
     private exportService: DataExportService,
@@ -99,23 +103,21 @@ export class AdminComponent implements OnInit {
     try {
       this.maturityStages = await this.data.getMaturityStages();
     } catch (error) {
-      console.error('Error loading maturity stages:', error);
+      this.logger.error('Error loading maturity stages', error as Error, this.LOG_CONTEXT);
       this.maturityStages = [];
     }
 
     try {
       this.pillars = await this.data.getPillars();
-      console.log('Loaded pillars:', this.pillars);
     } catch (error) {
-      console.error('Error loading pillars:', error);
+      this.logger.error('Error loading pillars', error as Error, this.LOG_CONTEXT);
       this.pillars = [];
     }
 
     try {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
-      console.log('Loaded functionCapabilities:', this.functionCapabilities);
     } catch (error) {
-      console.error('Error loading function capabilities:', error);
+      this.logger.error('Error loading function capabilities', error as Error, this.LOG_CONTEXT);
       this.functionCapabilities = [];
     }
 
@@ -134,7 +136,6 @@ export class AdminComponent implements OnInit {
       const technologies = await this.technologyService.getTechnologies();
       const processes = await this.processService.getProcesses();
       this.processTechnologyGroups = [...technologies, ...processes];
-      console.log('Loaded ProcessTechnologyGroups:', this.processTechnologyGroups);
     } catch {
       // data might not be available yet (e.g., in tests or fresh database)
       // This is expected and not an error
@@ -152,7 +153,7 @@ export class AdminComponent implements OnInit {
         this.technologiesProcesses = await this.data.getAllTechnologiesProcesses();
       }
     } catch (error) {
-      console.error('Error loading technologies/processes:', error);
+      this.logger.error('Error loading technologies/processes', error as Error, this.LOG_CONTEXT);
       this.technologiesProcesses = [];
     }
   }
@@ -172,7 +173,7 @@ export class AdminComponent implements OnInit {
         setTimeout(() => pillarForm.form.markAsPristine());
       }
     } catch (error) {
-      console.error('Error adding pillar:', error);
+      this.logger.error('Error adding pillar', error as Error, this.LOG_CONTEXT);
     }
   }
 
