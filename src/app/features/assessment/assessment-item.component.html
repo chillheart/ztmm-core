@@ -1,60 +1,106 @@
-<div class="card mb-2 assessment-card shadow-sm">
-  <div class="card-body py-3">
-    <!-- Header Row: Item info -->
-    <div class="d-flex align-items-center mb-3">
+<div class="card mb-3 assessment-card shadow-sm">
+  <div class="card-body">
+    <!-- Header: Group info with overall maturity indicator -->
+    <div class="d-flex align-items-start mb-3">
       <div class="item-number me-3">
-        <div class="badge bg-secondary rounded-pill">{{ itemNumber }}</div>
+        <div class="badge bg-secondary rounded-pill fs-6">{{ itemNumber }}</div>
       </div>
       <div class="flex-grow-1">
-        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-          <h6 class="mb-0 text-dark fw-bold">{{ technologyProcess.name }}</h6>
-          <span class="badge" [class]="technologyProcess.type === 'Technology' ? 'bg-primary' : 'bg-success'">
-            <i [class]="technologyProcess.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-2'"></i>
-            {{ technologyProcess.type }}
-          </span>
-          <span class="badge bg-info small">
-            <i class="bi bi-bookmark"></i>
-            {{ getFunctionCapabilityName(technologyProcess.function_capability_id) }}
-          </span>
-          <span class="badge bg-warning text-dark small">
-            <i class="bi bi-ladder"></i>
-            {{ getMaturityStageName(technologyProcess.maturity_stage_id) }}
-          </span>
-          <div *ngIf="showDescription" class="text-muted small mt-1">{{ technologyProcess.description }}</div>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 text-dark fw-bold">{{ group.name }}</h5>
+            <span class="badge" [class]="group.type === 'Technology' ? 'bg-primary' : 'bg-success'">
+              <i [class]="group.type === 'Technology' ? 'bi bi-cpu' : 'bi bi-diagram-3'"></i>
+              {{ group.type }}
+            </span>
+          </div>
+          <!-- Overall Maturity Level -->
+          <div class="text-end">
+            <small class="text-muted d-block">Overall Maturity</small>
+            <span class="badge fs-6" [class]="getOverallMaturityBadgeClass()">
+              {{ getOverallMaturityLevel() }}
+            </span>
+          </div>
         </div>
-      </div>
-      <div class="auto-save-indicator" *ngIf="isAutoSaving">
-        <small class="text-muted">
-          <i class="bi bi-arrow-clockwise spin"></i> Auto-saving...
-        </small>
+        <p class="text-muted small mb-0">{{ group.description }}</p>
       </div>
     </div>
 
-    <!-- Assessment Questions Row -->
-    <div class="assessment-questions">
+    <!-- Maturity Stages Assessment -->
+    <div class="stages-assessment">
+      <h6 class="text-muted mb-3">
+        <i class="bi bi-list-check"></i> Implementation Status by Maturity Stage
+      </h6>
+
       <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold small text-muted" [for]="'status_' + technologyProcess.id">Implementation Status</label>
-          <select class="form-select"
-                  [ngModel]="status"
-                  (ngModelChange)="onStatusChangeNew($event)"
-                  [id]="'status_' + technologyProcess.id"
-                  [name]="'status_' + technologyProcess.id">
-            <option [ngValue]="null">Select Status</option>
-            <option *ngFor="let statusOption of statusOptions" [ngValue]="statusOption">{{ statusOption }}</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label fw-semibold small text-muted" [for]="'notes_' + technologyProcess.id">Assessment Notes</label>
-          <textarea class="form-control"
-                    rows="2"
-                    [ngModel]="notes"
-                    (ngModelChange)="onNotesChangeNew($event)"
-                    [id]="'notes_' + technologyProcess.id"
-                    [name]="'notes_' + technologyProcess.id"
-                    placeholder="Add notes about implementation..."></textarea>
+        <div *ngFor="let stage of getAvailableStages()" class="col-md-6">
+          <div class="card h-100 stage-card" [class.stage-partial]="getStageStatus(stage.id) === 'Partially Implemented'" [class.stage-implemented]="getStageStatus(stage.id) === 'Fully Implemented'">
+            <div class="card-body">
+              <div class="d-flex align-items-start mb-2">
+                <div class="flex-grow-1">
+                  <div class="form-label fw-bold mb-2">
+                    <i class="bi" [class]="getStageIcon(stage.id)"></i>
+                    {{ stage.name }}
+                  </div>
+                  <p class="small text-muted mb-3">
+                    {{ getStageImplementation(stage.id)?.description || 'No description available' }}
+                  </p>
+
+                  <!-- Radio buttons for implementation status -->
+                  <div class="btn-group btn-group-sm w-100" role="group">
+                    <input type="radio"
+                           class="btn-check"
+                           [name]="'stage_' + group.id + '_' + stage.id"
+                           [id]="'stage_' + group.id + '_' + stage.id + '_none'"
+                           [value]="'Not Implemented'"
+                           [checked]="getStageStatus(stage.id) === 'Not Implemented'"
+                           (change)="onStageStatusChange(stage.id, 'Not Implemented')">
+                    <label class="btn btn-outline-secondary" [for]="'stage_' + group.id + '_' + stage.id + '_none'">
+                      <i class="bi bi-circle"></i> Not Started
+                    </label>
+
+                    <input type="radio"
+                           class="btn-check"
+                           [name]="'stage_' + group.id + '_' + stage.id"
+                           [id]="'stage_' + group.id + '_' + stage.id + '_partial'"
+                           [value]="'Partially Implemented'"
+                           [checked]="getStageStatus(stage.id) === 'Partially Implemented'"
+                           (change)="onStageStatusChange(stage.id, 'Partially Implemented')">
+                    <label class="btn btn-outline-warning" [for]="'stage_' + group.id + '_' + stage.id + '_partial'">
+                      <i class="bi bi-hourglass-split"></i> Partial
+                    </label>
+
+                    <input type="radio"
+                           class="btn-check"
+                           [name]="'stage_' + group.id + '_' + stage.id"
+                           [id]="'stage_' + group.id + '_' + stage.id + '_full'"
+                           [value]="'Fully Implemented'"
+                           [checked]="getStageStatus(stage.id) === 'Fully Implemented'"
+                           (change)="onStageStatusChange(stage.id, 'Fully Implemented')">
+                    <label class="btn btn-outline-success" [for]="'stage_' + group.id + '_' + stage.id + '_full'">
+                      <i class="bi bi-check-circle-fill"></i> Complete
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="notes-section mt-3">
+      <label class="form-label fw-semibold small text-muted" [for]="'notes_' + group.id">
+        <i class="bi bi-sticky"></i> Assessment Notes
+      </label>
+      <textarea class="form-control"
+                rows="2"
+                [ngModel]="notes"
+                (ngModelChange)="onNotesChange($event)"
+                [id]="'notes_' + group.id"
+                [name]="'notes_' + group.id"
+                placeholder="Add any notes about this assessment..."></textarea>
     </div>
   </div>
 </div>

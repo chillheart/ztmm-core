@@ -1,56 +1,16 @@
-// Assessment Overview specific styles
-.current-assessment-header {
-  background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%);
-  border: 2px solid rgba(25, 135, 84, 0.2);
-
-  .card-body {
-    padding: 1.5rem;
-  }
+.assessment-overview-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.assessment-progress {
-  .progress {
-    border-radius: 12px;
-    overflow: hidden;
-
-    .progress-bar {
-      border-radius: 12px;
-      transition: width 0.6s ease;
-    }
-  }
+.assessment-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-// Maturity stage grouping styles
-.maturity-stage-group {
-  .card-header {
-    border-radius: 0.5rem !important;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-    h5 {
-      font-weight: 600;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    }
-
-    .badge {
-      font-size: 0.875rem;
-      padding: 0.5rem 0.75rem;
-      font-weight: 500;
-    }
-  }
-
-  // Add some spacing between stage items and the next stage header
-  &:not(:last-child) {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  }
-}
-
-.auto-save-status {
-  .spin {
-    animation: spin 1s linear infinite;
-  }
+.spinning {
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -62,26 +22,18 @@
   }
 }
 
-// Toast styling
-.toast {
-  border: none;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-
-  .toast-body {
-    padding: 1rem 1.25rem;
-    border-radius: 0.75rem;
-  }
+// Smooth fade-in animation for items
+.assessment-items > div {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-// Responsive adjustments
-@media (max-width: 768px) {
-  .current-assessment-header {
-    .row {
-      text-align: center;
-    }
-
-    .col-md-4 {
-      margin-top: 1rem;
-    }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

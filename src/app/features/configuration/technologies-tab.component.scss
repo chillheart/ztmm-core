@@ -1,131 +1,32 @@
-// Technologies Tab Component Styles
+.technologies-v2-container {
+  .add-group-form {
+    position: sticky;
+    top: 20px;
+  }
 
-// Enhanced form styling
-.form-label.small {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.25rem;
-}
-
-.filter-section {
-  background-color: #f8f9fa;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #e9ecef;
-}
-
-.tech-list {
-  .card {
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  .group-item {
+    transition: all 0.2s ease-in-out;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    &.border-primary {
-      border-left: 4px solid #007bff;
-    }
-
-    &.border-success {
-      border-left: 4px solid #28a745;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
   }
 
-  .card-body {
-    padding: 1.25rem;
+  .groups-list {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+  }
+
+  .btn-check:checked + label {
+    font-weight: 600;
+  }
+
+  .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
   }
 
   .badge {
     font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.5em 0.75em;
-
-    i {
-      margin-right: 0.25rem;
-    }
-  }
-
-  .btn-group-sm .btn {
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.375rem;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-    }
-  }
-}
-
-.empty-state {
-  .alert-info {
-    border-left: 4px solid #0dcaf0;
-    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-  }
-}
-
-.form-section {
-  background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid #ffeaa7;
-}
-
-// Button enhancements
-.btn {
-  border-radius: 0.5rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  i {
-    margin-right: 0.25rem;
-  }
-}
-
-// Form control enhancements
-.form-select, .form-control {
-  border-radius: 0.5rem;
-  border: 1px solid #ced4da;
-  transition: all 0.2s ease;
-
-  &:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-  }
-}
-
-// Responsive adjustments
-@media (max-width: 768px) {
-  .tech-list {
-    .card-body {
-      padding: 1rem;
-    }
-
-    .d-flex.gap-2 {
-      flex-direction: column;
-      gap: 0.5rem !important;
-    }
-
-    .btn-group-sm {
-      margin-top: 1rem;
-    }
-  }
-
-  .filter-section {
-    padding: 0.75rem;
   }
 }

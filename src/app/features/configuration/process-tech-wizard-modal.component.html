@@ -1,0 +1,189 @@
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-magic me-2"></i>
+          {{ editingGroup ? 'Edit' : 'Add' }} Technology/Process
+          <span class="text-muted small ms-2">Step {{ currentStep }} of 2</span>
+        </h5>
+        <button type="button" class="btn-close" (click)="onCancel()" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <!-- Progress Indicator -->
+        <div class="wizard-progress mb-4">
+          <div class="d-flex justify-content-between">
+            <div class="wizard-step" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+              <div class="step-circle">
+                <i class="bi" [ngClass]="currentStep > 1 ? 'bi-check-lg' : 'bi-1-circle'"></i>
+              </div>
+              <div class="step-label">Basic Information</div>
+            </div>
+            <div class="wizard-connector" [class.active]="currentStep > 1"></div>
+            <div class="wizard-step" [class.active]="currentStep === 2">
+              <div class="step-circle">
+                <i class="bi bi-2-circle"></i>
+              </div>
+              <div class="step-label">Stage Implementations</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 1: Basic Information -->
+        <div *ngIf="currentStep === 1" class="wizard-step-content">
+          <div class="mb-3">
+            <label for="name" class="form-label">
+              Name <span class="text-danger">*</span>
+            </label>
+            <input type="text" class="form-control" id="name" [(ngModel)]="name"
+              [class.is-invalid]="step1Submitted && !name.trim()" placeholder="e.g., Multi-Factor Authentication" />
+            <div class="invalid-feedback" *ngIf="step1Submitted && !name.trim()">
+              Name is required
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">
+              Description <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="description" rows="3" [(ngModel)]="description"
+              [class.is-invalid]="step1Submitted && !description.trim()"
+              placeholder="Brief description of this technology or process"></textarea>
+            <div class="invalid-feedback" *ngIf="step1Submitted && !description.trim()">
+              Description is required
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="form-label">
+              Type <span class="text-danger">*</span>
+            </div>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" id="typeTech" value="Technology" [(ngModel)]="type" name="type" />
+              <label class="btn btn-outline-primary" for="typeTech">
+                <i class="bi bi-gear-fill me-2"></i>Technology
+              </label>
+              <input type="radio" class="btn-check" id="typeProc" value="Process" [(ngModel)]="type" name="type" />
+              <label class="btn btn-outline-primary" for="typeProc">
+                <i class="bi bi-diagram-3-fill me-2"></i>Process
+              </label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="mb-3 col-md-6">
+              <label for="pillar" class="form-label">Pillar (Optional Filter)</label>
+              <select class="form-select" id="pillar" [(ngModel)]="selectedPillarId" (change)="onPillarChange()">
+                <option [ngValue]="null">All Pillars</option>
+                <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">
+                  {{ pillar.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3 col-md-6">
+              <label for="functionCapability" class="form-label">
+                Function/Capability <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="functionCapability" [(ngModel)]="selectedFunctionCapabilityId"
+                [class.is-invalid]="step1Submitted && !selectedFunctionCapabilityId">
+                <option [ngValue]="null">Select a function/capability...</option>
+                <option *ngFor="let fc of filteredFunctionCapabilities" [ngValue]="fc.id">
+                  {{ fc.name }}
+                </option>
+              </select>
+              <div class="invalid-feedback" *ngIf="step1Submitted && !selectedFunctionCapabilityId">
+                Function/Capability is required
+              </div>
+            </div>
+          </div>
+          <!-- Maturity Stage Selection -->
+          <div class="mb-3">
+            <div class="form-label">
+              Maturity Stages <span class="text-danger">*</span>
+            </div>
+            <p class="text-muted small mb-2">
+              Click a stage to select it. Click two stages to select a range.
+            </p>
+
+            <!-- Stage Button Group -->
+            <div class="btn-group w-100 mb-3" role="group" aria-label="Maturity stages">
+              <button
+                *ngFor="let stage of sortedMaturityStages"
+                type="button"
+                class="btn"
+                [class.btn-primary]="isStageSelected(stage.id)"
+                [class.btn-outline-primary]="!isStageSelected(stage.id)"
+                (click)="toggleStageInRange(stage.id)">
+                {{ stage.name }}
+              </button>
+            </div>
+
+            <div class="invalid-feedback d-block" *ngIf="step1Submitted && selectedMaturityStageIds.length === 0">
+              At least one maturity stage is required
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Stage Implementations -->
+        <div *ngIf="currentStep === 2" class="wizard-step-content">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Define Implementation Details</strong><br />
+            Describe what <strong>{{ name }}</strong> looks like at each maturity stage.
+            Be specific about capabilities, tools, processes, or practices.
+          </div>
+
+          <div *ngFor="let impl of stageImplementations; let i = index" class="mb-4">
+            <div class="card">
+              <div class="card-header">
+                <strong>
+                  <i class="bi bi-{{ i + 1 }}-circle me-2"></i>
+                  {{ impl.maturity_stage_name }}
+                </strong>
+              </div>
+              <div class="card-body">
+                <textarea class="form-control" rows="3" [(ngModel)]="impl.description"
+                  [class.is-invalid]="step2Submitted && !impl.description.trim()"
+                  [placeholder]="'Describe ' + name + ' at the ' + impl.maturity_stage_name + ' stage...'"></textarea>
+                <div class="invalid-feedback" *ngIf="step2Submitted && !impl.description.trim()">
+                  Implementation description is required for {{ impl.maturity_stage_name }}
+                </div>
+                <div class="form-text">
+                  <strong>Example:</strong>
+                  <span *ngIf="type === 'Technology'">
+                    "{{ getExampleDescription(impl.maturity_stage_id, 'Technology') }}"
+                  </span>
+                  <span *ngIf="type === 'Process'">
+                    "{{ getExampleDescription(impl.maturity_stage_id, 'Process') }}"
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          Cancel
+        </button>
+        <button *ngIf="currentStep === 2" type="button" class="btn btn-outline-primary" (click)="previousStep()">
+          <i class="bi bi-arrow-left me-2"></i>Previous
+        </button>
+        <button *ngIf="currentStep === 1" type="button" class="btn btn-primary" (click)="nextStep()"
+          [disabled]="!canProceedToStep2">
+          Next<i class="bi bi-arrow-right ms-2"></i>
+        </button>
+        <button *ngIf="currentStep === 2" type="button" class="btn btn-success" (click)="onSave()"
+          [disabled]="!canSave">
+          <i class="bi bi-check-lg me-2"></i>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>

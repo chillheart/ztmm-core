@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IndexedDBService } from './indexeddb.service';
+import { ProcessService } from './process.service';
+import { TechnologyService } from './technology.service';
 import { AssessmentStatus, Pillar, FunctionCapability, TechnologyProcess } from '../models/ztmm.models';
 
 interface DemoTechnologyProcess {
@@ -14,7 +16,11 @@ interface DemoTechnologyProcess {
 })
 export class DemoDataGeneratorService {
 
-  constructor(private dataService: IndexedDBService) {}
+  constructor(
+    private dataService: IndexedDBService,
+    private processService: ProcessService,
+    private technologyService: TechnologyService
+  ) {}
 
   // Comprehensive demo data for each function and capability emulating an Azure environment
   // Each function/capability has at least 2 technologies and 2 processes for each maturity stage
@@ -998,6 +1004,305 @@ export class DemoDataGeneratorService {
   }
 
   /**
+   * Generates V2 demo data: ProcessTechnologyGroups spanning multiple maturity stages
+   * This creates realistic examples of technologies/processes that are implemented
+   * across multiple stages of maturity
+   */
+  async generateV2DemoData(): Promise<void> {
+    try {
+      console.log('Starting V2 demo data generation...');
+
+      const functionCapabilities = await this.dataService.getFunctionCapabilities();
+      const maturityStages = await this.dataService.getMaturityStages();
+
+      // Maturity stages are expected to have IDs 1-4 for Traditional, Initial, Advanced, Optimal
+      const stageMap = new Map<string, number>();
+      maturityStages.forEach(stage => {
+        stageMap.set(stage.name, stage.id);
+      });
+
+      let totalGroups = 0;
+      let totalImplementations = 0;
+
+      // Define V2 demo groups for each function/capability
+      // Each group represents a technology/process implemented across multiple stages
+      const v2DemoGroups: Record<string, {
+        name: string;
+        description: string;
+        type: 'Technology' | 'Process';
+        stages: ('Traditional' | 'Initial' | 'Advanced' | 'Optimal')[]; // Stage names
+        implementations: string[]; // Description for each stage
+      }[]> = {
+        'Authentication': [
+          {
+            name: 'Multi-Factor Authentication Platform',
+            description: 'Comprehensive MFA implementation progressing from basic 2FA to passwordless biometrics',
+            type: 'Technology',
+            stages: ['Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Initial: Basic MFA with SMS and email codes, manual enrollment process',
+              'Advanced: Azure AD MFA with risk-based policies, Authenticator app, conditional access integration',
+              'Optimal: Passwordless authentication with FIDO2 keys, Windows Hello for Business, biometric verification'
+            ]
+          },
+          {
+            name: 'Authentication Security Assessment',
+            description: 'Systematic authentication risk evaluation process evolving from manual to AI-powered',
+            type: 'Process',
+            stages: ['Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Initial: Quarterly manual reviews of authentication logs and password policies',
+              'Advanced: Azure AD Identity Protection with risk-based assessments and automated threat detection',
+              'Optimal: AI-powered continuous authentication monitoring with predictive risk modeling and automated response'
+            ]
+          }
+        ],
+        'Identity Stores': [
+          {
+            name: 'Hybrid Identity Infrastructure',
+            description: 'Identity directory evolution from on-premises to cloud-native',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: On-premises Active Directory with manual user management',
+              'Initial: Azure AD Connect synchronizing on-prem to cloud, hybrid identity model',
+              'Advanced: Azure AD Premium with advanced governance and B2B collaboration',
+              'Optimal: Cloud-only Azure AD with federated identity management and self-service capabilities'
+            ]
+          },
+          {
+            name: 'Identity Lifecycle Management',
+            description: 'User provisioning and deprovisioning process automation journey',
+            type: 'Process',
+            stages: ['Traditional', 'Initial', 'Advanced'],
+            implementations: [
+              'Traditional: Manual account creation via email requests and IT tickets',
+              'Initial: HR-driven provisioning workflows with basic automation',
+              'Advanced: Fully automated lifecycle management with role-based provisioning and access reviews'
+            ]
+          }
+        ],
+        'Access Management': [
+          {
+            name: 'Conditional Access Policies',
+            description: 'Access control evolution from static to dynamic risk-based decisions',
+            type: 'Technology',
+            stages: ['Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Initial: Role-based access control with static group assignments',
+              'Advanced: Azure AD Conditional Access with device compliance, location, and risk factors',
+              'Optimal: Zero Trust access with continuous evaluation, privileged identity management, and just-in-time access'
+            ]
+          },
+          {
+            name: 'Access Certification Program',
+            description: 'Regular access review process from manual to automated',
+            type: 'Process',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Annual manual spreadsheet reviews of user access',
+              'Initial: Quarterly reviews using basic access review tools',
+              'Advanced: Automated access reviews with Azure AD Access Reviews and manager attestation',
+              'Optimal: Continuous access evaluation with AI-driven anomaly detection and automatic remediation'
+            ]
+          }
+        ],
+        'Policy Enforcement & Compliance Monitoring': [
+          {
+            name: 'Endpoint Management Platform',
+            description: 'Device management and compliance enforcement progression',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Manual device configuration with Group Policy',
+              'Initial: Basic MDM with Azure AD device registration',
+              'Advanced: Microsoft Intune with automated compliance policies and conditional access integration',
+              'Optimal: Microsoft Defender for Endpoint with AI-powered threat protection and zero-touch enrollment'
+            ]
+          },
+          {
+            name: 'Device Compliance Monitoring',
+            description: 'Device security posture validation from manual to continuous',
+            type: 'Process',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Annual manual device audits and spot checks',
+              'Initial: Monthly compliance scans with standardized baseline policies',
+              'Advanced: Automated compliance monitoring with real-time reporting and remediation workflows',
+              'Optimal: Continuous compliance validation with AI-driven risk assessment and automated enforcement'
+            ]
+          }
+        ],
+        'Network Segmentation': [
+          {
+            name: 'Network Isolation Architecture',
+            description: 'Network segmentation strategy from VLANs to software-defined perimeters',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Basic VLANs with physical network separation',
+              'Initial: Azure Virtual Networks with subnet-based segmentation',
+              'Advanced: Azure Network Security Groups and Azure Firewall with micro-segmentation',
+              'Optimal: Software-Defined Perimeter with AI-driven adaptive segmentation and zero trust architecture'
+            ]
+          }
+        ],
+        'Application Access': [
+          {
+            name: 'Application Authentication Platform',
+            description: 'Application access control from basic auth to zero trust',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Basic username/password authentication per application',
+              'Initial: Single Sign-On with Azure AD for cloud applications',
+              'Advanced: Azure AD Application Proxy with conditional access and MFA enforcement',
+              'Optimal: Zero Trust Application Access with continuous verification and Microsoft Entra governance'
+            ]
+          },
+          {
+            name: 'API Security Management',
+            description: 'API protection evolution from basic to AI-powered security',
+            type: 'Process',
+            stages: ['Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Initial: Basic API keys with manual rate limiting',
+              'Advanced: Azure API Management with OAuth2, rate limiting, and threat protection',
+              'Optimal: AI-powered API security with behavioral analysis and automated threat response'
+            ]
+          }
+        ],
+        'Secure Application Development & Deployment Workflow': [
+          {
+            name: 'CI/CD Security Integration',
+            description: 'DevSecOps maturity from manual reviews to autonomous validation',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Manual code reviews and annual security assessments',
+              'Initial: Basic CI/CD pipelines with automated builds and Git version control',
+              'Advanced: Azure DevOps with integrated security scanning, container security, and automated testing',
+              'Optimal: GitHub Advanced Security with AI-powered analysis, DevSecOps automation, and autonomous validation'
+            ]
+          }
+        ],
+        'Data Categorization': [
+          {
+            name: 'Information Protection System',
+            description: 'Data classification from manual labels to AI-powered automatic classification',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Manual file naming conventions and basic folder permissions',
+              'Initial: Standardized classification labels with basic automated tagging',
+              'Advanced: Azure Information Protection with sensitivity labels and persistent protection',
+              'Optimal: Microsoft Purview with AI-powered automatic classification and adaptive policies'
+            ]
+          },
+          {
+            name: 'Data Handling Standards',
+            description: 'Data protection procedures from manual to intelligent automation',
+            type: 'Process',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Manual policy documentation and user training',
+              'Initial: Standardized data handling procedures with basic enforcement',
+              'Advanced: Automated labeling workflows with policy-driven protection',
+              'Optimal: Intelligent adaptive classification with AI-driven recommendations'
+            ]
+          }
+        ],
+        'Data Encryption': [
+          {
+            name: 'Encryption Key Management',
+            description: 'Key management evolution from manual to customer-controlled automation',
+            type: 'Technology',
+            stages: ['Traditional', 'Initial', 'Advanced', 'Optimal'],
+            implementations: [
+              'Traditional: Manual file encryption with shared passwords',
+              'Initial: Azure Storage Service Encryption with Microsoft-managed keys',
+              'Advanced: Azure Key Vault with automated key rotation and centralized management',
+              'Optimal: Customer-Managed Keys with HSM backing and zero-knowledge encryption'
+            ]
+          }
+        ]
+      };
+
+      // Generate V2 groups for each function/capability
+      for (const fc of functionCapabilities) {
+        const groups = v2DemoGroups[fc.name];
+
+        if (!groups || groups.length === 0) {
+          console.log(`No V2 demo data defined for: ${fc.name}`);
+          continue;
+        }
+
+        console.log(`Adding V2 demo data for: ${fc.name} (${groups.length} groups)`);
+
+        for (const group of groups) {
+          try {
+            // Create the ProcessTechnologyGroup via the appropriate service
+            let groupId: number;
+            if (group.type === 'Technology') {
+              groupId = await this.technologyService.addTechnology({
+                name: group.name,
+                description: group.description,
+                function_capability_id: fc.id,
+                type: 'Technology',
+                order_index: 0
+              });
+            } else {
+              groupId = await this.processService.addProcess({
+                name: group.name,
+                description: group.description,
+                function_capability_id: fc.id,
+                type: 'Process',
+                order_index: 0
+              });
+            }
+
+            totalGroups++;
+            console.log(`  Created group: ${group.name} (ID: ${groupId})`);
+
+            // Create MaturityStageImplementations for each stage
+            for (let i = 0; i < group.stages.length; i++) {
+              const stageName = group.stages[i];
+              const stageId = stageMap.get(stageName);
+
+              if (!stageId) {
+                console.warn(`  Could not find stage ID for: ${stageName}`);
+                continue;
+              }
+
+              const implementationDesc = group.implementations[i];
+
+              await this.dataService.addMaturityStageImplementation({
+                process_technology_group_id: groupId,
+                maturity_stage_id: stageId,
+                description: implementationDesc,
+                order_index: i
+              });
+
+              totalImplementations++;
+            }
+
+          } catch (error) {
+            console.error(`  Failed to create group ${group.name}:`, error);
+          }
+        }
+      }
+
+      console.log(`V2 demo data generation completed!`);
+      console.log(`- Total groups created: ${totalGroups}`);
+      console.log(`- Total stage implementations created: ${totalImplementations}`);
+
+    } catch (error) {
+      console.error('Error generating V2 demo data:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Generates demo assessment responses based on specified maturity stages for each pillar
    */
   async generateDemoAssessmentResponses(): Promise<void> {
@@ -1242,11 +1547,17 @@ export class DemoDataGeneratorService {
   /**
    * Generates both demo data and assessment responses
    */
-  async generateCompleteDemoData(includeAssessments = false): Promise<void> {
+  async generateCompleteDemoData(includeAssessments = false, includeV2 = true): Promise<void> {
     console.log('Starting complete demo data generation...');
 
-    // Generate technology/process data
+    // Generate V1 technology/process data
     await this.generateDemoData();
+
+    // Generate V2 data if requested
+    if (includeV2) {
+      console.log('Generating V2 demo data...');
+      await this.generateV2DemoData();
+    }
 
     // Generate assessment responses if requested
     if (includeAssessments) {

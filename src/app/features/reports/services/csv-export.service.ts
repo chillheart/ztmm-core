@@ -46,10 +46,16 @@ export class CsvExportService {
       'Sequential Gap Explanation',
       'Assessed Items',
       'Total Items',
-      'Reserved Field 1',
-      'Reserved Field 2',
+      'Completed Items',
+      'In Progress Items',
+      'Not Started Items',
       'Assessment Percentage',
-      'Description'
+      'Completion Percentage',
+      'Item Type',
+      'Implementation Status',
+      'Stage Name',
+      'Description',
+      'Notes'
     ];
 
     return this.escapeCsvRow(headers);
@@ -67,10 +73,16 @@ export class CsvExportService {
       pillar.sequentialMaturityExplanation || '',
       pillar.assessedItems.toString(),
       pillar.totalItems.toString(),
-      '', // Advanced Count (not applicable at pillar level)
-      '', // Optimal Count (not applicable at pillar level)
+      '', // Completed Items (aggregated at pillar level)
+      '', // In Progress Items
+      '', // Not Started Items
       `${pillar.assessmentPercentage.toFixed(1)}%`,
-      pillar.pillar.name // Using name as description
+      '', // Completion Percentage (not at pillar level)
+      '', // Item Type
+      '', // Implementation Status
+      '', // Stage Name
+      pillar.pillar.name, // Description
+      '' // Notes
     ];
 
     return this.escapeCsvRow(row);
@@ -88,31 +100,63 @@ export class CsvExportService {
       func.sequentialMaturityExplanation || '',
       func.assessedItems.toString(),
       func.totalItems.toString(),
-      '', // Advanced Count (not applicable at function level)
-      '', // Optimal Count (not applicable at function level)
+      '', // Completed Items (aggregated)
+      '', // In Progress Items
+      '', // Not Started Items
       `${func.assessmentPercentage.toFixed(1)}%`,
-      func.functionCapability.name // Using name as description
+      '', // Completion Percentage
+      func.functionCapability.type,
+      '', // Implementation Status
+      '', // Stage Name
+      func.functionCapability.name, // Description
+      '' // Notes
     ];
 
     return this.escapeCsvRow(row);
   }
 
   private generateDetailRow(pillar: PillarSummary, func: FunctionSummary, detail: DetailedAssessmentItem): string {
+    // Enhanced V2 detection: check if the item name contains stage info
+    const isV2Format = detail.name.includes(' - ') &&
+      (detail.name.includes('Traditional') || detail.name.includes('Initial') ||
+       detail.name.includes('Advanced') || detail.name.includes('Optimal'));
+
+    // For V2, extract the base name and stage
+    const displayName = isV2Format ? detail.name.split(' - ')[0] : detail.name;
+    const stageName = isV2Format ? detail.name.split(' - ')[1] : detail.maturityStageName;
+
+    // Determine if this is assessed (has status other than 'Not Assessed')
+    const isAssessed = detail.status !== 'Not Assessed';
+
+    // Calculate completion percentage based on status
+    let completionPercentage = '0%';
+    if (detail.status === 'Fully Implemented' || detail.status === 'Superseded') {
+      completionPercentage = '100%';
+    } else if (detail.status === 'Partially Implemented') {
+      completionPercentage = '50%'; // Estimated
+    }
+
     const row = [
       'Detail',
       pillar.pillar.name,
       func.functionCapability.name,
-      detail.name,
-      detail.maturityStageName,
-      '', // Actual Maturity Stage (not applicable for individual items)
+      displayName,
+      func.overallMaturityStage,
+      func.actualMaturityStage || '',
       '', // Has Sequential Gap (not applicable for individual items)
-      '', // Sequential Gap Explanation (not applicable for individual items)
-      '', // Traditional Count (not applicable for individual items)
-      '', // Advanced Count (not applicable for individual items)
-      '', // Optimal Count (not applicable for individual items)
-      '1', // Total Items (always 1 for individual items)
-      detail.status === 'Not Implemented' ? '0%' : '100%',
-      detail.description || ''
+      '', // Sequential Gap Explanation
+      isAssessed ? '1' : '0', // Assessed Items
+      '1', // Total Items
+      detail.status === 'Fully Implemented' || detail.status === 'Superseded' ? '1' : '0', // Completed
+      detail.status === 'Partially Implemented' ? '1' : '0', // In Progress
+      detail.status === 'Not Implemented' ? '1' : '0', // Not Started
+      isAssessed ? '100%' : '0%', // Assessment Percentage (binary for individual items)
+      completionPercentage,
+      detail.type,
+      detail.status,
+      stageName,
+      detail.description || '',
+      detail.notes || ''
     ];
 
     return this.escapeCsvRow(row);

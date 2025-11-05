@@ -53,7 +53,11 @@ describe('AdminComponent', () => {
       'addTechnologyProcess',
       'removeTechnologyProcess',
       'editTechnologyProcess',
-      'resetDatabase'
+      'resetDatabase',
+      'getMaturityStageImplementationsByGroup',
+      'deleteMaturityStageImplementation',
+      'addMaturityStageImplementation',
+      'getProcessTechnologyGroups'
     ]);
 
     const exportSpy = jasmine.createSpyObj('DataExportService', [
@@ -97,13 +101,21 @@ describe('AdminComponent', () => {
     spy.editTechnologyProcess.and.returnValue(Promise.resolve());
     spy.resetDatabase.and.returnValue(Promise.resolve());
 
+    // Setup new V2 method mocks
+    spy.getMaturityStageImplementationsByGroup.and.returnValue(Promise.resolve([]));
+    spy.deleteMaturityStageImplementation.and.returnValue(Promise.resolve());
+    spy.addMaturityStageImplementation.and.returnValue(Promise.resolve(1));
+    spy.getProcessTechnologyGroups.and.returnValue(Promise.resolve([]));
+
     // Setup export service spies
     exportSpy.getDataStatistics.and.returnValue(Promise.resolve({
+      version: '2.0.0',
       pillars: 2,
       functionCapabilities: 2,
       maturityStages: 4,
-      technologiesProcesses: 1,
-      assessmentResponses: 0
+      processTechnologyGroups: 1,
+      maturityStageImplementations: 3,
+      assessments: 0
     }));
     exportSpy.downloadExport.and.returnValue(Promise.resolve());
     exportSpy.importData.and.returnValue(Promise.resolve());

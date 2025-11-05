@@ -42,7 +42,7 @@
                 type="button">
           <i class="bi bi-tools me-2"></i>
           <span>Technologies/Processes</span>
-          <span class="badge bg-light text-dark ms-2">{{ technologiesProcesses.length }}</span>
+          <span class="badge bg-light text-dark ms-2">{{ processTechnologyGroups.length }}</span>
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -84,11 +84,11 @@
       [pillars]="pillars"
       [functionCapabilities]="functionCapabilities"
       [maturityStages]="maturityStages"
-      [technologiesProcesses]="technologiesProcesses"
-      (addTechnologyProcess)="addOrEditTechnologyProcess($event)"
-      (removeTechnologyProcess)="onRemoveTechnologyProcess($event)"
-      (editTechnologyProcess)="addOrEditTechnologyProcess($event)"
-      (loadTechnologiesProcesses)="onLoadTechnologiesProcesses()">
+      [processTechnologyGroups]="processTechnologyGroups"
+      (openWizard)="openWizardModal($event)"
+      (addProcessTechnologyGroup)="onAddProcessTechnologyGroup($event)"
+      (removeProcessTechnologyGroup)="onRemoveProcessTechnologyGroup($event)"
+      (editProcessTechnologyGroup)="onEditProcessTechnologyGroup($event)">
     </app-technologies-tab>
   </div>
   <!-- DATA MANAGEMENT TAB -->
@@ -108,3 +108,14 @@
     </app-data-management-tab>
   </div>
 </div>
+
+<!-- Wizard Modal -->
+<app-process-tech-wizard-modal
+  *ngIf="showWizardModal"
+  [pillars]="pillars"
+  [functionCapabilities]="functionCapabilities"
+  [maturityStages]="maturityStages"
+  [editingGroup]="editingProcessTechGroup"
+  (save)="onWizardSave($event)"
+  (cancelled)="closeWizardModal()">
+</app-process-tech-wizard-modal>
