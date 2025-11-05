@@ -507,7 +507,7 @@ describe('DataExportService', () => {
       const mockFile = new File([invalidJson], 'invalid.json', { type: 'application/json' });
 
       await expectAsync(service.uploadAndImport(mockFile)).toBeRejected();
-      expect(console.error).toHaveBeenCalledWith('Error uploading and importing data:', jasmine.any(Error));
+      expect(console.error).toHaveBeenCalledWith('❌ Error uploading and importing data:', jasmine.any(Error));
     });
   });
 });
