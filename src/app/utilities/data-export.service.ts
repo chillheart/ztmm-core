@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { IndexedDBService } from '../services/indexeddb.service';
 import { DataMigrationService } from '../services/data-migration.service';
+import { LoggingService } from '../services/logging.service';
 import {
   ExportedData,
   DataFormatVersion
@@ -10,10 +11,12 @@ import {
   providedIn: 'root'
 })
 export class DataExportService {
+  private readonly LOG_CONTEXT = 'DataExportService';
 
   constructor(
     private dataService: IndexedDBService,
-    private migrationService: DataMigrationService
+    private migrationService: DataMigrationService,
+    private logger: LoggingService
   ) {}
 
   /**
@@ -57,7 +60,7 @@ export class DataExportService {
         stageImplementationDetails
       };
     } catch (error) {
-      console.error('Error exporting data:', error);
+      this.logger.error('Error exporting data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -70,7 +73,7 @@ export class DataExportService {
   async importFromJson(data: ExportedData): Promise<void> {
     try {
       const version = this.detectDataVersion(data);
-      console.log(`Importing data version: ${version}`);
+      this.logger.info(`Importing data version: ${version}`, this.LOG_CONTEXT);
 
       if (version === '1.0.0') {
         await this.importV1Data(data);
@@ -78,9 +81,9 @@ export class DataExportService {
         await this.importV2Data(data);
       }
 
-      console.log('Data import completed successfully');
+      this.logger.info('Data import completed successfully', this.LOG_CONTEXT);
     } catch (error) {
-      console.error('Error importing data:', error);
+      this.logger.error('Error importing data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -90,7 +93,7 @@ export class DataExportService {
    * Imports V1 data and then migrates it to V2 format
    */
   private async importV1Data(data: ExportedData): Promise<void> {
-    console.log('Importing V1 format data...');
+    this.logger.info('Importing V1 format data', this.LOG_CONTEXT);
 
     // Step 1: Reset database and import V1 data
     await this.dataService.resetDatabase(true);

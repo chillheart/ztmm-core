@@ -29,7 +29,8 @@ describe('LoggingService', () => {
   describe('Configuration', () => {
     it('should have default configuration', () => {
       const config = service.getConfig();
-      expect(config.level).toBe(LogLevel.INFO);
+      // Default should be DEBUG when running on localhost (in tests)
+      expect(config.level).toBe(LogLevel.DEBUG);
       expect(config.enableConsole).toBe(true);
       expect(config.enableTimestamps).toBe(true);
     });

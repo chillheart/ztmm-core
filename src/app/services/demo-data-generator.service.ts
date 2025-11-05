@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { IndexedDBService } from './indexeddb.service';
 import { ProcessService } from './process.service';
 import { TechnologyService } from './technology.service';
+import { LoggingService } from './logging.service';
 import { AssessmentStatus, Pillar, FunctionCapability, TechnologyProcess } from '../models/ztmm.models';
 
 interface DemoTechnologyProcess {
@@ -15,11 +16,13 @@ interface DemoTechnologyProcess {
   providedIn: 'root'
 })
 export class DemoDataGeneratorService {
+  private readonly LOG_CONTEXT = 'DemoDataGeneratorService';
 
   constructor(
     private dataService: IndexedDBService,
     private processService: ProcessService,
-    private technologyService: TechnologyService
+    private technologyService: TechnologyService,
+    private logger: LoggingService
   ) {}
 
   // Comprehensive demo data for each function and capability emulating an Azure environment
@@ -955,7 +958,7 @@ export class DemoDataGeneratorService {
    */
   async generateDemoData(): Promise<void> {
     try {
-      console.log('Starting demo data generation...');
+      this.logger.info('Starting demo data generation', this.LOG_CONTEXT);
 
       // Get all function capabilities
       const functionCapabilities = await this.dataService.getFunctionCapabilities();
@@ -968,13 +971,13 @@ export class DemoDataGeneratorService {
         const demoItems = this.demoData[fc.name];
 
         if (demoItems && demoItems.length > 0) {
-          console.log(`Adding demo data for: ${fc.name} (${demoItems.length} items)`);
+          this.logger.debug(`Adding demo data for: ${fc.name}`, this.LOG_CONTEXT, { itemCount: demoItems.length });
 
           for (const item of demoItems) {
             // Validate maturity stage ID exists
             const maturityStage = maturityStages.find(ms => ms.id === item.maturityStageId);
             if (!maturityStage) {
-              console.warn(`Invalid maturity stage ID ${item.maturityStageId} for ${item.name}, using ID 2 (Initial)`);
+              this.logger.warn(`Invalid maturity stage ID ${item.maturityStageId} for ${item.name}, using ID 2 (Initial)`, this.LOG_CONTEXT);
               item.maturityStageId = 2;
             }
 
@@ -989,16 +992,17 @@ export class DemoDataGeneratorService {
           }
           functionsProcessed++;
         } else {
-          console.warn(`No demo data found for function/capability: ${fc.name}`);
+          this.logger.debug(`No demo data found for function/capability: ${fc.name}`, this.LOG_CONTEXT);
         }
       }
 
-      console.log(`Demo data generation completed!`);
-      console.log(`- Functions/Capabilities processed: ${functionsProcessed}`);
-      console.log(`- Total technologies/processes added: ${totalAdded}`);
+      this.logger.info('Demo data generation completed', this.LOG_CONTEXT, {
+        functionsProcessed,
+        totalAdded
+      });
 
     } catch (error) {
-      console.error('Error generating demo data:', error);
+      this.logger.error('Error generating demo data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }

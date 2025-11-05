@@ -44,13 +44,28 @@ export interface LogEntry {
 @Injectable({ providedIn: 'root' })
 export class LoggingService {
   private config: LoggingConfig = {
-    level: LogLevel.INFO,
+    level: this.getDefaultLogLevel(),
     enableConsole: true,
     enableTimestamps: true
   };
 
   private logs: LogEntry[] = [];
   private readonly MAX_LOGS = 1000; // Prevent memory issues
+
+  /**
+   * Determine default log level based on environment
+   * Enables DEBUG logging when running on localhost
+   */
+  private getDefaultLogLevel(): LogLevel {
+    if (typeof window !== 'undefined' && window.location) {
+      const hostname = window.location.hostname;
+      // Enable debug logging on localhost or 127.0.0.1
+      if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+        return LogLevel.DEBUG;
+      }
+    }
+    return LogLevel.INFO;
+  }
 
   /**
    * Configure the logging service
