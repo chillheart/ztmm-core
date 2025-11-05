@@ -1263,7 +1263,7 @@ export class IndexedDBService {
 
         // Check for duplicates before importing
         const seen = new Map<string, MaturityStageImplementation>();
-        const duplicates: Array<{ index: number; impl: MaturityStageImplementation; original: MaturityStageImplementation }> = [];
+        const duplicates: { index: number; impl: MaturityStageImplementation; original: MaturityStageImplementation }[] = [];
 
         for (let i = 0; i < data.maturityStageImplementations.length; i++) {
           const impl = data.maturityStageImplementations[i];
