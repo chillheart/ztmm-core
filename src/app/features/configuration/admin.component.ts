@@ -210,9 +210,7 @@ export class AdminComponent implements OnInit {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async addOrEditTechnologyProcess(arg?: any) {
     // If called from child, arg is the data object; if from form, arg is NgForm
-    console.log('addOrEditTechnologyProcess called with:', arg);
     if (this.isTechnologyProcessData(arg)) {
-      console.log('Type guard passed for TechnologyProcessData:', arg);
       // Defensive check for valid function_capability_id (snake_case or camelCase)
       const functionCapabilityId = arg.function_capability_id !== undefined
         ? Number(arg.function_capability_id)
@@ -221,19 +219,18 @@ export class AdminComponent implements OnInit {
         ? Number(arg.maturity_stage_id)
         : Number((arg as any).maturityStageId);
       if (!Number.isInteger(functionCapabilityId) || functionCapabilityId < 1) {
-        console.warn('Invalid functionCapabilityId:', functionCapabilityId);
+        this.logger.warn('Invalid functionCapabilityId', this.LOG_CONTEXT, { functionCapabilityId });
         alert('Please select a valid function/capability before adding or editing a technology/process.');
         return;
       }
       if (!Number.isInteger(maturityStageId) || maturityStageId < 1) {
-        console.warn('Invalid maturityStageId:', maturityStageId);
+        this.logger.warn('Invalid maturityStageId', this.LOG_CONTEXT, { maturityStageId });
         alert('Please select a valid maturity stage before adding or editing a technology/process.');
         return;
       }
       // Child event: add or edit
       if (arg.id) {
         // Edit mode
-        console.log('Editing TechnologyProcess:', arg);
         await this.data.editTechnologyProcess(
           arg.id,
           arg.name.trim(),
@@ -244,7 +241,6 @@ export class AdminComponent implements OnInit {
         );
       } else {
         // Add mode
-        console.log('Adding TechnologyProcess:', arg);
         await this.data.addTechnologyProcess(
           arg.name.trim(),
           arg.description.trim(),
@@ -261,25 +257,24 @@ export class AdminComponent implements OnInit {
     const techForm = arg as NgForm;
     this.techFormSubmitted = true;
     if (techForm && techForm.invalid) {
-      console.warn('Tech form is invalid:', techForm);
       return;
     }
     if (!this.newTechnologyProcessName.trim() || !this.newTechnologyProcessDescription.trim() || !this.selectedFunctionCapabilityId || !this.selectedMaturityStageId) {
-      console.warn('Missing required form values:', {
-        name: this.newTechnologyProcessName,
-        description: this.newTechnologyProcessDescription,
-        functionCapabilityId: this.selectedFunctionCapabilityId,
-        maturityStageId: this.selectedMaturityStageId
+      this.logger.warn('Missing required form values', this.LOG_CONTEXT, {
+        hasName: !!this.newTechnologyProcessName.trim(),
+        hasDescription: !!this.newTechnologyProcessDescription.trim(),
+        hasFunctionCapabilityId: !!this.selectedFunctionCapabilityId,
+        hasMaturityStageId: !!this.selectedMaturityStageId
       });
       return;
     }
     if (!Number.isInteger(this.selectedFunctionCapabilityId) || this.selectedFunctionCapabilityId < 1) {
-      console.warn('Invalid selectedFunctionCapabilityId:', this.selectedFunctionCapabilityId);
+      this.logger.warn('Invalid selectedFunctionCapabilityId', this.LOG_CONTEXT, { selectedFunctionCapabilityId: this.selectedFunctionCapabilityId });
       alert('Please select a valid function/capability before adding or editing a technology/process.');
       return;
     }
     if (!Number.isInteger(this.selectedMaturityStageId) || this.selectedMaturityStageId < 1) {
-      console.warn('Invalid selectedMaturityStageId:', this.selectedMaturityStageId);
+      this.logger.warn('Invalid selectedMaturityStageId', this.LOG_CONTEXT, { selectedMaturityStageId: this.selectedMaturityStageId });
       alert('Please select a valid maturity stage before adding or editing a technology/process.');
       return;
     }
@@ -287,14 +282,6 @@ export class AdminComponent implements OnInit {
     try {
       if (this.editingTechProcessId) {
         // Edit mode: pass the ID
-        console.log('Editing TechnologyProcess (form):', {
-          id: this.editingTechProcessId,
-          name: this.newTechnologyProcessName,
-          description: this.newTechnologyProcessDescription,
-          type: this.newTechnologyProcessType,
-          functionCapabilityId: this.selectedFunctionCapabilityId,
-          maturityStageId: this.selectedMaturityStageId
-        });
         await this.data.editTechnologyProcess(
           this.editingTechProcessId,
           this.newTechnologyProcessName.trim(),
@@ -306,13 +293,6 @@ export class AdminComponent implements OnInit {
         this.editingTechProcessId = null;
       } else {
         // Add mode: do NOT pass ID
-        console.log('Adding TechnologyProcess (form):', {
-          name: this.newTechnologyProcessName,
-          description: this.newTechnologyProcessDescription,
-          type: this.newTechnologyProcessType,
-          functionCapabilityId: this.selectedFunctionCapabilityId,
-          maturityStageId: this.selectedMaturityStageId
-        });
         await this.data.addTechnologyProcess(
           this.newTechnologyProcessName.trim(),
           this.newTechnologyProcessDescription.trim(),
@@ -334,7 +314,7 @@ export class AdminComponent implements OnInit {
         setTimeout(() => techForm.form.markAsPristine());
       }
     } catch (error) {
-      console.error('Error in addOrEditTechnologyProcess:', error);
+      this.logger.error('Error in addOrEditTechnologyProcess', error as Error, this.LOG_CONTEXT);
     }
   }
 
@@ -349,7 +329,7 @@ export class AdminComponent implements OnInit {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
       this.loadTechnologiesProcesses();
     } catch (error) {
-      console.error('Error removing pillar:', error);
+      this.logger.error('Error removing pillar', error as Error, this.LOG_CONTEXT, { id });
     }
   }
 
@@ -363,7 +343,7 @@ export class AdminComponent implements OnInit {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
       this.loadTechnologiesProcesses();
     } catch (error) {
-      console.error('Error removing function capability:', error);
+      this.logger.error('Error removing function capability', error as Error, this.LOG_CONTEXT, { id });
     }
   }
 
@@ -376,7 +356,7 @@ export class AdminComponent implements OnInit {
       await this.data.removeTechnologyProcess(id);
       this.loadTechnologiesProcesses();
     } catch (error) {
-      console.error('Error removing technology process:', error);
+      this.logger.error('Error removing technology process', error as Error, this.LOG_CONTEXT, { id });
     }
   }
 
@@ -520,7 +500,7 @@ export class AdminComponent implements OnInit {
     try {
       this.dataStatistics = await this.exportService.getDataStatistics();
     } catch (error) {
-      console.error('Error loading data statistics:', error);
+      this.logger.error('Error loading data statistics', error as Error, this.LOG_CONTEXT);
     }
   }
 
@@ -529,7 +509,7 @@ export class AdminComponent implements OnInit {
       this.isExporting = true;
       await this.exportService.downloadExport();
     } catch (error) {
-      console.error('Error exporting data:', error);
+      this.logger.error('Error exporting data', error as Error, this.LOG_CONTEXT);
       alert('Error exporting data. Please check the console for details.');
     } finally {
       this.isExporting = false;
@@ -586,7 +566,7 @@ export class AdminComponent implements OnInit {
       // Reset the file input
       target.value = '';
     } catch (error) {
-      console.error('Error importing data:', error);
+      this.logger.error('Error importing data', error as Error, this.LOG_CONTEXT);
       alert('Error importing data. Please check the console for details.');
     } finally {
       this.isImporting = false;
@@ -628,7 +608,7 @@ export class AdminComponent implements OnInit {
 
       alert('Database has been completely reset and reinitialized with fresh ZTMM framework!');
     } catch (error) {
-      console.error('Error resetting database:', error);
+      this.logger.error('Error resetting database', error as Error, this.LOG_CONTEXT);
       alert('Error resetting database. Please check the console for details.');
     } finally {
       this.isResetting = false;
@@ -743,7 +723,7 @@ export class AdminComponent implements OnInit {
 
       await this.loadProcessTechnologyGroups();
     } catch (error) {
-      console.error('Error adding ProcessTechnologyGroup:', error);
+      this.logger.error('Error adding ProcessTechnologyGroup', error as Error, this.LOG_CONTEXT);
       alert('Error adding technology/process. Please check the console for details.');
     }
   }
@@ -788,7 +768,7 @@ export class AdminComponent implements OnInit {
 
       await this.loadProcessTechnologyGroups();
     } catch (error) {
-      console.error('Error updating ProcessTechnologyGroup:', error);
+      this.logger.error('Error updating ProcessTechnologyGroup', error as Error, this.LOG_CONTEXT);
       alert('Error updating technology/process. Please check the console for details.');
     }
   }
@@ -807,7 +787,7 @@ export class AdminComponent implements OnInit {
 
       await this.loadProcessTechnologyGroups();
     } catch (error) {
-      console.error('Error removing ProcessTechnologyGroup:', error);
+      this.logger.error('Error removing ProcessTechnologyGroup', error as Error, this.LOG_CONTEXT);
       alert('Error removing technology/process. Please check the console for details.');
     }
   }
@@ -818,7 +798,7 @@ export class AdminComponent implements OnInit {
       this.demoDataExists = await this.demoDataGenerator.isDemoDataAlreadyGenerated();
       this.demoDataStats = await this.demoDataGenerator.getDemoDataStatistics();
     } catch (error) {
-      console.error('Error loading demo data info:', error);
+      this.logger.error('Error loading demo data info', error as Error, this.LOG_CONTEXT);
       this.demoDataExists = false;
       this.demoDataStats = null;
     }
@@ -863,13 +843,11 @@ export class AdminComponent implements OnInit {
       await this.loadDataStatistics();
       await this.loadDemoDataInfo();
 
-      console.log('Demo data generation completed successfully!');
-
       // Show success message
       alert('Demo data has been successfully generated! The database has been reset and populated with comprehensive Azure-focused examples of technologies, processes, and sample assessment responses for each function and capability.');
 
     } catch (error) {
-      console.error('Error generating demo data:', error);
+      this.logger.error('Error generating demo data', error as Error, this.LOG_CONTEXT);
       alert('Failed to generate demo data. Please check the console for details.');
     } finally {
       this.isGeneratingDemo = false;
@@ -889,8 +867,6 @@ export class AdminComponent implements OnInit {
 
   async onWizardSave(result: WizardResult) {
     try {
-      console.log('💾 Wizard save started with result:', result);
-      console.log('📝 Stage implementations to save:', result.stageImplementations);
 
       // Create or update the ProcessTechnologyGroup
       let groupId: number;
@@ -936,9 +912,6 @@ export class AdminComponent implements OnInit {
       }
 
       // Create MaturityStageImplementations from wizard results
-      console.log(`✅ Group created/updated with ID: ${groupId}`);
-      console.log(`📋 Creating ${result.stageImplementations.length} stage implementations...`);
-
       for (const stageImpl of result.stageImplementations) {
         const impl: Omit<MaturityStageImplementation, 'id'> = {
           process_technology_group_id: groupId,
@@ -946,19 +919,15 @@ export class AdminComponent implements OnInit {
           description: stageImpl.description,
           order_index: 0
         };
-        console.log('💾 Saving stage implementation:', impl);
-        const implId = await this.data.addMaturityStageImplementation(impl);
-        console.log(`✅ Stage implementation saved with ID: ${implId}`);
+        await this.data.addMaturityStageImplementation(impl);
       }
-
-      console.log('✅ All stage implementations saved successfully');
 
       // Reload data and close modal
       await this.loadProcessTechnologyGroups();
       this.closeWizardModal();
 
     } catch (error) {
-      console.error('Error saving process/technology group:', error);
+      this.logger.error('Error saving process/technology group', error as Error, this.LOG_CONTEXT);
       alert('Error saving. Please check the console for details.');
     }
   }

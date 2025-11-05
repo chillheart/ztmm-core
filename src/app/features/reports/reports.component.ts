@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { trigger, style, transition, animate } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
+import { LoggingService } from '../../services/logging.service';
 import {
   Pillar,
   FunctionCapability,
@@ -94,8 +95,11 @@ export class ReportsComponent implements OnInit {
   // Display options
   // showTechnologyDescriptions removed - descriptions are now always visible
 
+  private readonly LOG_CONTEXT = 'ReportsComponent';
+
   constructor(
     private data: IndexedDBService,
+    private logger: LoggingService,
     private reportDataService: ReportDataService,
     private maturityCalculation: MaturityCalculationService,
     private htmlExportService: HtmlExportService,
@@ -123,11 +127,9 @@ export class ReportsComponent implements OnInit {
       this.assessmentsV2 = await this.data.getAssessmentsV2();
       this.stageImplementationDetails = await this.data.getStageImplementationDetails();
 
-      console.log(`Reports loaded: ${this.processTechnologyGroups.length} groups, ${this.assessmentsV2.length} assessments, ${this.stageImplementationDetails.length} stage details`);
-
       this.buildPillarSummaries();
     } catch (error) {
-      console.error('Error loading data:', error);
+      this.logger.error('Error loading data', error as Error, this.LOG_CONTEXT);
     }
   }
 
@@ -209,14 +211,12 @@ export class ReportsComponent implements OnInit {
         this.exportToCsv();
       } else {
         // TODO: Implement PDF export
-        console.log(`Exporting report in ${format} format...`);
         setTimeout(() => {
           this.isExportingDoc = false;
-          console.log(`Export completed for ${format} format`);
         }, 2000);
       }
     } catch (error) {
-      console.error('Export failed:', error);
+      this.logger.error('Export failed', error as Error, this.LOG_CONTEXT, { format });
       this.isExportingDoc = false;
     }
   }
@@ -254,7 +254,7 @@ export class ReportsComponent implements OnInit {
 
       this.isExportingDoc = false;
     } catch (error) {
-      console.error('HTML export failed:', error);
+      this.logger.error('HTML export failed', error as Error, this.LOG_CONTEXT);
       this.isExportingDoc = false;
     }
   }
@@ -297,7 +297,7 @@ export class ReportsComponent implements OnInit {
 
       this.isExportingDoc = false;
     } catch (error) {
-      console.error('CSV export failed:', error);
+      this.logger.error('CSV export failed', error as Error, this.LOG_CONTEXT);
       this.isExportingDoc = false;
     }
   }
