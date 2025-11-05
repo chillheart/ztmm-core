@@ -14,8 +14,9 @@ export class DataManagementTabComponent {
     pillars: 0,
     functionCapabilities: 0,
     maturityStages: 0,
-    technologiesProcesses: 0,
-    assessmentResponses: 0
+    processTechnologyGroups: 0,
+    maturityStageImplementations: 0,
+    assessments: 0
   };
   @Input() isExporting = false;
   @Input() isImporting = false;

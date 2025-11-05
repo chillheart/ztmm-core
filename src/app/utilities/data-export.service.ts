@@ -312,43 +312,32 @@ export class DataExportService {
 
   /**
    * Get import/export statistics
-   * Shows both V1 and V2 data counts
+   * Returns V2 data counts (processTechnologyGroups, maturityStageImplementations, assessments)
    */
   async getDataStatistics(): Promise<{
     version: DataFormatVersion;
     pillars: number;
     functionCapabilities: number;
     maturityStages: number;
-    // V1 counts (legacy)
-    technologiesProcesses: number;
-    assessmentResponses: number;
-    // V2 counts (new)
     processTechnologyGroups: number;
     maturityStageImplementations: number;
     assessments: number;
-    stageImplementationDetails: number;
   }> {
     try {
       const [
         pillars,
         functionCapabilities,
         maturityStages,
-        technologiesProcesses,
-        assessmentResponses,
         processTechnologyGroups,
         maturityStageImplementations,
-        assessments,
-        stageImplementationDetails
+        assessments
       ] = await Promise.all([
         this.dataService.getPillars(),
         this.dataService.getFunctionCapabilities(),
         this.dataService.getMaturityStages(),
-        this.dataService.getTechnologiesProcesses(),
-        this.dataService.getAssessmentResponses(),
         this.dataService.getProcessTechnologyGroups(),
         this.dataService.getMaturityStageImplementations(),
-        this.dataService.getAssessmentsV2(),
-        this.dataService.getStageImplementationDetails()
+        this.dataService.getAssessmentsV2()
       ]);
 
       // Version is always 2.0.0 since V1 is deprecated (operational code removed in Phase 6)
@@ -360,12 +349,9 @@ export class DataExportService {
         pillars: pillars.length,
         functionCapabilities: functionCapabilities.length,
         maturityStages: maturityStages.length,
-        technologiesProcesses: technologiesProcesses.length,
-        assessmentResponses: assessmentResponses.length,
         processTechnologyGroups: processTechnologyGroups.length,
         maturityStageImplementations: maturityStageImplementations.length,
-        assessments: assessments.length,
-        stageImplementationDetails: stageImplementationDetails.length
+        assessments: assessments.length
       };
     } catch (error) {
       console.error('Error getting data statistics:', error);
@@ -374,12 +360,9 @@ export class DataExportService {
         pillars: 0,
         functionCapabilities: 0,
         maturityStages: 0,
-        technologiesProcesses: 0,
-        assessmentResponses: 0,
         processTechnologyGroups: 0,
         maturityStageImplementations: 0,
-        assessments: 0,
-        stageImplementationDetails: 0
+        assessments: 0
       };
     }
   }

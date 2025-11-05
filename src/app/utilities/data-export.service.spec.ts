@@ -313,24 +313,18 @@ describe('DataExportService', () => {
       expect(mockDataService.getPillars).toHaveBeenCalled();
       expect(mockDataService.getFunctionCapabilities).toHaveBeenCalled();
       expect(mockDataService.getMaturityStages).toHaveBeenCalled();
-      expect(mockDataService.getTechnologiesProcesses).toHaveBeenCalled();
-      expect(mockDataService.getAssessmentResponses).toHaveBeenCalled();
       expect(mockDataService.getProcessTechnologyGroups).toHaveBeenCalled();
       expect(mockDataService.getMaturityStageImplementations).toHaveBeenCalled();
       expect(mockDataService.getAssessmentsV2).toHaveBeenCalled();
-      expect(mockDataService.getStageImplementationDetails).toHaveBeenCalled();
 
       expect(stats).toEqual({
         version: '2.0.0',
         pillars: 1,
         functionCapabilities: 1,
         maturityStages: 1,
-        technologiesProcesses: 1,
-        assessmentResponses: 1,
         processTechnologyGroups: 1,
         maturityStageImplementations: 0,
-        assessments: 3, // TestUtilsIndexedDB now provides 3 mock assessments
-        stageImplementationDetails: 0
+        assessments: 3 // TestUtilsIndexedDB now provides 3 mock assessments
       });
     });
 
@@ -339,8 +333,6 @@ describe('DataExportService', () => {
       mockDataService.getPillars.and.returnValue(Promise.reject(error));
       mockDataService.getFunctionCapabilities.and.returnValue(Promise.reject(error));
       mockDataService.getMaturityStages.and.returnValue(Promise.reject(error));
-      mockDataService.getTechnologiesProcesses.and.returnValue(Promise.reject(error));
-      mockDataService.getAssessmentResponses.and.returnValue(Promise.reject(error));
 
       spyOn(console, 'error');
 
@@ -351,12 +343,9 @@ describe('DataExportService', () => {
         pillars: 0,
         functionCapabilities: 0,
         maturityStages: 0,
-        technologiesProcesses: 0,
-        assessmentResponses: 0,
         processTechnologyGroups: 0,
         maturityStageImplementations: 0,
-        assessments: 0,
-        stageImplementationDetails: 0
+        assessments: 0
       });
       expect(console.error).toHaveBeenCalledWith('Error getting data statistics:', error);
     });
@@ -365,27 +354,21 @@ describe('DataExportService', () => {
       mockDataService.getPillars.and.returnValue(Promise.resolve([]));
       mockDataService.getFunctionCapabilities.and.returnValue(Promise.resolve([]));
       mockDataService.getMaturityStages.and.returnValue(Promise.resolve([]));
-      mockDataService.getTechnologiesProcesses.and.returnValue(Promise.resolve([]));
-      mockDataService.getAssessmentResponses.and.returnValue(Promise.resolve([]));
       // Override V2 data to be empty as well
       mockDataService.getProcessTechnologyGroups.and.returnValue(Promise.resolve([]));
       mockDataService.getMaturityStageImplementations.and.returnValue(Promise.resolve([]));
       mockDataService.getAssessmentsV2.and.returnValue(Promise.resolve([]));
-      mockDataService.getStageImplementationDetails.and.returnValue(Promise.resolve([]));
 
       const stats = await service.getDataStatistics();
 
       expect(stats).toEqual({
-        version: '2.0.0', // Updated to V2 format
+        version: '2.0.0',
         pillars: 0,
         functionCapabilities: 0,
         maturityStages: 0,
-        technologiesProcesses: 0,
-        assessmentResponses: 0,
         processTechnologyGroups: 0,
         maturityStageImplementations: 0,
-        assessments: 0,
-        stageImplementationDetails: 0
+        assessments: 0
       });
     });
   });

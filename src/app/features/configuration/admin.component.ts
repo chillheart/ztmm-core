@@ -51,8 +51,9 @@ export class AdminComponent implements OnInit {
     pillars: 0,
     functionCapabilities: 0,
     maturityStages: 0,
-    technologiesProcesses: 0,
-    assessmentResponses: 0
+    processTechnologyGroups: 0,
+    maturityStageImplementations: 0,
+    assessments: 0
   };
   isImporting = false;
   isExporting = false;
@@ -832,7 +833,7 @@ export class AdminComponent implements OnInit {
 
     try {
       // Show confirmation if data exists
-      if (this.demoDataExists || this.dataStatistics.technologiesProcesses > 0) {
+      if (this.demoDataExists || this.dataStatistics.processTechnologyGroups > 0) {
         const confirmation = confirm(
           'Generating demo data will first reset the database and remove all existing data.\n\n' +
           'This will:\n' +

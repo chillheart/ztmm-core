@@ -109,11 +109,13 @@ describe('AdminComponent', () => {
 
     // Setup export service spies
     exportSpy.getDataStatistics.and.returnValue(Promise.resolve({
+      version: '2.0.0',
       pillars: 2,
       functionCapabilities: 2,
       maturityStages: 4,
-      technologiesProcesses: 1,
-      assessmentResponses: 0
+      processTechnologyGroups: 1,
+      maturityStageImplementations: 3,
+      assessments: 0
     }));
     exportSpy.downloadExport.and.returnValue(Promise.resolve());
     exportSpy.importData.and.returnValue(Promise.resolve());
