@@ -1,0 +1,178 @@
+<div class="logs-container">
+  <div class="logs-header">
+    <h1>System Logs</h1>
+    <p class="subtitle">View and manage application logs</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Logs</div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card stat-error">
+      <div class="stat-label">Errors</div>
+      <div class="stat-value">{{ stats.byLevel[LogLevel.ERROR] || 0 }}</div>
+    </div>
+    <div class="stat-card stat-warn">
+      <div class="stat-label">Warnings</div>
+      <div class="stat-value">{{ stats.byLevel[LogLevel.WARN] || 0 }}</div>
+    </div>
+    <div class="stat-card stat-info">
+      <div class="stat-label">Info</div>
+      <div class="stat-value">{{ stats.byLevel[LogLevel.INFO] || 0 }}</div>
+    </div>
+    <div class="stat-card stat-debug">
+      <div class="stat-label">Debug</div>
+      <div class="stat-value">{{ stats.byLevel[LogLevel.DEBUG] || 0 }}</div>
+    </div>
+  </div>
+
+  <!-- Filters and Actions -->
+  <div class="controls-panel">
+    <div class="filters">
+      <div class="filter-group">
+        <label for="level-filter">Level:</label>
+        <select id="level-filter" [(ngModel)]="selectedLevel" (change)="applyFilters()">
+          <option value="ALL">All Levels</option>
+          <option [value]="LogLevel.ERROR">Error</option>
+          <option [value]="LogLevel.WARN">Warning</option>
+          <option [value]="LogLevel.INFO">Info</option>
+          <option [value]="LogLevel.DEBUG">Debug</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="context-filter">Context:</label>
+        <select id="context-filter" [(ngModel)]="selectedContext" (change)="applyFilters()">
+          <option value="ALL">All Contexts</option>
+          <option *ngFor="let context of availableContexts" [value]="context">
+            {{ context }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group search-group">
+        <label for="search-filter">Search:</label>
+        <input 
+          id="search-filter"
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (input)="applyFilters()"
+          placeholder="Search logs..."
+        />
+      </div>
+
+      <button class="btn btn-secondary" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+
+    <div class="actions">
+      <button 
+        class="btn btn-secondary" 
+        [class.active]="autoRefresh"
+        (click)="toggleAutoRefresh()"
+      >
+        {{ autoRefresh ? '⏸️' : '▶️' }} Auto-Refresh
+      </button>
+      
+      <button class="btn btn-secondary" (click)="loadLogs()">
+        🔄 Refresh
+      </button>
+      
+      <label class="btn btn-secondary file-input-label">
+        📂 Import & Validate
+        <input 
+          type="file" 
+          accept=".json"
+          (change)="importLogs($event)"
+          style="display: none;"
+        />
+      </label>
+      
+      <button class="btn btn-primary" (click)="exportLogs()">
+        💾 Export Logs
+      </button>
+      
+      <button class="btn btn-danger" (click)="clearLogs()">
+        🗑️ Clear Logs
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Info -->
+  <div class="results-info">
+    <p>
+      Showing <strong>{{ filteredLogs.length }}</strong> of <strong>{{ stats.total }}</strong> logs
+      <span *ngIf="selectedLevel !== 'ALL' || searchTerm || selectedContext !== 'ALL'">
+        (filtered)
+      </span>
+    </p>
+  </div>
+
+  <!-- Logs Table -->
+  <div class="logs-table-container">
+    <div *ngIf="filteredLogs.length === 0" class="no-logs">
+      <p>No logs to display</p>
+      <p class="hint" *ngIf="searchTerm || selectedLevel !== 'ALL' || selectedContext !== 'ALL'">
+        Try clearing filters to see all logs
+      </p>
+    </div>
+
+    <table *ngIf="filteredLogs.length > 0" class="logs-table">
+      <thead>
+        <tr>
+          <th class="col-timestamp">Timestamp</th>
+          <th class="col-level">Level</th>
+          <th class="col-context">Context</th>
+          <th class="col-message">Message</th>
+          <th class="col-details">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of filteredLogs" [class]="getLevelClass(log.level)">
+          <td class="col-timestamp">
+            <span class="timestamp">{{ formatTimestamp(log.timestamp) }}</span>
+          </td>
+          <td class="col-level">
+            <span class="level-badge" [class]="getLevelClass(log.level)">
+              {{ log.level }}
+            </span>
+          </td>
+          <td class="col-context">
+            <span class="context">{{ log.context || '-' }}</span>
+          </td>
+          <td class="col-message">
+            <div class="message">{{ log.message }}</div>
+            <div *ngIf="hasError(log)" class="error-details">
+              <strong>Error:</strong> {{ log.error?.message }}
+              <details *ngIf="log.error?.stack">
+                <summary>Stack Trace</summary>
+                <pre>{{ log.error?.stack }}</pre>
+              </details>
+            </div>
+          </td>
+          <td class="col-details">
+            <details *ngIf="hasData(log)">
+              <summary>View Data</summary>
+              <pre>{{ formatData(log.data) }}</pre>
+            </details>
+            <span *ngIf="!hasData(log)" class="no-data">-</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer Info -->
+  <div class="logs-footer">
+    <p class="info-text">
+      ℹ️ Logs are immutable and cannot be modified. Maximum {{ 1000 }} logs are stored in memory.
+      Export logs regularly for long-term storage.
+    </p>
+    <p class="info-text">
+      🔒 Exported logs include a checksum for validation. Use "Import & Validate" to verify log file integrity.
+    </p>
+  </div>
+</div>
