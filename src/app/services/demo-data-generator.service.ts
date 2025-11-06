@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { IndexedDBService } from './indexeddb.service';
 import { ProcessService } from './process.service';
 import { TechnologyService } from './technology.service';
+import { LoggingService } from './logging.service';
 import { AssessmentStatus, Pillar, FunctionCapability, TechnologyProcess } from '../models/ztmm.models';
 
 interface DemoTechnologyProcess {
@@ -15,11 +16,13 @@ interface DemoTechnologyProcess {
   providedIn: 'root'
 })
 export class DemoDataGeneratorService {
+  private readonly LOG_CONTEXT = 'DemoDataGeneratorService';
 
   constructor(
     private dataService: IndexedDBService,
     private processService: ProcessService,
-    private technologyService: TechnologyService
+    private technologyService: TechnologyService,
+    private logger: LoggingService
   ) {}
 
   // Comprehensive demo data for each function and capability emulating an Azure environment
@@ -955,7 +958,7 @@ export class DemoDataGeneratorService {
    */
   async generateDemoData(): Promise<void> {
     try {
-      console.log('Starting demo data generation...');
+      this.logger.info('Starting demo data generation', this.LOG_CONTEXT);
 
       // Get all function capabilities
       const functionCapabilities = await this.dataService.getFunctionCapabilities();
@@ -968,13 +971,13 @@ export class DemoDataGeneratorService {
         const demoItems = this.demoData[fc.name];
 
         if (demoItems && demoItems.length > 0) {
-          console.log(`Adding demo data for: ${fc.name} (${demoItems.length} items)`);
+          this.logger.debug(`Adding demo data for: ${fc.name}`, this.LOG_CONTEXT, { itemCount: demoItems.length });
 
           for (const item of demoItems) {
             // Validate maturity stage ID exists
             const maturityStage = maturityStages.find(ms => ms.id === item.maturityStageId);
             if (!maturityStage) {
-              console.warn(`Invalid maturity stage ID ${item.maturityStageId} for ${item.name}, using ID 2 (Initial)`);
+              this.logger.warn(`Invalid maturity stage ID ${item.maturityStageId} for ${item.name}, using ID 2 (Initial)`, this.LOG_CONTEXT);
               item.maturityStageId = 2;
             }
 
@@ -989,16 +992,17 @@ export class DemoDataGeneratorService {
           }
           functionsProcessed++;
         } else {
-          console.warn(`No demo data found for function/capability: ${fc.name}`);
+          this.logger.debug(`No demo data found for function/capability: ${fc.name}`, this.LOG_CONTEXT);
         }
       }
 
-      console.log(`Demo data generation completed!`);
-      console.log(`- Functions/Capabilities processed: ${functionsProcessed}`);
-      console.log(`- Total technologies/processes added: ${totalAdded}`);
+      this.logger.info('Demo data generation completed', this.LOG_CONTEXT, {
+        functionsProcessed,
+        totalAdded
+      });
 
     } catch (error) {
-      console.error('Error generating demo data:', error);
+      this.logger.error('Error generating demo data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -1010,7 +1014,7 @@ export class DemoDataGeneratorService {
    */
   async generateV2DemoData(): Promise<void> {
     try {
-      console.log('Starting V2 demo data generation...');
+      this.logger.info('Starting V2 demo data generation', this.LOG_CONTEXT);
 
       const functionCapabilities = await this.dataService.getFunctionCapabilities();
       const maturityStages = await this.dataService.getMaturityStages();
@@ -1233,11 +1237,11 @@ export class DemoDataGeneratorService {
         const groups = v2DemoGroups[fc.name];
 
         if (!groups || groups.length === 0) {
-          console.log(`No V2 demo data defined for: ${fc.name}`);
+          this.logger.debug(`No V2 demo data defined for: ${fc.name}`, this.LOG_CONTEXT);
           continue;
         }
 
-        console.log(`Adding V2 demo data for: ${fc.name} (${groups.length} groups)`);
+        this.logger.debug(`Adding V2 demo data for: ${fc.name} (${groups.length} groups)`, this.LOG_CONTEXT);
 
         for (const group of groups) {
           try {
@@ -1262,7 +1266,7 @@ export class DemoDataGeneratorService {
             }
 
             totalGroups++;
-            console.log(`  Created group: ${group.name} (ID: ${groupId})`);
+            this.logger.debug(`  Created group: ${group.name} (ID: ${groupId})`, this.LOG_CONTEXT);
 
             // Create MaturityStageImplementations for each stage
             for (let i = 0; i < group.stages.length; i++) {
@@ -1270,7 +1274,7 @@ export class DemoDataGeneratorService {
               const stageId = stageMap.get(stageName);
 
               if (!stageId) {
-                console.warn(`  Could not find stage ID for: ${stageName}`);
+                this.logger.warn(`Could not find stage ID for: ${stageName}`, this.LOG_CONTEXT);
                 continue;
               }
 
@@ -1287,17 +1291,18 @@ export class DemoDataGeneratorService {
             }
 
           } catch (error) {
-            console.error(`  Failed to create group ${group.name}:`, error);
+            this.logger.error(`Failed to create group ${group.name}`, error as Error, this.LOG_CONTEXT);
           }
         }
       }
 
-      console.log(`V2 demo data generation completed!`);
-      console.log(`- Total groups created: ${totalGroups}`);
-      console.log(`- Total stage implementations created: ${totalImplementations}`);
+      this.logger.info('V2 demo data generation completed', this.LOG_CONTEXT, {
+        totalGroups,
+        totalImplementations
+      });
 
     } catch (error) {
-      console.error('Error generating V2 demo data:', error);
+      this.logger.error('Error generating V2 demo data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -1307,7 +1312,7 @@ export class DemoDataGeneratorService {
    */
   async generateDemoAssessmentResponses(): Promise<void> {
     try {
-      console.log('Starting demo assessment response generation...');
+      this.logger.info('Starting demo assessment response generation', this.LOG_CONTEXT);
 
       // Define the target maturity stages and custom logic for each pillar
       const pillarMaturityStages: Record<string, { stage: number, implementation: string, custom?: boolean }> = {
@@ -1332,7 +1337,7 @@ export class DemoDataGeneratorService {
       for (const fc of functionCapabilities) {
         const pillar = pillarMap.get(fc.pillar_id);
         if (!pillar) {
-          console.warn(`No pillar found for function capability: ${fc.name}`);
+          this.logger.warn(`No pillar found for function capability: ${fc.name}`, this.LOG_CONTEXT);
           continue;
         }
 
@@ -1353,11 +1358,10 @@ export class DemoDataGeneratorService {
         }
       }
 
-      console.log(`Demo assessment responses generated successfully!`);
-      console.log(`- Total responses created: ${totalResponses}`);
+      this.logger.info('Demo assessment responses generated successfully', this.LOG_CONTEXT, { totalResponses });
 
     } catch (error) {
-      console.error('Error generating demo assessment responses:', error);
+      this.logger.error('Error generating demo assessment responses', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -1374,7 +1378,7 @@ export class DemoDataGeneratorService {
       const techProcesses = await this.dataService.getTechnologiesProcessesByFunction(functionCapability.id);
 
       if (!techProcesses || techProcesses.length === 0) {
-        console.warn(`No technologies/processes found for function: ${functionCapability.name}`);
+        this.logger.warn(`No technologies/processes found for function: ${functionCapability.name}`, this.LOG_CONTEXT);
         return 0;
       }
 
@@ -1438,7 +1442,7 @@ export class DemoDataGeneratorService {
 
       return responseCount;
     } catch (error) {
-      console.error(`Error creating assessment responses for ${functionCapability.name}:`, error);
+      this.logger.error(`Error creating assessment responses for ${functionCapability.name}`, error as Error, this.LOG_CONTEXT);
       return 0;
     }
   }
@@ -1492,7 +1496,7 @@ export class DemoDataGeneratorService {
 
       return foundSignatureItems.length >= 3; // If we find 3+ signature items, assume demo data exists
     } catch (error) {
-      console.error('Error checking for existing demo data:', error);
+      this.logger.error('Error checking for existing demo data', error as Error, this.LOG_CONTEXT);
       return false;
     }
   }
@@ -1539,7 +1543,7 @@ export class DemoDataGeneratorService {
       const responses = await this.dataService.getAssessmentResponses();
       return responses && responses.length > 0;
     } catch (error) {
-      console.error('Error checking existing assessment responses:', error);
+      this.logger.error('Error checking existing assessment responses', error as Error, this.LOG_CONTEXT);
       return false;
     }
   }
@@ -1548,14 +1552,14 @@ export class DemoDataGeneratorService {
    * Generates both demo data and assessment responses
    */
   async generateCompleteDemoData(includeAssessments = false, includeV2 = true): Promise<void> {
-    console.log('Starting complete demo data generation...');
+    this.logger.info('Starting complete demo data generation', this.LOG_CONTEXT, { includeAssessments, includeV2 });
 
     // Generate V1 technology/process data
     await this.generateDemoData();
 
     // Generate V2 data if requested
     if (includeV2) {
-      console.log('Generating V2 demo data...');
+      this.logger.debug('Generating V2 demo data', this.LOG_CONTEXT);
       await this.generateV2DemoData();
     }
 
@@ -1563,7 +1567,7 @@ export class DemoDataGeneratorService {
     if (includeAssessments) {
       const hasExisting = await this.hasExistingAssessmentResponses();
       if (hasExisting) {
-        console.log('Assessment responses already exist. Skipping generation.');
+        this.logger.info('Assessment responses already exist. Skipping generation', this.LOG_CONTEXT);
       } else {
         // Add a small delay to ensure technology/process data is available
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -1571,6 +1575,6 @@ export class DemoDataGeneratorService {
       }
     }
 
-    console.log('Complete demo data generation finished!');
+    this.logger.info('Complete demo data generation finished', this.LOG_CONTEXT);
   }
 }

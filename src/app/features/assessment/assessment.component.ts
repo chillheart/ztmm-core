@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { trigger, style, transition, animate, query, stagger } from '@angular/animations';
 import { IndexedDBService } from '../../services/indexeddb.service';
+import { LoggingService } from '../../services/logging.service';
 import { ProcessService } from '../../services/process.service';
 import { TechnologyService } from '../../services/technology.service';
 import { Pillar, FunctionCapability, MaturityStage, TechnologyProcess, AssessmentResponse, ProcessTechnologyGroup, MaturityStageImplementation, Assessment, StageImplementationDetail, StageImplementationStatus } from '../../models/ztmm.models';
@@ -95,8 +96,11 @@ export class AssessmentComponent implements OnInit {
   // Make Math available to template
   Math = Math;
 
+  private readonly LOG_CONTEXT = 'AssessmentComponent';
+
   constructor(
     private data: IndexedDBService,
+    private logger: LoggingService,
     private processService: ProcessService,
     private technologyService: TechnologyService
   ) {
@@ -128,21 +132,21 @@ export class AssessmentComponent implements OnInit {
     try {
       this.pillars = await this.data.getPillars();
     } catch (error) {
-      console.error('❌ Error loading pillars:', error);
+      this.logger.error('Error loading pillars', error as Error, this.LOG_CONTEXT);
       this.pillars = [];
     }
 
     try {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
     } catch (error) {
-      console.error('❌ Error loading function capabilities:', error);
+      this.logger.error('Error loading function capabilities', error as Error, this.LOG_CONTEXT);
       this.functionCapabilities = [];
     }
 
     try {
       this.maturityStages = await this.data.getMaturityStages();
     } catch (error) {
-      console.error('❌ Error loading maturity stages:', error);
+      this.logger.error('Error loading maturity stages', error as Error, this.LOG_CONTEXT);
       this.maturityStages = [];
     }
 
@@ -150,50 +154,43 @@ export class AssessmentComponent implements OnInit {
     try {
       this.allProcessTechnologyGroups = await this.data.getProcessTechnologyGroups();
       this.processTechnologyGroups = [...this.allProcessTechnologyGroups]; // Copy for filtering
-      console.log(`Loaded ${this.allProcessTechnologyGroups.length} process/technology groups`);
     } catch (error) {
-      console.error('❌ Error loading process/technology groups:', error);
+      this.logger.error('Error loading process/technology groups', error as Error, this.LOG_CONTEXT);
       this.allProcessTechnologyGroups = [];
       this.processTechnologyGroups = [];
     }
 
     try {
       this.stageImplementations = await this.data.getMaturityStageImplementations();
-      console.log(`Loaded ${this.stageImplementations.length} maturity stage implementations`);
     } catch (error) {
-      console.error('❌ Error loading stage implementations:', error);
+      this.logger.error('Error loading stage implementations', error as Error, this.LOG_CONTEXT);
       this.stageImplementations = [];
     }
 
     try {
       this.assessments = await this.data.getAssessmentsV2();
-      console.log(`Loaded ${this.assessments.length} assessments`);
     } catch (error) {
-      console.error('❌ Error loading assessments:', error);
+      this.logger.error('Error loading assessments', error as Error, this.LOG_CONTEXT);
       this.assessments = [];
     }
 
     try {
       this.stageImplementationDetails = await this.data.getStageImplementationDetails();
-      console.log(`Loaded ${this.stageImplementationDetails.length} stage implementation details`);
     } catch (error) {
-      console.error('❌ Error loading stage implementation details:', error);
+      this.logger.error('Error loading stage implementation details', error as Error, this.LOG_CONTEXT);
       this.stageImplementationDetails = [];
     }
 
     try {
       this.assessmentResponses = await this.data.getAssessmentResponses();
-      console.log(`Loaded ${this.assessmentResponses.length} assessment responses during initialization`);
     } catch (error) {
-      console.error('❌ Error loading assessment responses:', error);
+      this.logger.error('Error loading assessment responses', error as Error, this.LOG_CONTEXT);
       this.assessmentResponses = [];
     }
 
     // Build overall progress summary after loading all data
     if (this.pillars.length > 0 && this.functionCapabilities.length > 0) {
       await this.buildOverallProgress();
-      console.log('📊 Overall Progress built:', this.overallProgress);
-      console.log('🎯 showOverallSummary:', this.showOverallSummary);
     }
   }
 
@@ -213,14 +210,14 @@ export class AssessmentComponent implements OnInit {
     try {
       this.pillars = await this.data.getPillars();
     } catch (error) {
-      console.error('❌ Error loading pillars:', error);
+      this.logger.error('Error loading pillars', error as Error, this.LOG_CONTEXT);
       this.pillars = [];
     }
 
     try {
       this.functionCapabilities = await this.data.getFunctionCapabilities();
     } catch (error) {
-      console.error('❌ Error loading function capabilities:', error);
+      this.logger.error('Error loading function capabilities', error as Error, this.LOG_CONTEXT);
       this.functionCapabilities = [];
     }
 
@@ -228,42 +225,36 @@ export class AssessmentComponent implements OnInit {
     try {
       this.allProcessTechnologyGroups = await this.data.getProcessTechnologyGroups();
       this.processTechnologyGroups = [...this.allProcessTechnologyGroups]; // Copy for initial display
-      console.log(`Loaded ${this.allProcessTechnologyGroups.length} process/technology groups`);
     } catch (error) {
-      console.error('❌ Error loading process/technology groups:', error);
+      this.logger.error('Error loading process/technology groups', error as Error, this.LOG_CONTEXT);
       this.allProcessTechnologyGroups = [];
       this.processTechnologyGroups = [];
     }
 
     try {
       this.stageImplementations = await this.data.getMaturityStageImplementations();
-      console.log(`Loaded ${this.stageImplementations.length} maturity stage implementations`);
     } catch (error) {
-      console.error('❌ Error loading stage implementations:', error);
+      this.logger.error('Error loading stage implementations', error as Error, this.LOG_CONTEXT);
       this.stageImplementations = [];
     }
 
     try {
       this.assessments = await this.data.getAssessmentsV2();
-      console.log(`Loaded ${this.assessments.length} assessments`);
     } catch (error) {
-      console.error('❌ Error loading assessments:', error);
+      this.logger.error('Error loading assessments', error as Error, this.LOG_CONTEXT);
       this.assessments = [];
     }
 
     try {
       this.stageImplementationDetails = await this.data.getStageImplementationDetails();
-      console.log(`Loaded ${this.stageImplementationDetails.length} stage implementation details`);
     } catch (error) {
-      console.error('❌ Error loading stage implementation details:', error);
+      this.logger.error('Error loading stage implementation details', error as Error, this.LOG_CONTEXT);
       this.stageImplementationDetails = [];
     }
 
     // Build overall progress
     if (this.pillars.length > 0 && this.functionCapabilities.length > 0) {
       await this.buildOverallProgress();
-      console.log('📊 Overall Progress built:', this.overallProgress);
-      console.log('🎯 showOverallSummary:', this.showOverallSummary);
     }
   }
 
@@ -326,7 +317,7 @@ export class AssessmentComponent implements OnInit {
 
             completedItems += functionCompletedCount;
           } catch (error) {
-            console.error('Error loading tech processes for function', func.id, ':', error);
+            this.logger.error('Error loading tech processes for function', error as Error, this.LOG_CONTEXT, { functionId: func.id });
           }
         }
 
@@ -341,7 +332,7 @@ export class AssessmentComponent implements OnInit {
         });
       }
     } catch (error) {
-      console.error('Error building overall pillar progress:', error);
+      this.logger.error('Error building overall pillar progress', error as Error, this.LOG_CONTEXT);
     }
   }
 
@@ -374,7 +365,7 @@ export class AssessmentComponent implements OnInit {
               }
             }
           } catch (error) {
-            console.error('Error loading groups for function', func.id, ':', error);
+            this.logger.error('Error loading groups for function', error as Error, this.LOG_CONTEXT, { functionId: func.id });
           }
         }
 
@@ -390,7 +381,7 @@ export class AssessmentComponent implements OnInit {
         });
       }
     } catch (error) {
-      console.error('Error building overall progress:', error);
+      this.logger.error('Error building overall progress', error as Error, this.LOG_CONTEXT);
     }
   }
 
@@ -418,8 +409,6 @@ export class AssessmentComponent implements OnInit {
       const assessmentIds = this.assessments.map(a => a.id);
       this.stageImplementationDetails = (await this.data.getStageImplementationDetails())
         .filter(d => assessmentIds.includes(d.assessment_id));
-
-      console.log(`Loaded ${groupsForFunction.length} groups, ${this.stageImplementations.length} stage implementations, ${this.assessments.length} assessments, ${this.stageImplementationDetails.length} stage details`);
     } else {
       // Reset
       this.processTechnologyGroups = [];
@@ -431,7 +420,6 @@ export class AssessmentComponent implements OnInit {
 
   // Model: Handle assessment update from child component
   async onAssessmentUpdate(event: {groupId: number, update: AssessmentUpdate}) {
-    console.log('V2 Assessment update:', event);
 
     // Show saving indicator
     this.isAutoSaving = true;
@@ -479,8 +467,6 @@ export class AssessmentComponent implements OnInit {
       // Save individual stage implementation details
       await this.saveStageDetails(assessment.id, event.update.stageDetails);
 
-      console.log('V2 assessment saved successfully');
-
       // Hide saving indicator and show success
       this.isAutoSaving = false;
       this.showSuccess = true;
@@ -491,7 +477,7 @@ export class AssessmentComponent implements OnInit {
       // Rebuild progress in background
       await this.buildOverallProgress();
     } catch (error) {
-      console.error('Error saving assessment:', error);
+      this.logger.error('Error saving assessment', error as Error, this.LOG_CONTEXT);
       this.isAutoSaving = false;
       // Could show error indicator here
     }
@@ -546,10 +532,8 @@ export class AssessmentComponent implements OnInit {
           }
         }
       }
-
-      console.log(`Saved stage details for assessment ${assessmentId}`);
     } catch (error) {
-      console.error('Error saving stage details:', error);
+      this.logger.error('Error saving stage details', error as Error, this.LOG_CONTEXT, { assessmentId });
       throw error;
     }
   }
@@ -694,7 +678,7 @@ export class AssessmentComponent implements OnInit {
 
           this.pillarSummary.push(summary);
         } catch (fcError) {
-          console.error('Error processing function capability', fc.id, ':', fcError);
+          this.logger.error('Error processing function capability', fcError as Error, this.LOG_CONTEXT, { functionCapabilityId: fc.id });
           // Still add the function capability with 0 count to show it exists
           this.pillarSummary.push({
             functionCapability: fc,
@@ -705,7 +689,7 @@ export class AssessmentComponent implements OnInit {
         }
       }
     } catch (error) {
-      console.error('Error building pillar summary:', error);
+      this.logger.error('Error building pillar summary', error as Error, this.LOG_CONTEXT);
       this.pillarSummary = [];
     }
   }
@@ -725,7 +709,7 @@ export class AssessmentComponent implements OnInit {
       this.showSuccess = true;
       setTimeout(() => (this.showSuccess = false), 2000);
     } catch (error) {
-      console.error('Error saving assessment:', error);
+      this.logger.error('Error saving assessment', error as Error, this.LOG_CONTEXT);
       this.showSuccess = false;
     }
   }

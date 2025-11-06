@@ -99,9 +99,6 @@ export class ProcessTechWizardModalComponent implements OnInit {
       this.selectedMaturityStageIds = existingImplementations
         .map(impl => impl.maturity_stage_id)
         .sort((a, b) => a - b);
-
-      console.log('📝 Loaded stage implementations for editing:', existingImplementations);
-      console.log('🎯 Selected stage IDs:', this.selectedMaturityStageIds);
     }
   }
 
@@ -177,8 +174,6 @@ export class ProcessTechWizardModalComponent implements OnInit {
           description: existing ? existing.description : '' // Use existing description or empty
         };
       });
-
-      console.log('📝 Loaded existing descriptions for Step 2:', this.stageImplementations);
     } else {
       // New group: empty descriptions
       this.stageImplementations = this.selectedMaturityStageIds.map(stageId => ({
@@ -223,7 +218,6 @@ export class ProcessTechWizardModalComponent implements OnInit {
     this.step2Submitted = true;
 
     if (!this.canSave) {
-      console.warn('⚠️ Cannot save - validation failed');
       return;
     }
 
@@ -236,7 +230,6 @@ export class ProcessTechWizardModalComponent implements OnInit {
       stageImplementations: this.stageImplementations
     };
 
-    console.log('🎯 Wizard emitting save event with result:', result);
     this.save.emit(result);
   }
 }

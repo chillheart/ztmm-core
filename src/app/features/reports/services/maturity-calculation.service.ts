@@ -124,17 +124,7 @@ export class MaturityCalculationService {
       .filter(mb => mb.totalItems > 0)
       .map(mb => mb.stageName);
 
-    console.log('🔍 calculateOverallMaturityStage:', {
-      applicableStages,
-      breakdown: maturityBreakdown.map(mb => ({
-        stage: mb.stageName,
-        status: mb.status,
-        total: mb.totalItems,
-        completed: mb.completedItems
-      }))
-    });
-
-    // First, let's mark which stages can be advanced to based on sequential requirements
+    // If no applicable stages, return initial (default)
     const updatedBreakdown = this.validateSequentialMaturity(maturityBreakdown, applicableStages);
 
     // Find the highest completed stage that can be achieved sequentially
@@ -190,8 +180,6 @@ export class MaturityCalculationService {
     if (achievedStage === null) {
       achievedStage = 'Traditional';
     }
-
-    console.log('✅ Result:', { achievedStage, actualStage, hasGap });
 
     // Check for gaps
     if (actualStage !== achievedStage) {

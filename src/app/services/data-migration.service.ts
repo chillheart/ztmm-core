@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { IndexedDBService } from './indexeddb.service';
+import { LoggingService } from './logging.service';
 import {
   TechnologyProcess,
   AssessmentResponse,
@@ -27,7 +28,12 @@ import {
   providedIn: 'root'
 })
 export class DataMigrationService {
-  constructor(private indexedDBService: IndexedDBService) {}
+  private readonly LOG_CONTEXT = 'DataMigrationService';
+
+  constructor(
+    private indexedDBService: IndexedDBService,
+    private logger: LoggingService
+  ) {}
 
   /**
    * Validate V1 data before migration
@@ -112,10 +118,11 @@ export class DataMigrationService {
     try {
       // Step 1: Validate V1 data
       if (validateFirst) {
-        console.log('Validating V1 data before migration...');
+        this.logger.info('Validating V1 data before migration', this.LOG_CONTEXT);
         const validation = await this.validateV1Data();
 
         if (!validation.valid) {
+          this.logger.warn('Validation failed - migration aborted', this.LOG_CONTEXT, { errors: validation.errors });
           return {
             success: false,
             message: 'Validation failed. Migration aborted.',
@@ -125,19 +132,19 @@ export class DataMigrationService {
         }
 
         if (validation.warnings.length > 0) {
-          console.warn('Validation warnings:', validation.warnings);
+          this.logger.warn('Validation completed with warnings', this.LOG_CONTEXT, { warnings: validation.warnings });
         }
 
-        console.log('Validation passed. Estimated groups:', validation.groupsCreated);
+        this.logger.debug('Validation passed', this.LOG_CONTEXT, { estimatedGroups: validation.groupsCreated });
       }
 
       // Step 2: Load V1 data
-      console.log('Loading V1 data...');
+      this.logger.debug('Loading V1 data', this.LOG_CONTEXT);
       const techProcesses = await this.indexedDBService.getTechnologiesProcesses();
       const assessmentResponses = await this.indexedDBService.getAssessmentResponses();
 
       // Step 3: Group and transform data
-      console.log('Transforming V1 data to V2 format...');
+      this.logger.info('Transforming V1 data to V2 format', this.LOG_CONTEXT);
       const groupedData = this.groupTechnologyProcesses(techProcesses);
 
       const processTechnologyGroups: ProcessTechnologyGroup[] = [];
@@ -206,7 +213,12 @@ export class DataMigrationService {
 
       // Step 4: Write V2 data (if not dry run)
       if (!dryRun) {
-        console.log('Writing V2 data to database...');
+        this.logger.info('Writing V2 data to database', this.LOG_CONTEXT, {
+          groupsCount: processTechnologyGroups.length,
+          implementationsCount: maturityStageImplementations.length,
+          assessmentsCount: assessments.length,
+          detailsCount: stageImplementationDetails.length
+        });
         await this.indexedDBService.bulkImportV2Data({
           processTechnologyGroups,
           maturityStageImplementations,
@@ -214,9 +226,9 @@ export class DataMigrationService {
           stageImplementationDetails
         });
 
-        console.log('Migration completed successfully');
+        this.logger.info('Migration completed successfully', this.LOG_CONTEXT);
       } else {
-        console.log('Dry run completed - no data written');
+        this.logger.info('Dry run completed - no data written', this.LOG_CONTEXT);
       }
 
       return {
@@ -231,7 +243,7 @@ export class DataMigrationService {
       };
 
     } catch (error) {
-      console.error('Migration failed:', error);
+      this.logger.error('Migration failed', error as Error, this.LOG_CONTEXT);
       return {
         success: false,
         message: `Migration failed: ${error}`,
@@ -450,7 +462,7 @@ export class DataMigrationService {
    */
   async rollbackV2Data(): Promise<{ success: boolean; message: string }> {
     try {
-      console.log('Rolling back V2 data...');
+      this.logger.info('Rolling back V2 data', this.LOG_CONTEXT);
 
       // Clear all V2 stores
       const groups = await this.indexedDBService.getProcessTechnologyGroups();

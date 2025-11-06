@@ -13,6 +13,7 @@ import {
   Assessment,
   StageImplementationDetail
 } from '../models/ztmm.models';
+import { LoggingService } from './logging.service';
 
 // IndexedDB schema for the ZTMM Assessment application
 interface ZtmmDB extends DBSchema {
@@ -96,6 +97,9 @@ export class IndexedDBService {
   private db: IDBPDatabase<ZtmmDB> | null = null;
   private isInitialized = false;
   private dbName = 'ztmm-assessment'; // Default database name
+  private readonly LOG_CONTEXT = 'IndexedDBService';
+
+  constructor(private logger: LoggingService) {}
 
   /**
    * Set a custom database name (primarily for testing)
@@ -181,9 +185,10 @@ export class IndexedDBService {
     try {
       // Open IndexedDB with proper schema setup
       // Version 2: Added V2 maturity model stores
+      const logger = this.logger; // Capture logger for use in upgrade callback
       this.db = await openDB<ZtmmDB>(this.dbName, 2, {
         upgrade(db, oldVersion, newVersion) {
-          console.log(`Upgrading database from version ${oldVersion} to ${newVersion}`);
+          logger.info(`Upgrading database from version ${oldVersion} to ${newVersion}`, 'IndexedDBService');
 
           // Version 1: Original schema (V1 stores)
           if (oldVersion < 1) {
@@ -230,7 +235,7 @@ export class IndexedDBService {
 
           // Version 2: Add V2 maturity model stores
           if (oldVersion < 2) {
-            console.log('Creating V2 maturity model stores...');
+            logger.info('Creating V2 maturity model stores...', 'IndexedDBService');
 
             // ProcessTechnologyGroups store
             if (!db.objectStoreNames.contains('processTechnologyGroups')) {
@@ -273,9 +278,9 @@ export class IndexedDBService {
       await this.initializeDefaultData();
 
       this.isInitialized = true;
-      console.log('IndexedDB service initialized successfully');
+      this.logger.info('IndexedDB service initialized successfully', this.LOG_CONTEXT);
     } catch (error) {
-      console.error('Failed to initialize IndexedDB service:', error);
+      this.logger.error('Failed to initialize IndexedDB service', error as Error, this.LOG_CONTEXT);
       throw new Error('Database initialization failed');
     }
   }
@@ -288,7 +293,7 @@ export class IndexedDBService {
       const existingPillars = await this.db.getAll('pillars');
 
       if (existingPillars.length === 0) {
-        console.log('Initializing with default ZTMM framework data...');
+        this.logger.info('Initializing with default ZTMM framework data...', this.LOG_CONTEXT);
 
         // Insert default maturity stages
         const tx1 = this.db.transaction('maturityStages', 'readwrite');
@@ -308,10 +313,10 @@ export class IndexedDBService {
           await tx3.store.put(fc);
         }
 
-        console.log('Default ZTMM framework data initialized');
+        this.logger.info('Default ZTMM framework data initialized', this.LOG_CONTEXT);
       }
     } catch (error) {
-      console.error('Error initializing default data:', error);
+      this.logger.error('Error initializing default data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -321,10 +326,10 @@ export class IndexedDBService {
     await this.ensureInitialized();
     try {
       const pillars = await this.getDatabase().getAllFromIndex('pillars', 'by-order');
-      console.log('IndexedDB raw pillars:', pillars);
+      this.logger.debug('Retrieved pillars from IndexedDB', this.LOG_CONTEXT, { count: pillars.length });
       return (pillars || []).map(p => ({ id: p.id, name: p.name }));
     } catch (error) {
-      console.error('Error getting pillars:', error);
+      this.logger.error('Error getting pillars', error as Error, this.LOG_CONTEXT);
       return [];
     }
   }
@@ -351,7 +356,7 @@ export class IndexedDBService {
         throw error;
       }
       // Other errors (like database access issues) - log and continue
-      console.warn('Error checking for duplicate pillar:', error);
+      this.logger.warn('Error checking for duplicate pillar', this.LOG_CONTEXT, { error });
     }
 
     const newPillar: Omit<Pillar, 'id'> & { order_index: number } = {
@@ -359,7 +364,8 @@ export class IndexedDBService {
       order_index: (await this.getDatabase().count('pillars')) + 1
     };
 
-    await this.getDatabase().add('pillars', newPillar as Pillar & { order_index: number });
+    const id = await this.getDatabase().add('pillars', newPillar as Pillar & { order_index: number });
+    this.logger.info('Pillar added', this.LOG_CONTEXT, { id, name: name.trim() });
   }
 
   async removePillar(id: number): Promise<void> {
@@ -400,8 +406,9 @@ export class IndexedDBService {
       await tx.objectStore('pillars').delete(id);
 
       await tx.done;
+      this.logger.info('Pillar removed', this.LOG_CONTEXT, { id });
     } catch (error) {
-      console.error('Error removing pillar:', error);
+      this.logger.error('Error removing pillar', error as Error, this.LOG_CONTEXT, { id });
       throw error;
     }
   }
@@ -421,8 +428,10 @@ export class IndexedDBService {
       throw new Error('Pillar not found');
     }
 
+    const oldName = pillar.name;
     pillar.name = name.trim();
     await this.getDatabase().put('pillars', pillar);
+    this.logger.info('Pillar updated', this.LOG_CONTEXT, { id, oldName, newName: name.trim() });
   }
 
   async savePillarOrder(order: number[]): Promise<void> {
@@ -450,7 +459,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
     try {
       const capabilities = await this.getDatabase().getAllFromIndex('functionCapabilities', 'by-order');
-      console.log('IndexedDB raw functionCapabilities:', capabilities);
+      this.logger.debug('Retrieved function capabilities from IndexedDB', this.LOG_CONTEXT, { count: capabilities.length });
       return (capabilities || []).map(fc => ({
         id: fc.id,
         name: fc.name,
@@ -458,7 +467,7 @@ export class IndexedDBService {
         pillar_id: fc.pillar_id
       }));
     } catch (error) {
-      console.error('Error getting function capabilities:', error);
+      this.logger.error('Error getting function capabilities', error as Error, this.LOG_CONTEXT);
       return [];
     }
   }
@@ -494,7 +503,8 @@ export class IndexedDBService {
       order_index: (await this.getDatabase().count('functionCapabilities')) + 1
     };
 
-    await this.getDatabase().add('functionCapabilities', newFunctionCapability as FunctionCapability & { order_index: number });
+    const id = await this.getDatabase().add('functionCapabilities', newFunctionCapability as FunctionCapability & { order_index: number });
+    this.logger.info('Function/Capability added', this.LOG_CONTEXT, { id, name: name.trim(), type, pillarId });
   }
 
   async removeFunctionCapability(id: number): Promise<void> {
@@ -527,8 +537,9 @@ export class IndexedDBService {
       await tx.objectStore('functionCapabilities').delete(id);
 
       await tx.done;
+      this.logger.info('Function/Capability removed', this.LOG_CONTEXT, { id });
     } catch (error) {
-      console.error('Error removing function capability:', error);
+      this.logger.error('Error removing function capability', error as Error, this.LOG_CONTEXT, { id });
       throw error;
     }
   }
@@ -559,6 +570,7 @@ export class IndexedDBService {
     functionCapability.pillar_id = pillarId;
 
     await this.getDatabase().put('functionCapabilities', functionCapability);
+    this.logger.info('Function/Capability updated', this.LOG_CONTEXT, { id, name: name.trim(), type, pillarId });
   }
 
   async saveFunctionOrder(order: number[]): Promise<void> {
@@ -588,7 +600,7 @@ export class IndexedDBService {
       const result = await this.getDatabase().getAll('maturityStages');
       return result || [];
     } catch (error) {
-      console.error('Error getting maturity stages:', error);
+      this.logger.error('Error getting maturity stages', error as Error, this.LOG_CONTEXT);
       return [];
     }
   }
@@ -618,7 +630,7 @@ export class IndexedDBService {
       const result = await this.getDatabase().getAll('technologiesProcesses');
       return result || [];
     } catch (error) {
-      console.error('Error getting all technologies/processes:', error);
+      this.logger.error('Error getting all technologies/processes', error as Error, this.LOG_CONTEXT);
       return [];
     }
   }
@@ -638,7 +650,7 @@ export class IndexedDBService {
       const result = await this.getDatabase().getAllFromIndex('technologiesProcesses', 'by-function-capability', functionCapabilityId);
       return result || [];
     } catch (error) {
-      console.error('Error getting technologies/processes by function:', error);
+      this.logger.error('Error getting technologies/processes by function', error as Error, this.LOG_CONTEXT, { functionCapabilityId });
       return [];
     }
   }
@@ -708,7 +720,7 @@ export class IndexedDBService {
 
       await tx.done;
     } catch (error) {
-      console.error('Error removing technology process:', error);
+      this.logger.error('Error removing technology process', error as Error, this.LOG_CONTEXT, { id });
       throw error;
     }
   }
@@ -801,7 +813,7 @@ export class IndexedDBService {
 
       await tx.done;
     } catch (error) {
-      console.error('Error saving assessment:', error);
+      this.logger.error('Error saving assessment', error as Error, this.LOG_CONTEXT, { techProcessId, status });
       throw error;
     }
   }
@@ -816,7 +828,7 @@ export class IndexedDBService {
       const result = await this.getDatabase().getAll('assessmentResponses');
       return result || [];
     } catch (error) {
-      console.error('Error getting assessment responses:', error);
+      this.logger.error('Error getting assessment responses', error as Error, this.LOG_CONTEXT);
       return [];
     }
   }
@@ -840,7 +852,7 @@ export class IndexedDBService {
       const encoder = new TextEncoder();
       return encoder.encode(jsonString);
     } catch (error) {
-      console.error('Database export failed:', error);
+      this.logger.error('Database export failed', error as Error, this.LOG_CONTEXT);
       throw new Error('Failed to export database');
     }
   }
@@ -861,9 +873,9 @@ export class IndexedDBService {
       await this.clearAllData();
       await this.importDataWithPreservedIds(importData);
 
-      console.log('Database imported successfully');
+      this.logger.info('Database imported successfully', this.LOG_CONTEXT);
     } catch (error) {
-      console.error('Database import failed:', error);
+      this.logger.error('Database import failed', error as Error, this.LOG_CONTEXT);
       throw new Error('Failed to import database');
     }
   }
@@ -882,9 +894,9 @@ export class IndexedDBService {
       };
 
       await this.getDatabase().put('backups', backup);
-      console.log('Database backup created');
+      this.logger.info('Database backup created', this.LOG_CONTEXT, { timestamp });
     } catch (error) {
-      console.error('Failed to create backup:', error);
+      this.logger.error('Failed to create backup', error as Error, this.LOG_CONTEXT);
       throw new Error('Backup creation failed');
     }
   }
@@ -941,9 +953,9 @@ export class IndexedDBService {
       }
 
       await tx.done;
-      console.log('All user data cleared successfully (default pillars and capabilities preserved)');
+      this.logger.info('All user data cleared successfully (default pillars and capabilities preserved)', this.LOG_CONTEXT);
     } catch (error) {
-      console.error('Error clearing database:', error);
+      this.logger.error('Error clearing database', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }
@@ -952,7 +964,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
 
     try {
-      console.log('Starting complete database reset...');
+      this.logger.info('Starting complete database reset...', this.LOG_CONTEXT);
 
       // Clear all object stores
       const tx = this.getDatabase().transaction(['assessmentResponses', 'technologiesProcesses', 'functionCapabilities', 'pillars', 'maturityStages'], 'readwrite');
@@ -968,12 +980,12 @@ export class IndexedDBService {
       if (!skipDefaultInit) {
         // Reinitialize with default data
         await this.initializeDefaultData();
-        console.log('Database completely reset and reinitialized successfully');
+        this.logger.info('Database completely reset and reinitialized successfully', this.LOG_CONTEXT);
       } else {
-        console.log('Database completely reset (no default data initialized)');
+        this.logger.info('Database completely reset (no default data initialized)', this.LOG_CONTEXT);
       }
     } catch (error) {
-      console.error('Error resetting database:', error);
+      this.logger.error('Error resetting database', error as Error, this.LOG_CONTEXT);
       throw new Error(`Failed to reset database: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -983,7 +995,7 @@ export class IndexedDBService {
     await this.ensureInitialized();
 
     try {
-      console.log('Starting import with preserved IDs...');
+      this.logger.info('Starting import with preserved IDs...', this.LOG_CONTEXT);
 
       // Validation: check for missing or empty arrays
       if (!data.pillars || !Array.isArray(data.pillars) || data.pillars.length === 0) {
@@ -1040,9 +1052,15 @@ export class IndexedDBService {
       }
 
       await tx.done;
-      console.log('Import with preserved IDs completed successfully');
+      this.logger.info('Import with preserved IDs completed successfully', this.LOG_CONTEXT, {
+        pillarCount: data.pillars?.length,
+        fcCount: data.functionCapabilities?.length,
+        stageCount: data.maturityStages?.length,
+        techProcessCount: data.technologiesProcesses?.length,
+        assessmentCount: data.assessmentResponses?.length
+      });
     } catch (error) {
-      console.error('Error importing data with preserved IDs:', error);
+      this.logger.error('Error importing data with preserved IDs', error as Error, this.LOG_CONTEXT);
       throw new Error(`Failed to import data with preserved IDs: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -1245,13 +1263,13 @@ export class IndexedDBService {
     try {
       // Import ProcessTechnologyGroups
       if (data.processTechnologyGroups) {
-        console.log(`Importing ${data.processTechnologyGroups.length} ProcessTechnologyGroups...`);
+        this.logger.info(`Importing ${data.processTechnologyGroups.length} ProcessTechnologyGroups`, this.LOG_CONTEXT);
         for (let i = 0; i < data.processTechnologyGroups.length; i++) {
           const group = data.processTechnologyGroups[i];
           try {
             await tx.objectStore('processTechnologyGroups').put(group);
           } catch (error) {
-            console.error(`Error importing ProcessTechnologyGroup at index ${i}:`, group, error);
+            this.logger.error(`Error importing ProcessTechnologyGroup at index ${i}`, error as Error, this.LOG_CONTEXT, { group });
             throw new Error(`Failed to import ProcessTechnologyGroup "${group.name}" (id: ${group.id}): ${error instanceof Error ? error.message : String(error)}`);
           }
         }
@@ -1259,7 +1277,7 @@ export class IndexedDBService {
 
       // Import MaturityStageImplementations
       if (data.maturityStageImplementations) {
-        console.log(`Importing ${data.maturityStageImplementations.length} MaturityStageImplementations...`);
+        this.logger.info(`Importing ${data.maturityStageImplementations.length} MaturityStageImplementations`, this.LOG_CONTEXT);
 
         // Check for duplicates before importing
         const seen = new Map<string, MaturityStageImplementation>();
@@ -1277,21 +1295,12 @@ export class IndexedDBService {
         }
 
         if (duplicates.length > 0) {
-          console.error('❌ DUPLICATE MaturityStageImplementations detected:');
-          duplicates.forEach(({ index, impl, original }) => {
-            console.error(`  - Duplicate at index ${index}:`, {
-              id: impl.id,
-              group_id: impl.process_technology_group_id,
-              stage_id: impl.maturity_stage_id,
-              description: impl.description?.substring(0, 50) + '...'
-            });
-            console.error(`  - Original:`, {
-              id: original.id,
-              group_id: original.process_technology_group_id,
-              stage_id: original.maturity_stage_id,
-              description: original.description?.substring(0, 50) + '...'
-            });
-          });
+          this.logger.error('DUPLICATE MaturityStageImplementations detected', undefined, this.LOG_CONTEXT, { duplicateCount: duplicates.length, duplicates: duplicates.map(d => ({
+            index: d.index,
+            id: d.impl.id,
+            group_id: d.impl.process_technology_group_id,
+            stage_id: d.impl.maturity_stage_id
+          })) });
 
           throw new Error(
             `Cannot import: Found ${duplicates.length} duplicate MaturityStageImplementation(s) with the same (process_technology_group_id, maturity_stage_id) combination. ` +
@@ -1305,7 +1314,7 @@ export class IndexedDBService {
           try {
             await tx.objectStore('maturityStageImplementations').put(impl);
           } catch (error) {
-            console.error(`Error importing MaturityStageImplementation at index ${i}:`, impl, error);
+            this.logger.error(`Error importing MaturityStageImplementation at index ${i}`, error as Error, this.LOG_CONTEXT, { impl });
             throw new Error(
               `Failed to import MaturityStageImplementation (id: ${impl.id}, group_id: ${impl.process_technology_group_id}, stage_id: ${impl.maturity_stage_id}): ` +
               `${error instanceof Error ? error.message : String(error)}`
@@ -1316,13 +1325,13 @@ export class IndexedDBService {
 
       // Import Assessments
       if (data.assessments) {
-        console.log(`Importing ${data.assessments.length} Assessments...`);
+        this.logger.info(`Importing ${data.assessments.length} Assessments`, this.LOG_CONTEXT);
         for (let i = 0; i < data.assessments.length; i++) {
           const assessment = data.assessments[i];
           try {
             await tx.objectStore('assessments').put(assessment);
           } catch (error) {
-            console.error(`Error importing Assessment at index ${i}:`, assessment, error);
+            this.logger.error(`Error importing Assessment at index ${i}`, error as Error, this.LOG_CONTEXT, { assessment });
             throw new Error(`Failed to import Assessment (id: ${assessment.id}, group_id: ${assessment.process_technology_group_id}): ${error instanceof Error ? error.message : String(error)}`);
           }
         }
@@ -1330,22 +1339,22 @@ export class IndexedDBService {
 
       // Import StageImplementationDetails
       if (data.stageImplementationDetails) {
-        console.log(`Importing ${data.stageImplementationDetails.length} StageImplementationDetails...`);
+        this.logger.info(`Importing ${data.stageImplementationDetails.length} StageImplementationDetails`, this.LOG_CONTEXT);
         for (let i = 0; i < data.stageImplementationDetails.length; i++) {
           const detail = data.stageImplementationDetails[i];
           try {
             await tx.objectStore('stageImplementationDetails').put(detail);
           } catch (error) {
-            console.error(`Error importing StageImplementationDetail at index ${i}:`, detail, error);
+            this.logger.error(`Error importing StageImplementationDetail at index ${i}`, error as Error, this.LOG_CONTEXT, { detail });
             throw new Error(`Failed to import StageImplementationDetail (id: ${detail.id}, assessment_id: ${detail.assessment_id}, stage_id: ${detail.maturity_stage_id}): ${error instanceof Error ? error.message : String(error)}`);
           }
         }
       }
 
       await tx.done;
-      console.log('✅ V2 data imported successfully');
+      this.logger.info('V2 data imported successfully', this.LOG_CONTEXT);
     } catch (error) {
-      console.error('❌ Error importing V2 data:', error);
+      this.logger.error('Error importing V2 data', error as Error, this.LOG_CONTEXT);
       throw error;
     }
   }

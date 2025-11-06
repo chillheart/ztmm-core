@@ -74,8 +74,6 @@ export class AssessmentOverviewComponent implements OnInit, OnChanges {
         total: totalStages
       });
     }
-
-    console.log('Initial progress calculated:', Array.from(this.assessmentProgress.entries()));
   }
 
   onBackToPillarSummary(): void {

@@ -53,19 +53,20 @@ describe('NavbarComponent', () => {
     const navItems = compiled.querySelectorAll('.nav-item');
 
     expect(navbarNav).toBeTruthy();
-    expect(navItems.length).toBe(3); // Assessment, Results, Configuration
+    expect(navItems.length).toBe(4); // Assessment, Reports, Logs, Configuration
   });
 
   it('should have correct navigation links', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navLinks = compiled.querySelectorAll('a.nav-link');
 
-    expect(navLinks.length).toBe(3);
+    expect(navLinks.length).toBe(4);
 
     const linkRoutes = Array.from(navLinks).map(link => link.getAttribute('routerLink'));
     expect(linkRoutes).toContain('/assessment');
     expect(linkRoutes).toContain('/configuration');
     expect(linkRoutes).toContain('/reports');
+    expect(linkRoutes).toContain('/logs');
   });
 
   it('should have proper navigation link text', () => {
@@ -75,8 +76,9 @@ describe('NavbarComponent', () => {
     const linkTexts = Array.from(navLinks).map(link => link.textContent?.trim());
     expect(linkTexts).toContain('Assessment');
     expect(linkTexts).toContain('Reports');
+    expect(linkTexts).toContain('Logs');
     // Configuration link only has an icon, no text
-    expect(linkTexts.filter(text => text && text.length > 0).length).toBe(2);
+    expect(linkTexts.filter(text => text && text.length > 0).length).toBe(3);
   });
 
   it('should have configuration link with cog icon', () => {
@@ -135,7 +137,7 @@ describe('NavbarComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const navLinks = compiled.querySelectorAll('a[routerLinkActive]');
 
-    expect(navLinks.length).toBe(3);
+    expect(navLinks.length).toBe(4);
 
     navLinks.forEach(link => {
       expect(link.getAttribute('routerLinkActive')).toBe('active');
@@ -259,7 +261,7 @@ describe('NavbarComponent', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       const activeLinks = compiled.querySelectorAll('a[routerLinkActive]');
 
-      expect(activeLinks.length).toBe(3);
+      expect(activeLinks.length).toBe(4);
     });
   });
 });

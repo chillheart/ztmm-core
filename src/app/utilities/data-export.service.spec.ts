@@ -347,7 +347,7 @@ describe('DataExportService', () => {
         maturityStageImplementations: 0,
         assessments: 0
       });
-      expect(console.error).toHaveBeenCalledWith('Error getting data statistics:', error);
+      // Error logging is now handled by LoggingService, tested separately
     });
 
     it('should handle empty data arrays in statistics', async () => {
@@ -462,52 +462,6 @@ describe('DataExportService', () => {
         technologiesProcesses: multiAssessmentData.technologiesProcesses || [],
         assessmentResponses: multiAssessmentData.assessmentResponses || []
       });
-    });
-  });
-
-  describe('Error Handling and Logging', () => {
-    beforeEach(() => {
-      spyOn(console, 'log');
-      spyOn(console, 'error');
-      spyOn(console, 'warn');
-    });
-
-    it('should log successful import completion', async () => {
-      await service.importFromJson(mockExportedData);
-
-      expect(console.log).toHaveBeenCalledWith('Data import completed successfully');
-    });
-
-    it('should log export errors', async () => {
-      const error = new Error('Export error');
-      mockDataService.getAllRawPillars.and.returnValue(Promise.reject(error));
-
-      await expectAsync(service.exportToJson()).toBeRejected();
-      expect(console.error).toHaveBeenCalledWith('Error exporting data:', error);
-    });
-
-    it('should log import errors', async () => {
-      const error = new Error('Import error');
-      mockDataService.importDataWithPreservedIds.and.returnValue(Promise.reject(error));
-
-      await expectAsync(service.importFromJson(mockExportedData)).toBeRejected();
-      expect(console.error).toHaveBeenCalledWith('Error importing data:', error);
-    });
-
-    it('should log download errors', async () => {
-      const error = new Error('Download error');
-      mockDataService.getAllRawPillars.and.returnValue(Promise.reject(error));
-
-      await expectAsync(service.downloadExport()).toBeRejected();
-      expect(console.error).toHaveBeenCalledWith('Error downloading export:', error);
-    });
-
-    it('should log upload and import errors', async () => {
-      const invalidJson = 'invalid json';
-      const mockFile = new File([invalidJson], 'invalid.json', { type: 'application/json' });
-
-      await expectAsync(service.uploadAndImport(mockFile)).toBeRejected();
-      expect(console.error).toHaveBeenCalledWith('❌ Error uploading and importing data:', jasmine.any(Error));
     });
   });
 });
