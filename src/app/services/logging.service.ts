@@ -153,23 +153,18 @@ export class LoggingService {
     switch (entry.level) {
       case LogLevel.ERROR:
         if (entry.error) {
-          // eslint-disable-next-line no-console
           console.error(fullMessage, entry.data || '', entry.error);
         } else {
-          // eslint-disable-next-line no-console
           console.error(fullMessage, entry.data || '');
         }
         break;
       case LogLevel.WARN:
-        // eslint-disable-next-line no-console
         console.warn(fullMessage, entry.data || '');
         break;
       case LogLevel.INFO:
-        // eslint-disable-next-line no-console
         console.info(fullMessage, entry.data || '');
         break;
       case LogLevel.DEBUG:
-        // eslint-disable-next-line no-console
         console.debug(fullMessage, entry.data || '');
         break;
     }
@@ -178,7 +173,7 @@ export class LoggingService {
   /**
    * Get all stored log entries (returns immutable copies)
    */
-  getLogs(level?: LogLevel): ReadonlyArray<Readonly<LogEntry>> {
+  getLogs(level?: LogLevel): readonly Readonly<LogEntry>[] {
     if (level !== undefined) {
       return this.logs.filter(log => log.level === level);
     }
@@ -202,8 +197,8 @@ export class LoggingService {
   /**
    * Get logs summary by level
    */
-  getLogsSummary(): { [key in LogLevel]?: number } {
-    const summary: { [key in LogLevel]?: number } = {};
+  getLogsSummary(): Record<LogLevel, number | undefined> {
+    const summary: Record<LogLevel, number | undefined> = {} as Record<LogLevel, number | undefined>;
     this.logs.forEach(log => {
       summary[log.level] = (summary[log.level] || 0) + 1;
     });

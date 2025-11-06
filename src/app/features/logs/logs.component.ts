@@ -20,8 +20,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   private readonly LOG_CONTEXT = 'LogsComponent';
   private subscriptions = new Subscription();
 
-  logs: ReadonlyArray<Readonly<LogEntry>> = [];
-  filteredLogs: ReadonlyArray<Readonly<LogEntry>> = [];
+  logs: readonly Readonly<LogEntry>[] = [];
+  filteredLogs: readonly Readonly<LogEntry>[] = [];
 
   // Filter options
   selectedLevel: LogLevel | 'ALL' = 'ALL';

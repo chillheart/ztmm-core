@@ -205,7 +205,7 @@ describe('LogsComponent', () => {
       expect(checksum1).not.toBe(checksum2);
     });
 
-    it('should validate imported file with correct checksum', () => {
+    it('should validate imported file with correct checksum', (done) => {
       const logs = [{ level: LogLevel.INFO, message: 'Test', timestamp: new Date() }];
       const logsJson = JSON.stringify(logs);
       const checksum = (component as any).generateChecksum(logsJson);
@@ -232,12 +232,12 @@ describe('LogsComponent', () => {
       // Wait for FileReader
       setTimeout(() => {
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('validated successfully'));
+        done();
       }, 100);
     });
 
-    it('should reject imported file with incorrect checksum', () => {
+    it('should reject imported file with incorrect checksum', (done) => {
       const logs = [{ level: LogLevel.INFO, message: 'Test', timestamp: new Date() }];
-      const logsJson = JSON.stringify(logs);
 
       const importData = {
         exportDate: new Date().toISOString(),
@@ -261,6 +261,7 @@ describe('LogsComponent', () => {
       // Wait for FileReader
       setTimeout(() => {
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('validation failed'));
+        done();
       }, 100);
     });
   });
