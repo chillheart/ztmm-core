@@ -20,15 +20,15 @@ export interface LoggingConfig {
 }
 
 /**
- * Structured log entry
+ * Structured log entry (frozen/immutable after creation)
  */
 export interface LogEntry {
-  level: LogLevel;
-  timestamp: Date;
-  message: string;
-  context?: string;
-  data?: unknown;
-  error?: Error;
+  readonly level: LogLevel;
+  readonly timestamp: Date;
+  readonly message: string;
+  readonly context?: string;
+  readonly data?: unknown;
+  readonly error?: Error;
 }
 
 /**
@@ -117,16 +117,16 @@ export class LoggingService {
       return; // Skip logs below current level
     }
 
-    const entry: LogEntry = {
+    const entry: LogEntry = Object.freeze({
       level,
       timestamp: new Date(),
       message,
       context,
       data,
       error
-    };
+    });
 
-    // Store log entry
+    // Store log entry (frozen to prevent modification)
     this.logs.push(entry);
     if (this.logs.length > this.MAX_LOGS) {
       this.logs.shift(); // Remove oldest log
@@ -176,9 +176,9 @@ export class LoggingService {
   }
 
   /**
-   * Get all stored log entries
+   * Get all stored log entries (returns immutable copies)
    */
-  getLogs(level?: LogLevel): LogEntry[] {
+  getLogs(level?: LogLevel): ReadonlyArray<Readonly<LogEntry>> {
     if (level !== undefined) {
       return this.logs.filter(log => log.level === level);
     }
