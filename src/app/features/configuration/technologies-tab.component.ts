@@ -44,6 +44,9 @@ export class TechnologiesTabComponent {
   editingId: number | null = null;
   editingGroup: Partial<ProcessTechnologyGroup> = {};
 
+  // Filter property
+  searchText = '';
+
   // Stage selection helpers
   stageSelectionMode: 'range' | 'individual' = 'range';
   rangeStartStageId: number | null = null;
@@ -55,18 +58,32 @@ export class TechnologiesTabComponent {
   }
 
   get filteredProcessTechnologyGroups() {
-    if (!this.selectedTechPillarId || this.selectedTechPillarId === 'null') {
-      return this.processTechnologyGroups;
+    let filtered = this.processTechnologyGroups;
+
+    // Filter by pillar
+    if (this.selectedTechPillarId && this.selectedTechPillarId !== 'null') {
+      const pillarId = typeof this.selectedTechPillarId === 'string' ? Number(this.selectedTechPillarId) : this.selectedTechPillarId;
+      const pillarFunctionCapabilityIds = this.functionCapabilities
+        .filter(fc => fc.pillar_id === pillarId)
+        .map(fc => fc.id);
+
+      filtered = filtered.filter(ptg =>
+        pillarFunctionCapabilityIds.includes(ptg.function_capability_id)
+      );
     }
 
-    const pillarId = typeof this.selectedTechPillarId === 'string' ? Number(this.selectedTechPillarId) : this.selectedTechPillarId;
-    const pillarFunctionCapabilityIds = this.functionCapabilities
-      .filter(fc => fc.pillar_id === pillarId)
-      .map(fc => fc.id);
+    // Filter by search text
+    if (this.searchText && this.searchText.trim()) {
+      const searchLower = this.searchText.toLowerCase().trim();
+      filtered = filtered.filter(ptg =>
+        ptg.name.toLowerCase().includes(searchLower) ||
+        ptg.description.toLowerCase().includes(searchLower) ||
+        this.getFunctionCapabilityName(ptg.function_capability_id).toLowerCase().includes(searchLower) ||
+        this.getPillarName(this.getPillarIdForGroup(ptg.function_capability_id)).toLowerCase().includes(searchLower)
+      );
+    }
 
-    return this.processTechnologyGroups.filter(ptg =>
-      pillarFunctionCapabilityIds.includes(ptg.function_capability_id)
-    );
+    return filtered;
   }
 
   get sortedMaturityStages() {

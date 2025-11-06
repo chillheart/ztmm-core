@@ -29,20 +29,44 @@
         </div>
         <div class="card-body">
           <!-- Filter Controls -->
-          <div class="mb-3">
-            <label for="listPillarFilter" class="form-label small fw-bold">Filter by Pillar:</label>
-            <select class="form-select form-select-sm" id="listPillarFilter"
-                    [(ngModel)]="selectedTechPillarId" (change)="onTechPillarChange()">
-              <option [ngValue]="null">All Pillars</option>
-              <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
-            </select>
+          <div class="row mb-3">
+            <div class="col-md-6 mb-2 mb-md-0">
+              <label for="listPillarFilter" class="form-label small fw-bold">Filter by Pillar:</label>
+              <select class="form-select form-select-sm" id="listPillarFilter"
+                      [(ngModel)]="selectedTechPillarId" (change)="onTechPillarChange()">
+                <option [ngValue]="null">All Pillars</option>
+                <option *ngFor="let pillar of pillars" [ngValue]="pillar.id">{{ pillar.name }}</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="searchText" class="form-label small fw-bold">Search:</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       id="searchText"
+                       [(ngModel)]="searchText"
+                       placeholder="Search by name, description, function, or pillar...">
+                <button class="btn btn-outline-secondary"
+                        type="button"
+                        *ngIf="searchText"
+                        (click)="searchText = ''"
+                        title="Clear search">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Empty State -->
           <div *ngIf="filteredProcessTechnologyGroups.length === 0" class="text-center py-5 text-muted">
             <i class="bi bi-inbox display-4"></i>
-            <p class="mt-3">No technology/process groups yet.</p>
-            <p class="small">Click "Launch Wizard" above to create your first group.</p>
+            <p class="mt-3" *ngIf="!selectedTechPillarId && !searchText">No technology/process groups yet.</p>
+            <p class="mt-3" *ngIf="selectedTechPillarId || searchText">No matching technology/process groups found.</p>
+            <p class="small" *ngIf="!selectedTechPillarId && !searchText">Click "Launch Wizard" above to create your first group.</p>
+            <p class="small" *ngIf="selectedTechPillarId || searchText">Try adjusting your filters to see more results.</p>
           </div>
 
           <!-- Groups List -->
