@@ -17,7 +17,7 @@ describe('LogsComponent', () => {
     fixture = TestBed.createComponent(LogsComponent);
     component = fixture.componentInstance;
     loggingService = TestBed.inject(LoggingService);
-    
+
     // Clear logs before each test
     loggingService.clearLogs();
   });
@@ -30,7 +30,7 @@ describe('LogsComponent', () => {
     it('should load logs on init', () => {
       loggingService.info('Test log');
       component.ngOnInit();
-      
+
       expect(component.logs.length).toBeGreaterThan(0);
     });
 
@@ -38,7 +38,7 @@ describe('LogsComponent', () => {
       loggingService.error('Error log');
       loggingService.warn('Warning log');
       component.ngOnInit();
-      
+
       expect(component.stats.total).toBeGreaterThan(0);
       expect(component.stats.byLevel[LogLevel.ERROR]).toBeGreaterThan(0);
     });
@@ -47,7 +47,7 @@ describe('LogsComponent', () => {
       loggingService.info('Test', 'Context1');
       loggingService.info('Test', 'Context2');
       component.ngOnInit();
-      
+
       expect(component.availableContexts.length).toBeGreaterThan(0);
     });
   });
@@ -64,23 +64,23 @@ describe('LogsComponent', () => {
     it('should filter by log level', () => {
       component.selectedLevel = LogLevel.ERROR;
       component.applyFilters();
-      
+
       expect(component.filteredLogs.every(log => log.level === LogLevel.ERROR)).toBe(true);
     });
 
     it('should filter by context', () => {
       component.selectedContext = 'TestContext';
       component.applyFilters();
-      
+
       expect(component.filteredLogs.every(log => log.context === 'TestContext')).toBe(true);
     });
 
     it('should filter by search term in message', () => {
       component.searchTerm = 'Error';
       component.applyFilters();
-      
+
       expect(component.filteredLogs.length).toBeGreaterThan(0);
-      expect(component.filteredLogs.some(log => 
+      expect(component.filteredLogs.some(log =>
         log.message.toLowerCase().includes('error')
       )).toBe(true);
     });
@@ -89,8 +89,8 @@ describe('LogsComponent', () => {
       component.selectedLevel = LogLevel.INFO;
       component.selectedContext = 'TestContext';
       component.applyFilters();
-      
-      expect(component.filteredLogs.every(log => 
+
+      expect(component.filteredLogs.every(log =>
         log.level === LogLevel.INFO && log.context === 'TestContext'
       )).toBe(true);
     });
@@ -99,9 +99,9 @@ describe('LogsComponent', () => {
       component.selectedLevel = LogLevel.ERROR;
       component.selectedContext = 'TestContext';
       component.searchTerm = 'test';
-      
+
       component.clearFilters();
-      
+
       expect(component.selectedLevel).toBe('ALL' as any);
       expect(component.selectedContext).toBe('ALL');
       expect(component.searchTerm).toBe('');
@@ -115,10 +115,10 @@ describe('LogsComponent', () => {
       loggingService.info('Test log 2');
       loggingService.info('Test log 3');
       component.loadLogs();
-      
+
       const initialCount = component.logs.length;
       component.clearLogs();
-      
+
       // After clearing, only the "Logs cleared by user" message should remain
       expect(component.logs.length).toBeLessThanOrEqual(1);
       expect(initialCount).toBeGreaterThan(component.logs.length);
@@ -128,20 +128,20 @@ describe('LogsComponent', () => {
       spyOn(window, 'confirm').and.returnValue(false);
       loggingService.info('Test log');
       component.loadLogs();
-      
+
       const initialCount = component.logs.length;
       component.clearLogs();
-      
+
       expect(component.logs.length).toBe(initialCount);
     });
 
     it('should reload logs manually', () => {
       component.loadLogs();
       const initialCount = component.logs.length;
-      
+
       loggingService.info('New log');
       component.loadLogs();
-      
+
       expect(component.logs.length).toBeGreaterThan(initialCount);
     });
   });
@@ -155,7 +155,7 @@ describe('LogsComponent', () => {
     it('should disable auto-refresh', () => {
       component.toggleAutoRefresh();
       expect(component.autoRefresh).toBe(true);
-      
+
       component.toggleAutoRefresh();
       expect(component.autoRefresh).toBe(false);
     });
@@ -163,9 +163,9 @@ describe('LogsComponent', () => {
     it('should clear interval on destroy when auto-refresh is enabled', () => {
       component.toggleAutoRefresh();
       spyOn(window, 'clearInterval');
-      
+
       component.ngOnDestroy();
-      
+
       expect(window.clearInterval).toHaveBeenCalled();
     });
   });
@@ -180,9 +180,9 @@ describe('LogsComponent', () => {
     it('should export logs with checksum', () => {
       spyOn(window.URL, 'createObjectURL').and.returnValue('blob:url');
       spyOn(window.URL, 'revokeObjectURL');
-      
+
       component.exportLogs();
-      
+
       expect(window.URL.createObjectURL).toHaveBeenCalled();
       expect(window.URL.revokeObjectURL).toHaveBeenCalled();
     });
@@ -191,17 +191,17 @@ describe('LogsComponent', () => {
       const data = JSON.stringify({ test: 'data' });
       const checksum1 = (component as any).generateChecksum(data);
       const checksum2 = (component as any).generateChecksum(data);
-      
+
       expect(checksum1).toBe(checksum2);
     });
 
     it('should generate different checksum for different data', () => {
       const data1 = JSON.stringify({ test: 'data1' });
       const data2 = JSON.stringify({ test: 'data2' });
-      
+
       const checksum1 = (component as any).generateChecksum(data1);
       const checksum2 = (component as any).generateChecksum(data2);
-      
+
       expect(checksum1).not.toBe(checksum2);
     });
 
@@ -209,7 +209,7 @@ describe('LogsComponent', () => {
       const logs = [{ level: LogLevel.INFO, message: 'Test', timestamp: new Date() }];
       const logsJson = JSON.stringify(logs);
       const checksum = (component as any).generateChecksum(logsJson);
-      
+
       const importData = {
         exportDate: new Date().toISOString(),
         version: '1.0.0',
@@ -217,18 +217,18 @@ describe('LogsComponent', () => {
         totalLogs: 1,
         logs
       };
-      
+
       const blob = new Blob([JSON.stringify(importData)]);
       const file = new File([blob], 'test.json', { type: 'application/json' });
-      
+
       spyOn(window, 'alert');
-      
+
       const event = {
         target: { files: [file], value: '' }
       } as any;
-      
+
       component.importLogs(event);
-      
+
       // Wait for FileReader
       setTimeout(() => {
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('validated successfully'));
@@ -238,7 +238,7 @@ describe('LogsComponent', () => {
     it('should reject imported file with incorrect checksum', () => {
       const logs = [{ level: LogLevel.INFO, message: 'Test', timestamp: new Date() }];
       const logsJson = JSON.stringify(logs);
-      
+
       const importData = {
         exportDate: new Date().toISOString(),
         version: '1.0.0',
@@ -246,18 +246,18 @@ describe('LogsComponent', () => {
         totalLogs: 1,
         logs
       };
-      
+
       const blob = new Blob([JSON.stringify(importData)]);
       const file = new File([blob], 'test.json', { type: 'application/json' });
-      
+
       spyOn(window, 'alert');
-      
+
       const event = {
         target: { files: [file], value: '' }
       } as any;
-      
+
       component.importLogs(event);
-      
+
       // Wait for FileReader
       setTimeout(() => {
         expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('validation failed'));
@@ -285,14 +285,14 @@ describe('LogsComponent', () => {
     it('should format timestamp correctly', () => {
       const date = new Date('2025-01-01T12:00:00Z');
       const formatted = component.formatTimestamp(date);
-      
+
       expect(formatted).toContain('2025');
     });
 
     it('should format data as JSON', () => {
       const data = { key: 'value', nested: { prop: 123 } };
       const formatted = component.formatData(data);
-      
+
       expect(formatted).toContain('"key"');
       expect(formatted).toContain('"value"');
     });
@@ -300,7 +300,7 @@ describe('LogsComponent', () => {
     it('should detect when log has data', () => {
       const logWithData = { data: { key: 'value' } } as any;
       const logWithoutData = { data: undefined } as any;
-      
+
       expect(component.hasData(logWithData)).toBe(true);
       expect(component.hasData(logWithoutData)).toBe(false);
     });
@@ -308,7 +308,7 @@ describe('LogsComponent', () => {
     it('should detect when log has error', () => {
       const logWithError = { error: new Error('Test') } as any;
       const logWithoutError = { error: undefined } as any;
-      
+
       expect(component.hasError(logWithError)).toBe(true);
       expect(component.hasError(logWithoutError)).toBe(false);
     });
@@ -320,7 +320,7 @@ describe('LogsComponent', () => {
       loggingService.error('Error 2');
       loggingService.info('Info 1');
       component.loadLogs();
-      
+
       expect(component.stats.total).toBeGreaterThanOrEqual(3);
     });
 
@@ -329,7 +329,7 @@ describe('LogsComponent', () => {
       loggingService.error('Error 2');
       loggingService.warn('Warning 1');
       component.loadLogs();
-      
+
       expect(component.stats.byLevel[LogLevel.ERROR]).toBeGreaterThanOrEqual(2);
       expect(component.stats.byLevel[LogLevel.WARN]).toBeGreaterThanOrEqual(1);
     });
@@ -337,7 +337,7 @@ describe('LogsComponent', () => {
     it('should handle zero logs gracefully', () => {
       loggingService.clearLogs();
       component.loadLogs();
-      
+
       expect(component.stats.total).toBe(0);
       expect(component.stats.byLevel[LogLevel.ERROR]).toBe(0);
     });

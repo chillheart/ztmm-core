@@ -54,10 +54,10 @@
 
       <div class="filter-group search-group">
         <label for="search-filter">Search:</label>
-        <input 
+        <input
           id="search-filter"
-          type="text" 
-          [(ngModel)]="searchTerm" 
+          type="text"
+          [(ngModel)]="searchTerm"
           (input)="applyFilters()"
           placeholder="Search logs..."
         />
@@ -69,32 +69,32 @@
     </div>
 
     <div class="actions">
-      <button 
-        class="btn btn-secondary" 
+      <button
+        class="btn btn-secondary"
         [class.active]="autoRefresh"
         (click)="toggleAutoRefresh()"
       >
         {{ autoRefresh ? '⏸️' : '▶️' }} Auto-Refresh
       </button>
-      
+
       <button class="btn btn-secondary" (click)="loadLogs()">
         🔄 Refresh
       </button>
-      
+
       <label class="btn btn-secondary file-input-label">
         📂 Import & Validate
-        <input 
-          type="file" 
+        <input
+          type="file"
           accept=".json"
           (change)="importLogs($event)"
           style="display: none;"
         />
       </label>
-      
+
       <button class="btn btn-primary" (click)="exportLogs()">
         💾 Export Logs
       </button>
-      
+
       <button class="btn btn-danger" (click)="clearLogs()">
         🗑️ Clear Logs
       </button>

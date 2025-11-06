@@ -22,15 +22,15 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   logs: ReadonlyArray<Readonly<LogEntry>> = [];
   filteredLogs: ReadonlyArray<Readonly<LogEntry>> = [];
-  
+
   // Filter options
   selectedLevel: LogLevel | 'ALL' = 'ALL';
   searchTerm = '';
   selectedContext: string | 'ALL' = 'ALL';
-  
+
   // Available contexts for filtering
   availableContexts: string[] = [];
-  
+
   // Stats
   stats: LogStats = {
     total: 0,
@@ -41,11 +41,11 @@ export class LogsComponent implements OnInit, OnDestroy {
       [LogLevel.DEBUG]: 0
     }
   };
-  
+
   // UI state
   autoRefresh = false;
   private autoRefreshInterval?: number;
-  
+
   // Log levels for template
   LogLevel = LogLevel;
   logLevels = [LogLevel.ERROR, LogLevel.WARN, LogLevel.INFO, LogLevel.DEBUG];
@@ -108,7 +108,7 @@ export class LogsComponent implements OnInit, OnDestroy {
     // Filter by search term
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(log => 
+      filtered = filtered.filter(log =>
         log.message.toLowerCase().includes(term) ||
         (log.context && log.context.toLowerCase().includes(term)) ||
         (log.error && log.error.message.toLowerCase().includes(term))
@@ -139,10 +139,10 @@ export class LogsComponent implements OnInit, OnDestroy {
       const logsToExport = this.selectedLevel === 'ALL' && this.searchTerm === '' && this.selectedContext === 'ALL'
         ? this.logs
         : this.filteredLogs;
-      
+
       // Generate checksum for validation
       const checksum = this.generateChecksum(exportData);
-      
+
       const exportPayload = {
         exportDate: new Date().toISOString(),
         version: '1.0.0',
@@ -164,9 +164,9 @@ export class LogsComponent implements OnInit, OnDestroy {
       link.click();
       window.URL.revokeObjectURL(url);
 
-      this.logger.info('Logs exported successfully', this.LOG_CONTEXT, { 
+      this.logger.info('Logs exported successfully', this.LOG_CONTEXT, {
         count: logsToExport.length,
-        checksum 
+        checksum
       });
     } catch (error) {
       this.logger.error('Failed to export logs', error as Error, this.LOG_CONTEXT);
@@ -177,7 +177,7 @@ export class LogsComponent implements OnInit, OnDestroy {
   importLogs(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    
+
     if (!file) {
       return;
     }
@@ -191,7 +191,7 @@ export class LogsComponent implements OnInit, OnDestroy {
         // Validate checksum
         const logsJson = JSON.stringify(importData.logs);
         const calculatedChecksum = this.generateChecksum(logsJson);
-        
+
         if (importData.checksum !== calculatedChecksum) {
           this.logger.error('Log file validation failed - checksum mismatch', undefined, this.LOG_CONTEXT, {
             expected: importData.checksum,
@@ -206,9 +206,9 @@ export class LogsComponent implements OnInit, OnDestroy {
           totalLogs: importData.totalLogs,
           exportDate: importData.exportDate
         });
-        
+
         alert(`✅ Log file validated successfully!\n\nExport Date: ${importData.exportDate}\nTotal Logs: ${importData.totalLogs}\nChecksum: ${calculatedChecksum}`);
-        
+
         // Note: We don't actually import logs into the service since they're immutable
         // This is just for viewing/validation purposes
       } catch (error) {
@@ -219,7 +219,7 @@ export class LogsComponent implements OnInit, OnDestroy {
         input.value = '';
       }
     };
-    
+
     reader.readAsText(file);
   }
 
@@ -236,7 +236,7 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   toggleAutoRefresh(): void {
     this.autoRefresh = !this.autoRefresh;
-    
+
     if (this.autoRefresh) {
       this.autoRefreshInterval = window.setInterval(() => {
         this.loadLogs();

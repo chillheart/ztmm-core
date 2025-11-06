@@ -286,23 +286,23 @@ describe('LoggingService', () => {
       expect(logs.length).toBe(1);
 
       const logEntry = logs[0];
-      
+
       // Verify the log entry is frozen
       expect(Object.isFrozen(logEntry)).toBe(true);
-      
+
       // Attempt to modify properties should throw in strict mode (which Jasmine uses)
       expect(() => {
         (logEntry as any).message = 'Modified message';
       }).toThrowError(TypeError);
-      
+
       // Verify the message wasn't modified
       expect(logEntry.message).toBe('Test message');
-      
+
       // Verify we can't add new properties
       expect(() => {
         (logEntry as any).newProperty = 'new value';
       }).toThrowError(TypeError);
-      
+
       expect((logEntry as any).newProperty).toBeUndefined();
     });
 
@@ -311,11 +311,11 @@ describe('LoggingService', () => {
       service.info('Test 2');
 
       const logs = service.getLogs();
-      
+
       // TypeScript should prevent array modifications at compile time
       // At runtime, the array itself is not frozen, but entries are
       expect(logs.length).toBe(2);
-      
+
       // Verify each entry is frozen
       logs.forEach(log => {
         expect(Object.isFrozen(log)).toBe(true);

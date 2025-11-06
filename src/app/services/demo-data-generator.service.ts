@@ -1296,9 +1296,9 @@ export class DemoDataGeneratorService {
         }
       }
 
-      this.logger.info('V2 demo data generation completed', this.LOG_CONTEXT, { 
-        totalGroups, 
-        totalImplementations 
+      this.logger.info('V2 demo data generation completed', this.LOG_CONTEXT, {
+        totalGroups,
+        totalImplementations
       });
 
     } catch (error) {
