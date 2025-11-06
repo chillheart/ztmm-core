@@ -211,7 +211,7 @@ describe('Application Integration Tests', () => {
       const compiled = navbarFixture.nativeElement as HTMLElement;
       const navLinks = compiled.querySelectorAll('.nav-link');
 
-      expect(navLinks.length).toBe(3);
+      expect(navLinks.length).toBe(4);
 
       // All navigation links should be present and functional
       navLinks.forEach(link => {
