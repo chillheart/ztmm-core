@@ -338,7 +338,7 @@ export class AssessmentComponent implements OnInit {
 
   // Model: Build overall progress summary using data structures
   async buildOverallProgress(): Promise<void> {
-    this.overallProgress = [];
+    const newProgress: OverallPillarProgress[] = [];
 
     try {
       for (const pillar of this.pillars) {
@@ -372,7 +372,7 @@ export class AssessmentComponent implements OnInit {
         // Calculate progress based on achieved stages (not just fully implemented)
         const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-        this.overallProgress.push({
+        newProgress.push({
           pillar,
           totalItems,
           completedItems,
@@ -380,8 +380,12 @@ export class AssessmentComponent implements OnInit {
           functionCount: pillarFunctions.length
         });
       }
+
+      // Assign new array reference to trigger change detection
+      this.overallProgress = newProgress;
     } catch (error) {
       this.logger.error('Error building overall progress', error as Error, this.LOG_CONTEXT);
+      this.overallProgress = [];
     }
   }
 
@@ -476,6 +480,11 @@ export class AssessmentComponent implements OnInit {
 
       // Rebuild progress in background
       await this.buildOverallProgress();
+
+      // Also rebuild pillar summary if a pillar is selected
+      if (this.selectedPillarId) {
+        await this.buildPillarSummary();
+      }
     } catch (error) {
       this.logger.error('Error saving assessment', error as Error, this.LOG_CONTEXT);
       this.isAutoSaving = false;
@@ -642,13 +651,14 @@ export class AssessmentComponent implements OnInit {
 
   // Model: Build pillar summary using data
   async buildPillarSummary() {
-    this.pillarSummary = [];
+    const newSummary: PillarSummary[] = [];
 
     try {
       // Get all function capabilities for this pillar
       const filteredFunctionCapabilities = this.functionCapabilities.filter(fc => fc.pillar_id === this.selectedPillarId);
 
       if (filteredFunctionCapabilities.length === 0) {
+        this.pillarSummary = [];
         return;
       }
 
@@ -676,11 +686,11 @@ export class AssessmentComponent implements OnInit {
             completionPercentage: groups.length > 0 ? Math.round((completedCount / groups.length) * 100) : 0
           };
 
-          this.pillarSummary.push(summary);
+          newSummary.push(summary);
         } catch (fcError) {
           this.logger.error('Error processing function capability', fcError as Error, this.LOG_CONTEXT, { functionCapabilityId: fc.id });
           // Still add the function capability with 0 count to show it exists
-          this.pillarSummary.push({
+          newSummary.push({
             functionCapability: fc,
             totalCount: 0,
             completedCount: 0,
@@ -688,6 +698,9 @@ export class AssessmentComponent implements OnInit {
           });
         }
       }
+
+      // Assign new array reference to trigger change detection
+      this.pillarSummary = newSummary;
     } catch (error) {
       this.logger.error('Error building pillar summary', error as Error, this.LOG_CONTEXT);
       this.pillarSummary = [];
