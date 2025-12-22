@@ -2,6 +2,7 @@
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 12px;
   padding: 24px;
+  margin-bottom: 24px;
 }
 
 .maturity-stage-summary-card {
@@ -11,6 +12,9 @@
   border: 2px solid #e9ecef;
   transition: all 0.3s ease;
   height: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
 }
 
 .maturity-stage-summary-card.stage-completed {
@@ -36,6 +40,11 @@
 .stage-icon-header {
   text-align: center;
   margin-bottom: 16px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .stage-status-icon {
@@ -64,11 +73,16 @@
   font-weight: 600;
   margin: 0;
   color: #495057;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .stage-progress-info {
   text-align: center;
   margin-bottom: 16px;
+  flex: 1;
 }
 
 .completion-percentage {
@@ -80,12 +94,16 @@
 
 .completion-details {
   text-align: left;
+  min-height: 60px;
 }
 
 .implementation-breakdown {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  min-height: 80px;
 }
 
 .breakdown-item {
@@ -95,9 +113,9 @@
 }
 
 .breakdown-badge {
-  min-width: 24px;
-  height: 20px;
-  border-radius: 10px;
+  min-width: 28px;
+  height: 22px;
+  border-radius: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -120,6 +138,36 @@
 .maturity-stages-detail .card-header {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-bottom: 2px solid #dee2e6;
+  padding: 16px 20px;
+}
+
+.maturity-stages-detail .card-body {
+  padding: 0;
+}
+
+.table {
+  margin-bottom: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #495057;
+  vertical-align: middle;
+}
+
+.table tbody td {
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
 }
 
 .table tbody tr.status-completed {
@@ -140,44 +188,176 @@
 /* Consistent table column widths */
 .table th:nth-child(1),
 .table td:nth-child(1) {
-  width: 40%;
+  width: 50%;
   min-width: 200px;
 }
 
 .table th:nth-child(2),
 .table td:nth-child(2) {
-  width: 15%;
-  min-width: 100px;
+  width: 5%;
+  min-width: 80px;
+  text-align: center;
 }
 
 .table th:nth-child(3),
 .table td:nth-child(3) {
-  width: 20%;
-  min-width: 150px;
+  width: 5%;
+  min-width: 100px;
+  text-align: center;
 }
 
 .table th:nth-child(4),
 .table td:nth-child(4) {
-  width: 25%;
+  width: 40%;
   min-width: 150px;
 }
 
 /* Ensure Notes column has consistent height */
 .table td:nth-child(4) div {
-  min-height: 1.2em;
+  min-height: 1.5em;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  max-height: 4.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .small {
-  font-size: 0.775rem;
+  font-size: 0.825rem;
 }
 
 .badge {
   font-size: 0.75rem;
+  padding: 0.375rem 0.65rem;
 }
 
 .card-header .badge {
   font-size: 0.75rem;
   padding: 0.375rem 0.75rem;
+}
+
+.card {
+  margin-bottom: 24px;
+  border: 1px solid #dee2e6;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 16px 20px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* Print styles */
+@media print {
+  .maturity-progression-summary {
+    background: #f8f9fa !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+    page-break-inside: avoid;
+  }
+
+  .maturity-stage-summary-card {
+    min-height: 220px !important;
+    padding: 12px !important;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .stage-icon-header {
+    min-height: 60px;
+    margin-bottom: 8px;
+  }
+
+  .stage-status-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .completion-percentage {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .completion-details {
+    min-height: auto;
+  }
+
+  .implementation-breakdown {
+    min-height: auto;
+    padding-top: 8px;
+  }
+
+  .card {
+    margin-bottom: 16px !important;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+  }
+
+  .card-header {
+    background-color: #f8f9fa !important;
+    padding: 12px 16px !important;
+  }
+
+  .card-body {
+    padding: 16px !important;
+  }
+
+  .table {
+    page-break-inside: auto;
+  }
+
+  .table thead th {
+    background-color: #f8f9fa !important;
+    padding: 8px 12px !important;
+  }
+
+  .table tbody td {
+    padding: 8px 12px !important;
+  }
+
+  .table tbody tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .alert {
+    page-break-inside: avoid;
+    margin-bottom: 12px !important;
+  }
+
+  button,
+  .btn {
+    display: none !important;
+  }
+
+  // Ensure consistent column layout
+  .col-md-3 {
+    width: 25% !important;
+    max-width: 25% !important;
+    flex: 0 0 25% !important;
+  }
+
+  .col-sm-6 {
+    width: 50% !important;
+    max-width: 50% !important;
+    flex: 0 0 50% !important;
+  }
+
+  .row {
+    margin: 0 !important;
+  }
+
+  // Compact text in print
+  .table td:nth-child(4) div {
+    max-height: none;
+    font-size: 0.75rem;
+  }
+
+  .text-muted.small {
+    font-size: 0.7rem !important;
+  }
 }
