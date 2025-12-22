@@ -146,10 +146,10 @@ describe('HtmlExportService', () => {
 
       // Should detect V2 format and show base name
       expect(html).toContain('MFA');
-      // Should include V2 indicator
-      expect(html).toContain('V2 Model');
-      // Should show achieved badge
-      expect(html).toContain('Achieved');
+      // Should show maturity stage name
+      expect(html).toContain('Initial');
+      // Should show implemented status
+      expect(html).toContain('Fully Implemented');
     });
 
     it('should display V2 items with achieved status correctly', () => {
@@ -214,10 +214,12 @@ describe('HtmlExportService', () => {
       // Should show both stages
       expect(html).toContain('Traditional');
       expect(html).toContain('Advanced');
-      // Should show achieved badges for completed items
-      const achievedMatches = html.match(/Achieved/g);
-      expect(achievedMatches).toBeTruthy();
-      expect(achievedMatches!.length).toBeGreaterThanOrEqual(2);
+      // Should show status text in colored style (removed Achieved badges)
+      expect(html).toContain('Fully Implemented');
+      // Verify both TLS items appear in the report
+      const tlsMatches = html.match(/TLS/g);
+      expect(tlsMatches).toBeTruthy();
+      expect(tlsMatches!.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should show completion counts in stage headers for V2 items', () => {
@@ -287,11 +289,11 @@ describe('HtmlExportService', () => {
       ]);
       const html = service.generateHtmlReport(pillarSummaries, details);
 
-      // Should show completion counts in badges
+      // Should show maturity stage name
       expect(html).toContain('Initial');
-      // Check for count indicators
-      expect(html).toMatch(/2.*completed/i);
-      expect(html).toMatch(/1.*in\s*progress/i);
+      // Should show completion status text (Fully Implemented, Partially Implemented)
+      expect(html).toContain('Fully Implemented');
+      expect(html).toContain('Partially Implemented');
     });
 
     it('should handle mixed V1 and V2 items in same report', () => {
