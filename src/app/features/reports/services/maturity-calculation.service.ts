@@ -401,6 +401,32 @@ export class MaturityCalculationService {
     }
   }
 
+  /**
+   * Gets maturity stage text color for print-friendly display
+   */
+  getMaturityStageTextColor(stage: string): string {
+    switch (stage) {
+      case 'Traditional': return 'text-secondary';
+      case 'Initial': return 'text-warning';
+      case 'Advanced': return 'text-info';
+      case 'Optimal': return 'text-success';
+      default: return 'text-secondary';
+    }
+  }
+
+  /**
+   * Gets status color name for badge outline classes
+   */
+  getStatusColorName(status: string): string {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'in-progress': return 'warning';
+      case 'not-started': return 'danger';
+      case 'not-assessed': return 'secondary';
+      default: return 'secondary';
+    }
+  }
+
   // ============================================================================
   // V2 DATA MODEL METHODS
   // ============================================================================

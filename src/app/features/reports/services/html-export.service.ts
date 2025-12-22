@@ -53,8 +53,8 @@ export class HtmlExportService {
 
         .cover-page {
             height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            border: 3px solid #667eea;
+            color: #333;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -66,13 +66,12 @@ export class HtmlExportService {
         .cover-logo {
             width: 80px;
             height: 80px;
-            background: white;
+            border: 3px solid #667eea;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .cover-logo i {
@@ -84,17 +83,18 @@ export class HtmlExportService {
             font-size: 2.5rem;
             font-weight: 300;
             margin-bottom: 0.5rem;
+            color: #333;
         }
 
         .cover-subtitle {
             font-size: 1.1rem;
-            opacity: 0.9;
+            color: #666;
             margin-bottom: 2rem;
         }
 
         .cover-date {
             font-size: 1rem;
-            opacity: 0.8;
+            color: #666;
         }
 
         .section-page {
@@ -103,11 +103,11 @@ export class HtmlExportService {
         }
 
         .section-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #007bff;
+            border-left: 6px solid #007bff;
             padding: 1rem;
-            border-radius: 8px;
+            border-radius: 4px;
             margin-bottom: 1rem;
-            border-left: 4px solid #007bff;
         }
 
         .alert {
@@ -115,25 +115,27 @@ export class HtmlExportService {
             margin-bottom: 1rem;
             border: 1px solid transparent;
             border-radius: 0.375rem;
+            page-break-inside: avoid;
         }
 
         .alert-warning {
             color: #856404;
-            background-color: #fff3cd;
-            border-color: #ffeaa7;
+            border: 2px solid #ffc107;
+            background-color: transparent;
         }
 
         .card {
             border: 1px solid #dee2e6;
             border-radius: 0.375rem;
             margin-bottom: 1rem;
-            page-break-inside: avoid;
+            page-break-inside: auto;
         }
 
         .card-header {
             padding: 0.75rem;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 2px solid #dee2e6;
+            page-break-inside: avoid;
+            page-break-after: avoid;
         }
 
         .card-body {
@@ -143,6 +145,7 @@ export class HtmlExportService {
         .table {
             font-size: 0.9rem;
             margin-bottom: 0;
+            page-break-inside: auto;
         }
 
         .table th,
@@ -152,27 +155,95 @@ export class HtmlExportService {
             border-top: 1px solid #dee2e6;
         }
 
+        .table thead {
+            page-break-inside: avoid;
+            page-break-after: avoid;
+        }
+
+        .table tbody tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
         .badge {
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+        }
+
+        /* Print-friendly badge styles with borders instead of backgrounds */
+        .badge-outline-primary {
+            color: #007bff;
+            border: 1px solid #007bff;
+            background-color: transparent;
+        }
+        .badge-outline-success {
+            color: #28a745;
+            border: 1px solid #28a745;
+            background-color: transparent;
+        }
+        .badge-outline-warning {
+            color: #ffc107;
+            border: 1px solid #ffc107;
+            background-color: transparent;
+        }
+        .badge-outline-danger {
+            color: #dc3545;
+            border: 1px solid #dc3545;
+            background-color: transparent;
+        }
+        .badge-outline-info {
+            color: #17a2b8;
+            border: 1px solid #17a2b8;
+            background-color: transparent;
+        }
+        .badge-outline-secondary {
+            color: #6c757d;
+            border: 1px solid #6c757d;
+            background-color: transparent;
         }
 
         .text-primary { color: #007bff !important; }
+        .text-success { color: #28a745 !important; }
         .text-warning { color: #ffc107 !important; }
+        .text-danger { color: #dc3545 !important; }
+        .text-info { color: #17a2b8 !important; }
+        .text-secondary { color: #6c757d !important; }
         .text-muted { color: #6c757d !important; }
-        .bg-warning { background-color: #ffc107 !important; }
-        .bg-primary { background-color: #007bff !important; }
-        .bg-success { background-color: #28a745 !important; }
-        .bg-danger { background-color: #dc3545 !important; }
-        .bg-secondary { background-color: #6c757d !important; }
-        .bg-info { background-color: #17a2b8 !important; }
-        .text-white { color: #fff !important; }
         .text-dark { color: #212529 !important; }
 
         @media print {
-            body { font-size: 10px; }
-            .section-page { page-break-before: always; }
-            .card { page-break-inside: avoid; }
+            body {
+                font-size: 10px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .section-page {
+                page-break-before: always;
+            }
+            .card {
+                page-break-inside: auto;
+            }
+            .card-header {
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            .table {
+                page-break-inside: auto;
+            }
+            .table thead {
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            .table tbody tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            .alert {
+                page-break-inside: avoid;
+            }
         }
     `;
   }
@@ -196,56 +267,94 @@ export class HtmlExportService {
   }
 
   private generatePillarOverview(pillarSummaries: PillarSummary[]): string {
-    const pillarCards = pillarSummaries.map(pillar => `
-        <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="mb-1"><i class="bi bi-diagram-3-fill text-primary me-2"></i>${pillar.pillar.name}</h5>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge ${this.maturityCalc.getMaturityStageColor(pillar.overallMaturityStage)} text-white">
-                            ${pillar.overallMaturityStage}
-                        </span>
-                        ${pillar.hasSequentialMaturityGap ? `
-                        <span class="badge bg-warning text-dark">Potential: ${pillar.actualMaturityStage}</span>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="text-center">
-                        <div>Functions: ${pillar.functions.length}</div>
-                        <div>Assessment: ${pillar.assessmentPercentage}%</div>
-                    </div>
-                </div>
+    const pillarSections = pillarSummaries.map(pillar => {
+      const functionRows = pillar.functions.map(func => `
+        <tr>
+          <td>${func.functionCapability.name}</td>
+          <td class="text-center">
+            <span class="badge ${func.functionCapability.type === 'Function' ? 'badge-outline-primary' : 'badge-outline-info'}">
+              ${func.functionCapability.type}
+            </span>
+          </td>
+          <td class="text-center">
+            <strong class="${this.maturityCalc.getMaturityStageTextColor(func.overallMaturityStage)}">
+              ${func.overallMaturityStage}
+            </strong>
+          </td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-1">
+              <i class="bi bi-diagram-3-fill text-primary me-2"></i>${pillar.pillar.name}
+            </h5>
+            <div>
+              <strong class="${this.maturityCalc.getMaturityStageTextColor(pillar.overallMaturityStage)}">
+                Overall Maturity: ${pillar.overallMaturityStage}
+              </strong>
+              ${pillar.hasSequentialMaturityGap ? `
+                <span class="badge badge-outline-warning ms-2">Potential: ${pillar.actualMaturityStage}</span>
+              ` : ''}
             </div>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Function/Capability</th>
+                  <th class="text-center">Type</th>
+                  <th class="text-center">Current Maturity</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${functionRows}
+              </tbody>
+            </table>
+          </div>
         </div>
-    `).join('');
+      `;
+    }).join('');
 
     return `
     <div class="section-page">
         <div class="section-header">
             <h1><i class="bi bi-diagram-3-fill me-3"></i>Pillar Overview</h1>
+            <p class="mb-0 mt-2">Summary of all Zero Trust pillars, functions, and their current maturity levels</p>
         </div>
-        <div class="row">
-            ${pillarCards}
-        </div>
+        ${pillarSections}
     </div>`;
   }
 
   private generatePillarSection(pillarSummary: PillarSummary, allFunctionDetails: Map<number, DetailedAssessmentItem[]>): string {
-    const functionSections = pillarSummary.functions.map(func =>
-      this.generateFunctionSection(func, allFunctionDetails.get(func.functionCapability.id) || [])
-    ).join('');
+    // Generate the pillar header page with function summary
+    const functionRows = pillarSummary.functions.map(func => `
+      <tr>
+        <td>${func.functionCapability.name}</td>
+        <td class="text-center">
+          <span class="badge ${func.functionCapability.type === 'Function' ? 'badge-outline-primary' : 'badge-outline-info'}">
+            ${func.functionCapability.type}
+          </span>
+        </td>
+        <td class="text-center">
+          <strong class="${this.maturityCalc.getMaturityStageTextColor(func.overallMaturityStage)}">
+            ${func.overallMaturityStage}
+          </strong>
+        </td>
+      </tr>
+    `).join('');
 
-    return `
+    const pillarHeaderPage = `
     <div class="section-page">
         <div class="section-header">
             <h1><i class="bi bi-diagram-3-fill text-primary me-3"></i>${pillarSummary.pillar.name}</h1>
             <div class="d-flex gap-3 align-items-center mt-2">
-                <span class="badge ${this.maturityCalc.getMaturityStageColor(pillarSummary.overallMaturityStage)} text-white">
-                    Current: ${pillarSummary.overallMaturityStage}
-                </span>
+                <strong class="${this.maturityCalc.getMaturityStageTextColor(pillarSummary.overallMaturityStage)}">
+                    Current Maturity: ${pillarSummary.overallMaturityStage}
+                </strong>
                 ${pillarSummary.hasSequentialMaturityGap ? `
-                <span class="badge bg-warning text-dark">
+                <span class="badge badge-outline-warning">
                     Potential: ${pillarSummary.actualMaturityStage}
                 </span>
                 ` : ''}
@@ -263,8 +372,33 @@ export class HtmlExportService {
         </div>
         ` : ''}
 
-        ${functionSections}
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">Functions & Capabilities</h5>
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Function/Capability</th>
+                  <th class="text-center">Type</th>
+                  <th class="text-center">Current Maturity</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${functionRows}
+              </tbody>
+            </table>
+          </div>
+        </div>
     </div>`;
+
+    // Generate detailed sections for each function
+    const functionSections = pillarSummary.functions.map(func =>
+      this.generateFunctionSection(func, allFunctionDetails.get(func.functionCapability.id) || [])
+    ).join('');
+
+    return pillarHeaderPage + functionSections;
   }
 
   private generateFunctionSection(functionSummary: FunctionSummary, functionDetails: DetailedAssessmentItem[]): string {
@@ -278,14 +412,14 @@ export class HtmlExportService {
             <div class="card-header">
                 <h4 class="mb-1"><i class="bi bi-gear-fill text-primary me-2"></i>${functionSummary.functionCapability.name}</h4>
                 <div class="d-flex gap-3 align-items-center">
-                    <span class="badge ${functionSummary.functionCapability.type === 'Function' ? 'bg-primary' : 'bg-info'}">
+                    <span class="badge ${functionSummary.functionCapability.type === 'Function' ? 'badge-outline-primary' : 'badge-outline-info'}">
                         ${functionSummary.functionCapability.type}
                     </span>
-                    <span class="badge ${this.maturityCalc.getMaturityStageColor(functionSummary.overallMaturityStage)} text-white">
+                    <strong class="${this.maturityCalc.getMaturityStageTextColor(functionSummary.overallMaturityStage)}">
                         Current: ${functionSummary.overallMaturityStage}
-                    </span>
+                    </strong>
                     ${functionSummary.hasSequentialMaturityGap ? `
-                    <span class="badge bg-warning text-dark">Potential: ${functionSummary.actualMaturityStage}</span>
+                    <span class="badge badge-outline-warning">Potential: ${functionSummary.actualMaturityStage}</span>
                     ` : ''}
                 </div>
             </div>
@@ -318,32 +452,29 @@ export class HtmlExportService {
       // For V2, extract the base name (before the " - Stage" part)
       const displayName = isV2Format ? item.name.split(' - ')[0] : item.name;
 
+      // Get status text color
+      const getStatusColor = (status: string): string => {
+        switch (status) {
+          case 'Fully Implemented': return 'text-success';
+          case 'Partially Implemented': return 'text-warning';
+          case 'Not Implemented': return 'text-danger';
+          case 'Not Assessed': return 'text-secondary';
+          case 'Superseded': return 'text-info';
+          default: return 'text-secondary';
+        }
+      };
+
       return `
         <tr>
             <td>
                 <div class="fw-bold">${displayName}</div>
                 <div class="text-muted small">${item.description}</div>
-                ${isV2Format ? `
-                <div class="mt-1">
-                    <small class="text-primary">
-                        <i class="bi bi-info-circle me-1"></i>
-                        <strong>V2 Model:</strong> Stage-specific implementation
-                    </small>
-                </div>
-                ` : ''}
             </td>
             <td class="text-center">
-                <span class="badge ${item.type === 'Technology' ? 'bg-info' : 'bg-secondary'}">${item.type}</span>
+                <span class="badge ${item.type === 'Technology' ? 'badge-outline-info' : 'badge-outline-secondary'}">${item.type}</span>
             </td>
             <td class="text-center">
-                <span class="badge ${this.maturityCalc.getAssessmentStatusClass(item.status)}">${item.status}</span>
-                ${isV2Format && (item.status === 'Fully Implemented' || item.status === 'Partially Implemented') ? `
-                <div class="mt-1">
-                    <small class="badge bg-success" style="font-size: 0.65rem;">
-                        <i class="bi bi-check-circle me-1"></i>Achieved
-                    </small>
-                </div>
-                ` : ''}
+                <strong class="${getStatusColor(item.status)}">${item.status}</strong>
             </td>
             <td><small class="text-muted">${item.notes || 'No notes'}</small></td>
         </tr>
@@ -365,16 +496,16 @@ export class HtmlExportService {
                     ${breakdown.stageName} Stage
                 </h5>
                 <div class="d-flex gap-2 align-items-center">
-                    <span class="badge ${this.maturityCalc.getStatusClass(breakdown.status)}">
+                    <span class="badge badge-outline-${this.maturityCalc.getStatusColorName(breakdown.status)}">
                         ${breakdown.completionPercentage}% Complete
                     </span>
                     ${breakdown.completedItems > 0 ? `
-                    <span class="badge bg-success" title="Items fully implemented at this stage">
+                    <span class="badge badge-outline-success" title="Items fully implemented at this stage">
                         <i class="bi bi-check-circle-fill me-1"></i>${breakdown.completedItems} Completed
                     </span>
                     ` : ''}
                     ${breakdown.inProgressItems > 0 ? `
-                    <span class="badge bg-warning text-dark" title="Items partially implemented">
+                    <span class="badge badge-outline-warning" title="Items partially implemented">
                         <i class="bi bi-hourglass-split me-1"></i>${breakdown.inProgressItems} In Progress
                     </span>
                     ` : ''}
