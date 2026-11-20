@@ -277,7 +277,7 @@ export class AssessmentComponent implements OnInit {
   }
 
   // Method to go back to overall summary
-  goBackToOverallSummary(): void {
+  async goBackToOverallSummary(): Promise<void> {
     this.selectedPillarId = null;
     this.selectedFunctionCapabilityId = null;
     this.showOverallSummary = true;
@@ -285,55 +285,42 @@ export class AssessmentComponent implements OnInit {
     this.technologiesProcesses = [];
     this.assessmentStatuses = [];
     this.assessmentNotes = [];
+    await this.buildOverallProgress();
   }
 
   // Method to go back to pillar summary (from assessment overview)
-  goBackToPillarSummary(): void {
+  async goBackToPillarSummary(): Promise<void> {
     this.selectedFunctionCapabilityId = null;
     this.processTechnologyGroups = [];
     this.stageImplementations = [];
     this.assessments = [];
+    this.stageImplementationDetails = [];
+    await this.buildPillarSummary();
   }
 
-  // Build overall progress summary for all pillars (V2)
-  async buildOverallPillarProgress(): Promise<void> {
-    this.overallProgress = [];
-
-    try {
-      for (const pillar of this.pillars) {
-        const pillarFunctions = this.functionCapabilities.filter(fc => fc.pillar_id === pillar.id);
-        let totalItems = 0;
-        let completedItems = 0;
-
-        for (const func of pillarFunctions) {
-          try {
-            const techProcesses = await this.data.getTechnologiesProcessesByFunction(func.id);
-            totalItems += techProcesses.length;
-
-            // Count completed assessments for this function
-            const functionCompletedCount = techProcesses.filter(tp =>
-              this.assessmentResponses.some(ar => ar.tech_process_id === tp.id)
-            ).length;
-
-            completedItems += functionCompletedCount;
-          } catch (error) {
-            this.logger.error('Error loading tech processes for function', error as Error, this.LOG_CONTEXT, { functionId: func.id });
-          }
-        }
-
-        const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-
-        this.overallPillarProgress.push({
-          pillar,
-          totalItems,
-          completedItems,
-          progressPercentage,
-          functionCount: pillarFunctions.length
-        });
-      }
-    } catch (error) {
-      this.logger.error('Error building overall pillar progress', error as Error, this.LOG_CONTEXT);
+  /**
+   * A process/technology group is completed when every maturity stage defined
+   * for it has an answer (any status) recorded for its assessment.
+   */
+  private isGroupCompleted(
+    groupId: number,
+    assessments: Assessment[],
+    stageImpls: MaturityStageImplementation[],
+    details: StageImplementationDetail[]
+  ): boolean {
+    const assessment = assessments.find(a => a.process_technology_group_id === groupId);
+    if (!assessment) return false;
+    const stageIds = new Set(
+      stageImpls.filter(si => si.process_technology_group_id === groupId).map(si => si.maturity_stage_id)
+    );
+    if (stageIds.size === 0) return false;
+    const answered = new Set(
+      details.filter(d => d.assessment_id === assessment.id).map(d => d.maturity_stage_id)
+    );
+    for (const id of stageIds) {
+      if (!answered.has(id)) return false;
     }
+    return true;
   }
 
   // Model: Build overall progress summary using data structures
@@ -341,10 +328,17 @@ export class AssessmentComponent implements OnInit {
     const newProgress: OverallPillarProgress[] = [];
 
     try {
+      // Always compute from the full data set, not the per-function filtered view
+      const [allAssessments, allStageImpls, allDetails] = await Promise.all([
+        this.data.getAssessmentsV2(),
+        this.data.getMaturityStageImplementations(),
+        this.data.getStageImplementationDetails()
+      ]);
+
       for (const pillar of this.pillars) {
         const pillarFunctions = this.functionCapabilities.filter(fc => fc.pillar_id === pillar.id);
         let totalItems = 0;
-        let completedItems = 0; // Items with achieved stage > 0
+        let completedItems = 0; // Groups with every stage answered
 
         for (const func of pillarFunctions) {
           try {
@@ -354,22 +348,14 @@ export class AssessmentComponent implements OnInit {
             );
             totalItems += groupsInFunction.length;
 
-            // Count progress based on assessments
-            for (const group of groupsInFunction) {
-              const assessment = this.assessments.find(a => a.process_technology_group_id === group.id);
-              if (assessment) {
-                // Count as "completed" if any achieved stage
-                if (assessment.achieved_maturity_stage_id && assessment.achieved_maturity_stage_id > 0) {
-                  completedItems++;
-                }
-              }
-            }
+            completedItems += groupsInFunction.filter(group =>
+              this.isGroupCompleted(group.id, allAssessments, allStageImpls, allDetails)
+            ).length;
           } catch (error) {
             this.logger.error('Error loading groups for function', error as Error, this.LOG_CONTEXT, { functionId: func.id });
           }
         }
 
-        // Calculate progress based on achieved stages (not just fully implemented)
         const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
         newProgress.push({
@@ -430,6 +416,7 @@ export class AssessmentComponent implements OnInit {
 
     // Find or create assessment
     let assessment = this.assessments.find(a => a.process_technology_group_id === event.groupId);
+    const isNew = !assessment;
 
     if (assessment) {
       // Update existing
@@ -454,8 +441,8 @@ export class AssessmentComponent implements OnInit {
 
     // Save to database immediately
     try {
-      if (assessment.id && assessment.id > 1000000000000) {
-        // Has a real ID (not temporary), update
+      if (!isNew) {
+        // Existing assessment, update
         await this.data.updateAssessment(assessment);
       } else {
         // New assessment, add it
@@ -662,22 +649,25 @@ export class AssessmentComponent implements OnInit {
         return;
       }
 
-      // Load all data if not already loaded
       if (this.allProcessTechnologyGroups.length === 0) {
         this.allProcessTechnologyGroups = await this.data.getProcessTechnologyGroups();
-        this.assessments = await this.data.getAssessmentsV2();
       }
+      // Always compute from the full data set, not the per-function filtered view
+      const [allAssessments, allStageImpls, allDetails] = await Promise.all([
+        this.data.getAssessmentsV2(),
+        this.data.getMaturityStageImplementations(),
+        this.data.getStageImplementationDetails()
+      ]);
 
       for (const fc of filteredFunctionCapabilities) {
         try {
           // Get groups for this function capability
           const groups = this.allProcessTechnologyGroups.filter(ptg => ptg.function_capability_id === fc.id);
 
-          // Count completed assessments (achieved stage > 0)
-          const completedCount = groups.filter(group => {
-            const assessment = this.assessments.find(a => a.process_technology_group_id === group.id);
-            return assessment && assessment.achieved_maturity_stage_id > 0;
-          }).length;
+          // Count groups where every stage has been answered
+          const completedCount = groups.filter(group =>
+            this.isGroupCompleted(group.id, allAssessments, allStageImpls, allDetails)
+          ).length;
 
           const summary = {
             functionCapability: fc,
