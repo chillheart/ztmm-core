@@ -383,6 +383,100 @@ describe('AssessmentComponent', () => {
     expect(component.getCurrentProgress()).toBe(50);
   });
 
+  describe('overall progress (completed groups)', () => {
+    const groups: any[] = [
+      { id: 10, name: 'G10', function_capability_id: 1 },
+      { id: 11, name: 'G11', function_capability_id: 1 },
+      { id: 20, name: 'G20', function_capability_id: 2 }
+    ];
+    const impls: any[] = [10, 11, 20].flatMap(g => [1, 2].map(st => ({
+      id: g * 10 + st, process_technology_group_id: g, maturity_stage_id: st, description: '', order_index: st
+    })));
+    const detail = (id: number, a: number, st: number, status = 'Not Started') =>
+      ({ id, assessment_id: a, maturity_stage_id: st, status, completion_percentage: 0 });
+
+    beforeEach(() => {
+      component.pillars = [...mockPillars];
+      component.functionCapabilities = [...mockFunctionCapabilities];
+      component.allProcessTechnologyGroups = groups;
+      mockDataService.getMaturityStageImplementations.and.returnValue(Promise.resolve(impls));
+    });
+
+    function setData(assessments: any[], details: any[]) {
+      mockDataService.getAssessmentsV2.and.returnValue(Promise.resolve(assessments));
+      mockDataService.getStageImplementationDetails.and.returnValue(Promise.resolve(details as any));
+    }
+
+    it('counts a group only when every stage is answered, regardless of maturity value', async () => {
+      setData(
+        [
+          { id: 1, process_technology_group_id: 10, achieved_maturity_stage_id: 0 },
+          { id: 2, process_technology_group_id: 11, achieved_maturity_stage_id: 0 }
+        ],
+        [detail(1, 1, 1), detail(2, 1, 2), detail(3, 2, 1)]
+      );
+      await component.buildOverallProgress();
+      const identity = component.overallProgress.find(p => p.pillar.id === 1)!;
+      expect(identity.totalItems).toBe(2);
+      expect(identity.completedItems).toBe(1);
+      expect(identity.progressPercentage).toBe(50);
+    });
+
+    it('does not count a group with a Fully Implemented stage but unanswered stages', async () => {
+      setData(
+        [{ id: 1, process_technology_group_id: 10, achieved_maturity_stage_id: 1 }],
+        [detail(1, 1, 1, 'Completed')]
+      );
+      await component.buildOverallProgress();
+      expect(component.overallProgress.find(p => p.pillar.id === 1)!.completedItems).toBe(0);
+    });
+
+    it('keeps other functions counted after drilling into one function', async () => {
+      setData(
+        [
+          { id: 1, process_technology_group_id: 10, achieved_maturity_stage_id: 0 },
+          { id: 3, process_technology_group_id: 20, achieved_maturity_stage_id: 0 }
+        ],
+        [detail(1, 1, 1), detail(2, 1, 2), detail(5, 3, 1), detail(6, 3, 2)]
+      );
+      component.selectedFunctionCapabilityId = 1;
+      await component.onFunctionCapabilityChange();
+      await component.buildOverallProgress();
+      expect(component.overallProgress.find(p => p.pillar.id === 1)!.completedItems).toBe(1);
+      expect(component.overallProgress.find(p => p.pillar.id === 2)!.completedItems).toBe(1);
+    });
+
+    it('rebuilds pillar summary from full data when going back to the pillar summary', async () => {
+      setData(
+        [{ id: 1, process_technology_group_id: 10, achieved_maturity_stage_id: 0 }],
+        [detail(1, 1, 1), detail(2, 1, 2)]
+      );
+      component.selectedPillarId = 1;
+      await component.goBackToPillarSummary();
+      expect(component.pillarSummary[0].completedCount).toBe(1);
+      expect(component.pillarSummary[0].totalCount).toBe(2);
+    });
+
+    it('adds a new assessment and rebuilds progress on update', async () => {
+      setData([], []);
+      mockDataService.addAssessment = jasmine.createSpy('addAssessment').and.returnValue(Promise.resolve(99));
+      mockDataService.addStageImplementationDetail = jasmine.createSpy('addDetail').and.returnValue(Promise.resolve(1));
+      component.assessments = [];
+      component.stageImplementationDetails = [];
+      spyOn(component, 'buildOverallProgress').and.callThrough();
+      await component.onAssessmentUpdate({
+        groupId: 10,
+        update: {
+          achieved_maturity_stage_id: 0, target_maturity_stage_id: 1, implementation_status: 'Not Implemented',
+          notes: '', assessed_stages_count: 1, total_stages_count: 2, stageDetails: new Map([[1, 'Not Implemented']])
+        } as any
+      });
+      expect(mockDataService.addAssessment).toHaveBeenCalled();
+      expect(component.assessments[0].id).toBe(99);
+      expect(component.buildOverallProgress).toHaveBeenCalled();
+    });
+  });
+
   // Note: Legacy V1 auto-save tests removed - V2 uses immediate auto-save in onV2AssessmentUpdate
   // See v2-assessment-item.component.spec.ts for V2 assessment tests
 });
